@@ -4,12 +4,13 @@ import { cn } from "@/lib/utils";
 import { localizePath, switchLocaleHref, useLocale, type Locale } from "./index";
 
 type StaticPath = "/" | "/photography" | "/ai-worlds" | "/about";
-type SlugPath = "/photography/$slug" | "/ai-worlds/$slug";
+type SlugPath = "/photography/$slug" | "/photography/albums/$slug" | "/ai-worlds/$slug";
 
 type Props = {
   className?: string;
   children?: ReactNode;
   onClick?: () => void;
+  search?: Record<string, string | undefined>;
   "aria-label"?: string;
   /** Classes applied when the link matches the current page. */
   activeClassName?: string;

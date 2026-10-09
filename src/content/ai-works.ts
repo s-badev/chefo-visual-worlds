@@ -19,6 +19,18 @@ export const AI_CATEGORIES = [
   "Забавни колажи",
 ] as const;
 export const AI_TOOLS = ["ChatGPT Image Generation", "Grok", "Other"] as const;
+export const AI_ROLES = ["ruler", "explorer"] as const;
+export const AI_ERAS = ["medieval", "renaissance", "1960s"] as const;
+export const AI_SETTINGS = [
+  "throne-hall",
+  "underwater-kingdom",
+  "portrait-backdrop",
+  "alien-desert",
+  "black-sea-beach",
+] as const;
+export type AiRole = (typeof AI_ROLES)[number];
+export type AiEra = (typeof AI_ERAS)[number];
+export type AiSetting = (typeof AI_SETTINGS)[number];
 
 export interface AiImage {
   src: string;
@@ -38,6 +50,10 @@ export interface AiWork {
   tool: (typeof AI_TOOLS)[number];
   date: string;
   category: (typeof AI_CATEGORIES)[number];
+  /** Additional facets for completed artworks only; omit values that are not supported by the work. */
+  role?: AiRole;
+  era?: AiEra;
+  setting?: AiSetting;
   references: AiImage[]; // TODO: your real source photos
   variants: AiImage[]; // TODO: other images from the same series
   /** English version; missing fields fall back to Bulgarian. */
@@ -61,6 +77,9 @@ export const aiWorks: AiWork[] = [
     tool: "ChatGPT Image Generation",
     date: "2025-09-12",
     category: "Средновековие",
+    role: "ruler",
+    era: "medieval",
+    setting: "throne-hall",
     references: [selfRef],
     variants: [
       { src: knightHorse, alt: "Рицар на кон на бойно поле при изгрев", caption: "На зазоряване", en: { alt: "A knight on horseback on a battlefield at sunrise", caption: "At dawn" } },
@@ -83,6 +102,8 @@ export const aiWorks: AiWork[] = [
     tool: "Grok",
     date: "2025-08-20",
     category: "Фантастика",
+    role: "ruler",
+    setting: "underwater-kingdom",
     references: [selfRef, { src: nesebarCoast, alt: "Морето край Несебър", caption: "Вдъхновение: морето", en: { alt: "The sea near Nesebar", caption: "Inspiration: the sea" } }],
     variants: [{ src: seaKing, alt: "Морският владетел", caption: "Основен кадър", en: { alt: "The sea ruler", caption: "Main image" } }],
     en: {
@@ -102,6 +123,8 @@ export const aiWorks: AiWork[] = [
     tool: "ChatGPT Image Generation",
     date: "2025-06-03",
     category: "Исторически образи",
+    era: "renaissance",
+    setting: "portrait-backdrop",
     references: [selfRef],
     variants: [{ src: renaissance, alt: "Ренесансов портрет", caption: "Финална версия", en: { alt: "Renaissance portrait", caption: "Final version" } }],
     en: {
@@ -121,6 +144,8 @@ export const aiWorks: AiWork[] = [
     tool: "Grok",
     date: "2025-10-01",
     category: "Кино визии",
+    role: "explorer",
+    setting: "alien-desert",
     references: [selfRef],
     variants: [{ src: future, alt: "Космическият изследовател", caption: "Основен кадър", en: { alt: "The space explorer", caption: "Main image" } }],
     en: {
@@ -140,6 +165,8 @@ export const aiWorks: AiWork[] = [
     tool: "Other",
     date: "2025-07-15",
     category: "Забавни колажи",
+    era: "1960s",
+    setting: "black-sea-beach",
     references: [selfRef, { src: sunnySunset, alt: "Плажът на Слънчев бряг", caption: "Снимка от плажа", en: { alt: "The beach at Sunny Beach", caption: "Photo from the beach" } }],
     variants: [{ src: summer, alt: "Летен колаж", caption: "Основен колаж", en: { alt: "Summer collage", caption: "Main collage" } }],
     en: {
@@ -151,6 +178,53 @@ export const aiWorks: AiWork[] = [
 ];
 
 export const getAiWork = (slug: string) => aiWorks.find((w) => w.slug === slug);
+
+export interface AiFilters {
+  category?: string | undefined;
+  role?: string | undefined;
+  era?: string | undefined;
+  setting?: string | undefined;
+  tool?: string | undefined;
+}
+
+export const filterAiWorks = (items: AiWork[], filters: AiFilters) =>
+  items.filter(
+    (work) =>
+      (!filters.category || work.category === filters.category) &&
+      (!filters.role || work.role === filters.role) &&
+      (!filters.era || work.era === filters.era) &&
+      (!filters.setting || work.setting === filters.setting) &&
+      (!filters.tool || work.tool === filters.tool),
+  );
+
+/** Filter options are drawn exclusively from completed portfolio works. */
+export const getAiFilterOptions = () => ({
+  categories: AI_CATEGORIES.filter((value) => aiWorks.some((work) => work.category === value)),
+  roles: AI_ROLES.filter((value) => aiWorks.some((work) => work.role === value)),
+  eras: AI_ERAS.filter((value) => aiWorks.some((work) => work.era === value)),
+  settings: AI_SETTINGS.filter((value) => aiWorks.some((work) => work.setting === value)),
+  tools: AI_TOOLS.filter((value) => aiWorks.some((work) => work.tool === value)),
+});
+
+const ROLE_LABELS: Record<AiRole, { bg: string; en: string }> = {
+  ruler: { bg: "Владетел", en: "Ruler" },
+  explorer: { bg: "Изследовател", en: "Explorer" },
+};
+const ERA_LABELS: Record<AiEra, { bg: string; en: string }> = {
+  medieval: { bg: "Средновековие", en: "Medieval" },
+  renaissance: { bg: "Ренесанс", en: "Renaissance" },
+  "1960s": { bg: "60-те години", en: "1960s" },
+};
+const SETTING_LABELS: Record<AiSetting, { bg: string; en: string }> = {
+  "throne-hall": { bg: "Тронна зала", en: "Throne hall" },
+  "underwater-kingdom": { bg: "Подводно кралство", en: "Underwater kingdom" },
+  "portrait-backdrop": { bg: "Портретен фон", en: "Portrait backdrop" },
+  "alien-desert": { bg: "Извънземна пустиня", en: "Alien desert" },
+  "black-sea-beach": { bg: "Черноморски плаж", en: "Black Sea beach" },
+};
+export const aiRoleLabel = (value: AiRole, locale: Locale) => ROLE_LABELS[value][locale];
+export const aiEraLabel = (value: AiEra, locale: Locale) => ERA_LABELS[value][locale];
+export const aiSettingLabel = (value: AiSetting, locale: Locale) => SETTING_LABELS[value][locale];
 
 const CATEGORY_EN: Record<string, string> = {
   Средновековие: "Medieval",

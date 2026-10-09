@@ -11,7 +11,8 @@ describe("i18n", () => {
   });
   it("switching keeps page, item and filters", () => {
     expect(switchLocaleHref("/ai-worlds/renesansov-portret", "?tool=Grok", "en")).toBe("/en/ai-worlds/renesansov-portret?tool=Grok");
-    expect(switchLocaleHref("/en/photography", "?category=Море", "bg")).toBe("/photography?category=Море");
+    expect(switchLocaleHref("/en/photography", "?view=photos&theme=sea&location=nessebar", "bg")).toBe("/photography?view=photos&theme=sea&location=nessebar");
+    expect(switchLocaleHref("/ai-worlds", "?role=ruler&tool=Grok", "en")).toBe("/en/ai-worlds?role=ruler&tool=Grok");
     expect(switchLocaleHref("/", "", "en")).toBe("/en");
     expect(toBgPath("/en")).toBe("/");
   });

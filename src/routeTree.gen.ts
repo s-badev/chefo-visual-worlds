@@ -21,6 +21,8 @@ import { Route as EnAiWorldsIndexRouteImport } from './routes/en.ai-worlds.index
 import { Route as EnAiWorldsSlugRouteImport } from './routes/en.ai-worlds.$slug'
 import { Route as EnPhotographyIndexRouteImport } from './routes/en.photography.index'
 import { Route as EnPhotographySlugRouteImport } from './routes/en.photography.$slug'
+import { Route as PhotographyAlbumsSlugRouteImport } from './routes/photography.albums.$slug'
+import { Route as EnPhotographyAlbumsSlugRouteImport } from './routes/en.photography.albums.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +84,16 @@ const EnPhotographySlugRoute = EnPhotographySlugRouteImport.update({
   path: '/en/photography/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotographyAlbumsSlugRoute = PhotographyAlbumsSlugRouteImport.update({
+  id: '/photography/albums/$slug',
+  path: '/photography/albums/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnPhotographyAlbumsSlugRoute = EnPhotographyAlbumsSlugRouteImport.update({
+  id: '/en/photography/albums/$slug',
+  path: '/en/photography/albums/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,8 +106,10 @@ export interface FileRoutesByFullPath {
   '/photography/': typeof PhotographyIndexRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds/': typeof EnAiWorldsIndexRoute
   '/en/photography/': typeof EnPhotographyIndexRoute
+  '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,8 +122,10 @@ export interface FileRoutesByTo {
   '/photography': typeof PhotographyIndexRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds': typeof EnAiWorldsIndexRoute
   '/en/photography': typeof EnPhotographyIndexRoute
+  '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,8 +139,10 @@ export interface FileRoutesById {
   '/photography/': typeof PhotographyIndexRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds/': typeof EnAiWorldsIndexRoute
   '/en/photography/': typeof EnPhotographyIndexRoute
+  '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,8 +157,10 @@ export interface FileRouteTypes {
     | '/photography/'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/photography/albums/$slug'
     | '/en/ai-worlds/'
     | '/en/photography/'
+    | '/en/photography/albums/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,8 +173,10 @@ export interface FileRouteTypes {
     | '/photography'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/photography/albums/$slug'
     | '/en/ai-worlds'
     | '/en/photography'
+    | '/en/photography/albums/$slug'
   id:
     | '__root__'
     | '/'
@@ -167,8 +189,10 @@ export interface FileRouteTypes {
     | '/photography/'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/photography/albums/$slug'
     | '/en/ai-worlds/'
     | '/en/photography/'
+    | '/en/photography/albums/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,8 +206,10 @@ export interface RootRouteChildren {
   PhotographyIndexRoute: typeof PhotographyIndexRoute
   EnAiWorldsSlugRoute: typeof EnAiWorldsSlugRoute
   EnPhotographySlugRoute: typeof EnPhotographySlugRoute
+  PhotographyAlbumsSlugRoute: typeof PhotographyAlbumsSlugRoute
   EnAiWorldsIndexRoute: typeof EnAiWorldsIndexRoute
   EnPhotographyIndexRoute: typeof EnPhotographyIndexRoute
+  EnPhotographyAlbumsSlugRoute: typeof EnPhotographyAlbumsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +298,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnPhotographySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photography/albums/$slug': {
+      id: '/photography/albums/$slug'
+      path: '/photography/albums/$slug'
+      fullPath: '/photography/albums/$slug'
+      preLoaderRoute: typeof PhotographyAlbumsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/photography/albums/$slug': {
+      id: '/en/photography/albums/$slug'
+      path: '/en/photography/albums/$slug'
+      fullPath: '/en/photography/albums/$slug'
+      preLoaderRoute: typeof EnPhotographyAlbumsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -286,8 +326,10 @@ const rootRouteChildren: RootRouteChildren = {
   PhotographyIndexRoute: PhotographyIndexRoute,
   EnAiWorldsSlugRoute: EnAiWorldsSlugRoute,
   EnPhotographySlugRoute: EnPhotographySlugRoute,
+  PhotographyAlbumsSlugRoute: PhotographyAlbumsSlugRoute,
   EnAiWorldsIndexRoute: EnAiWorldsIndexRoute,
   EnPhotographyIndexRoute: EnPhotographyIndexRoute,
+  EnPhotographyAlbumsSlugRoute: EnPhotographyAlbumsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

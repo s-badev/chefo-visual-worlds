@@ -4,7 +4,8 @@ A bilingual photography and AI visual storytelling portfolio. The site presents 
 
 ## Features
 
-- Photography and AI artwork galleries with category filters and individual detail pages.
+- Ten destination photography albums, including previews for locations awaiting photos, and an All Photos view with combinable theme and destination filters.
+- AI artwork detail pages with theme, role, era, setting, and tool filters; planned AI concepts are presented separately from completed works.
 - A photo lightbox, AI prompts and variations, and an About page with a real/AI portrait toggle.
 - Bulgarian and English content, navigation, metadata, and language switching.
 - Responsive layout with accessible controls and reduced-motion support.
@@ -49,4 +50,4 @@ The build writes production output to `.output/`. To preview it locally, run `np
 | `public/` | Static files, including the favicon. |
 | `src/test/` | Vitest tests. |
 
-Portfolio items are edited in `src/content/photos.ts` and `src/content/ai-works.ts`. The contact email and portrait sources live in `src/content/site-config.ts`.
+Portfolio items are edited in `src/content/photos.ts` and `src/content/ai-works.ts`. Photography album order, covers, and photo associations live in `src/content/albums.ts`; All Photos selection lives in `src/content/photo-gallery.ts`. Planned AI ideas live separately in `src/content/ai-concepts.ts`. The contact email and portrait sources live in `src/content/site-config.ts`. Manual photo instructions and a future persistent album management model are outlined in `docs/album-management.md`.

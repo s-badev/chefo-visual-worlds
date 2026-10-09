@@ -80,7 +80,7 @@ export function SiteHeader() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
         <Wordmark className="text-base md:text-lg" />
-        <nav aria-label={t.nav.main} className="hidden md:flex md:items-center md:gap-10">
+        <nav aria-label={t.nav.main} className="hidden lg:flex lg:items-center lg:gap-10">
           <ul className="flex gap-10">
             {NAV.map((n) => (
               <li key={n.to}>
@@ -97,7 +97,7 @@ export function SiteHeader() {
           <LanguageSwitcher label={t.nav.language} />
         </nav>
         <button
-          className="md:hidden p-2"
+          className="p-2 lg:hidden"
           aria-label={open ? t.nav.close : t.nav.open}
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
@@ -106,7 +106,7 @@ export function SiteHeader() {
         </button>
       </div>
       {open && (
-        <nav aria-label={t.nav.mobile} className="border-t border-navy-border md:hidden">
+        <nav aria-label={t.nav.mobile} className="border-t border-navy-border lg:hidden">
           <ul className="flex flex-col px-5 py-4">
             {NAV.map((n) => (
               <li key={n.to}>
@@ -212,7 +212,7 @@ export function EmptyState({ text, onClear, dark }: { text: string; onClear: () 
 }
 
 /** Expects a photo already localized with localizePhoto(). */
-export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen }: { photo: Photo; ratio?: string; onOpen?: () => void }) {
+export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen, themeLabel }: { photo: Photo; ratio?: string; onOpen?: () => void; themeLabel?: string }) {
   const { t, locale } = useT();
   const img = (
     <div className={cn("relative overflow-hidden rounded-md bg-muted shadow-soft", ratio)}>
@@ -229,7 +229,7 @@ export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen }: { photo: Ph
   );
   const meta = (
     <div className="mt-3 space-y-1">
-      <p className="eyebrow text-terracotta">{photoCategoryLabel(photo.category, locale)}</p>
+      <p className="eyebrow text-terracotta">{themeLabel ?? photoCategoryLabel(photo.category, locale)}</p>
       <p className="font-serif text-xl leading-tight">{photo.location}</p>
       <p className="text-sm text-muted-foreground">{photo.caption ?? photo.title}</p>
     </div>
@@ -295,6 +295,8 @@ export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: num
   const open = index !== null && items[index] !== undefined;
   const item = open ? items[index!] : null;
   const { t } = useT();
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
   const go = (d: number) => index !== null && onIndex((index + d + items.length) % items.length);
 
   useEffect(() => {
@@ -311,18 +313,35 @@ export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: num
     <Dialog.Root open={open} onOpenChange={(o) => !o && onIndex(null)}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95" />
-        <Dialog.Content className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none md:p-10">
+        <Dialog.Content
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none md:p-10"
+          onOpenAutoFocus={() => { returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
+          onCloseAutoFocus={(event) => {
+            if (returnFocus.current?.isConnected) { event.preventDefault(); returnFocus.current.focus(); }
+          }}
+          onTouchStart={(event) => { touchStart.current = { x: event.touches[0]!.clientX, y: event.touches[0]!.clientY }; }}
+          onTouchEnd={(event) => {
+            if (!touchStart.current) return;
+            const dx = event.changedTouches[0]!.clientX - touchStart.current.x;
+            const dy = event.changedTouches[0]!.clientY - touchStart.current.y;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.3) go(dx < 0 ? 1 : -1);
+            touchStart.current = null;
+          }}
+        >
           {item && (
             <>
               <Dialog.Title className="sr-only">{item.title}</Dialog.Title>
               <Dialog.Description className="sr-only">{item.alt}</Dialog.Description>
-              <img src={item.image} alt={item.alt} className="max-h-[78vh] max-w-full rounded-md object-contain" />
+              <img src={item.image} alt={item.alt} width={item.width} height={item.height} className="max-h-[78vh] max-w-full rounded-md object-contain" />
               <div className="mt-4 text-center">
                 <p className="font-serif text-2xl">{item.title}</p>
+                {item.caption && <p className="mt-1 text-sm text-navy-foreground/80">{item.caption}</p>}
                 <p className="eyebrow mt-1 text-gold">{item.location} · {index! + 1} / {items.length}</p>
               </div>
-              <button onClick={() => go(-1)} aria-label={t.lightbox.prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/60 p-3 hover:border-gold md:left-6"><ChevronLeft className="size-5" /></button>
-              <button onClick={() => go(1)} aria-label={t.lightbox.next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/60 p-3 hover:border-gold md:right-6"><ChevronRight className="size-5" /></button>
+              {items.length > 1 && <>
+                <button type="button" onClick={() => go(-1)} aria-label={t.lightbox.prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 hover:border-gold md:left-6"><ChevronLeft className="size-5" /></button>
+                <button type="button" onClick={() => go(1)} aria-label={t.lightbox.next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 hover:border-gold md:right-6"><ChevronRight className="size-5" /></button>
+              </>}
               <Dialog.Close aria-label={t.lightbox.close} className="absolute right-4 top-4 rounded-full border border-navy-border p-2 hover:border-gold"><X className="size-5" /></Dialog.Close>
             </>
           )}
