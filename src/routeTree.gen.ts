@@ -17,11 +17,15 @@ import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as EnAboutRouteImport } from './routes/en.about'
 import { Route as PhotographyIndexRouteImport } from './routes/photography.index'
 import { Route as PhotographySlugRouteImport } from './routes/photography.$slug'
+import { Route as PhotographyEdirneRouteImport } from './routes/photography.edirne'
+import { Route as AiWorldsCollectionsSlugRouteImport } from './routes/ai-worlds.collections.$slug'
 import { Route as EnAiWorldsIndexRouteImport } from './routes/en.ai-worlds.index'
 import { Route as EnAiWorldsSlugRouteImport } from './routes/en.ai-worlds.$slug'
 import { Route as EnPhotographyIndexRouteImport } from './routes/en.photography.index'
 import { Route as EnPhotographySlugRouteImport } from './routes/en.photography.$slug'
+import { Route as EnPhotographyEdirneRouteImport } from './routes/en.photography.edirne'
 import { Route as PhotographyAlbumsSlugRouteImport } from './routes/photography.albums.$slug'
+import { Route as EnAiWorldsCollectionsSlugRouteImport } from './routes/en.ai-worlds.collections.$slug'
 import { Route as EnPhotographyAlbumsSlugRouteImport } from './routes/en.photography.albums.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -64,6 +68,16 @@ const PhotographySlugRoute = PhotographySlugRouteImport.update({
   path: '/photography/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotographyEdirneRoute = PhotographyEdirneRouteImport.update({
+  id: '/photography/edirne',
+  path: '/photography/edirne',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiWorldsCollectionsSlugRoute = AiWorldsCollectionsSlugRouteImport.update({
+  id: '/ai-worlds/collections/$slug',
+  path: '/ai-worlds/collections/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EnAiWorldsIndexRoute = EnAiWorldsIndexRouteImport.update({
   id: '/en/ai-worlds/',
   path: '/en/ai-worlds/',
@@ -84,11 +98,22 @@ const EnPhotographySlugRoute = EnPhotographySlugRouteImport.update({
   path: '/en/photography/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnPhotographyEdirneRoute = EnPhotographyEdirneRouteImport.update({
+  id: '/en/photography/edirne',
+  path: '/en/photography/edirne',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PhotographyAlbumsSlugRoute = PhotographyAlbumsSlugRouteImport.update({
   id: '/photography/albums/$slug',
   path: '/photography/albums/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnAiWorldsCollectionsSlugRoute =
+  EnAiWorldsCollectionsSlugRouteImport.update({
+    id: '/en/ai-worlds/collections/$slug',
+    path: '/en/ai-worlds/collections/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EnPhotographyAlbumsSlugRoute = EnPhotographyAlbumsSlugRouteImport.update({
   id: '/en/photography/albums/$slug',
   path: '/en/photography/albums/$slug',
@@ -101,14 +126,18 @@ export interface FileRoutesByFullPath {
   '/ai-worlds/$slug': typeof AiWorldsSlugRoute
   '/en/about': typeof EnAboutRoute
   '/photography/$slug': typeof PhotographySlugRoute
+  '/photography/edirne': typeof PhotographyEdirneRoute
   '/ai-worlds/': typeof AiWorldsIndexRoute
   '/en/': typeof EnIndexRoute
   '/photography/': typeof PhotographyIndexRoute
+  '/ai-worlds/collections/$slug': typeof AiWorldsCollectionsSlugRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/en/photography/edirne': typeof EnPhotographyEdirneRoute
   '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds/': typeof EnAiWorldsIndexRoute
   '/en/photography/': typeof EnPhotographyIndexRoute
+  '/en/ai-worlds/collections/$slug': typeof EnAiWorldsCollectionsSlugRoute
   '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRoutesByTo {
@@ -117,14 +146,18 @@ export interface FileRoutesByTo {
   '/ai-worlds/$slug': typeof AiWorldsSlugRoute
   '/en/about': typeof EnAboutRoute
   '/photography/$slug': typeof PhotographySlugRoute
+  '/photography/edirne': typeof PhotographyEdirneRoute
   '/ai-worlds': typeof AiWorldsIndexRoute
   '/en': typeof EnIndexRoute
   '/photography': typeof PhotographyIndexRoute
+  '/ai-worlds/collections/$slug': typeof AiWorldsCollectionsSlugRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/en/photography/edirne': typeof EnPhotographyEdirneRoute
   '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds': typeof EnAiWorldsIndexRoute
   '/en/photography': typeof EnPhotographyIndexRoute
+  '/en/ai-worlds/collections/$slug': typeof EnAiWorldsCollectionsSlugRoute
   '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRoutesById {
@@ -134,14 +167,18 @@ export interface FileRoutesById {
   '/ai-worlds/$slug': typeof AiWorldsSlugRoute
   '/en/about': typeof EnAboutRoute
   '/photography/$slug': typeof PhotographySlugRoute
+  '/photography/edirne': typeof PhotographyEdirneRoute
   '/ai-worlds/': typeof AiWorldsIndexRoute
   '/en/': typeof EnIndexRoute
   '/photography/': typeof PhotographyIndexRoute
+  '/ai-worlds/collections/$slug': typeof AiWorldsCollectionsSlugRoute
   '/en/ai-worlds/$slug': typeof EnAiWorldsSlugRoute
   '/en/photography/$slug': typeof EnPhotographySlugRoute
+  '/en/photography/edirne': typeof EnPhotographyEdirneRoute
   '/photography/albums/$slug': typeof PhotographyAlbumsSlugRoute
   '/en/ai-worlds/': typeof EnAiWorldsIndexRoute
   '/en/photography/': typeof EnPhotographyIndexRoute
+  '/en/ai-worlds/collections/$slug': typeof EnAiWorldsCollectionsSlugRoute
   '/en/photography/albums/$slug': typeof EnPhotographyAlbumsSlugRoute
 }
 export interface FileRouteTypes {
@@ -152,14 +189,18 @@ export interface FileRouteTypes {
     | '/ai-worlds/$slug'
     | '/en/about'
     | '/photography/$slug'
+    | '/photography/edirne'
     | '/ai-worlds/'
     | '/en/'
     | '/photography/'
+    | '/ai-worlds/collections/$slug'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/en/photography/edirne'
     | '/photography/albums/$slug'
     | '/en/ai-worlds/'
     | '/en/photography/'
+    | '/en/ai-worlds/collections/$slug'
     | '/en/photography/albums/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -168,14 +209,18 @@ export interface FileRouteTypes {
     | '/ai-worlds/$slug'
     | '/en/about'
     | '/photography/$slug'
+    | '/photography/edirne'
     | '/ai-worlds'
     | '/en'
     | '/photography'
+    | '/ai-worlds/collections/$slug'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/en/photography/edirne'
     | '/photography/albums/$slug'
     | '/en/ai-worlds'
     | '/en/photography'
+    | '/en/ai-worlds/collections/$slug'
     | '/en/photography/albums/$slug'
   id:
     | '__root__'
@@ -184,14 +229,18 @@ export interface FileRouteTypes {
     | '/ai-worlds/$slug'
     | '/en/about'
     | '/photography/$slug'
+    | '/photography/edirne'
     | '/ai-worlds/'
     | '/en/'
     | '/photography/'
+    | '/ai-worlds/collections/$slug'
     | '/en/ai-worlds/$slug'
     | '/en/photography/$slug'
+    | '/en/photography/edirne'
     | '/photography/albums/$slug'
     | '/en/ai-worlds/'
     | '/en/photography/'
+    | '/en/ai-worlds/collections/$slug'
     | '/en/photography/albums/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -201,14 +250,18 @@ export interface RootRouteChildren {
   AiWorldsSlugRoute: typeof AiWorldsSlugRoute
   EnAboutRoute: typeof EnAboutRoute
   PhotographySlugRoute: typeof PhotographySlugRoute
+  PhotographyEdirneRoute: typeof PhotographyEdirneRoute
   AiWorldsIndexRoute: typeof AiWorldsIndexRoute
   EnIndexRoute: typeof EnIndexRoute
   PhotographyIndexRoute: typeof PhotographyIndexRoute
+  AiWorldsCollectionsSlugRoute: typeof AiWorldsCollectionsSlugRoute
   EnAiWorldsSlugRoute: typeof EnAiWorldsSlugRoute
   EnPhotographySlugRoute: typeof EnPhotographySlugRoute
+  EnPhotographyEdirneRoute: typeof EnPhotographyEdirneRoute
   PhotographyAlbumsSlugRoute: typeof PhotographyAlbumsSlugRoute
   EnAiWorldsIndexRoute: typeof EnAiWorldsIndexRoute
   EnPhotographyIndexRoute: typeof EnPhotographyIndexRoute
+  EnAiWorldsCollectionsSlugRoute: typeof EnAiWorldsCollectionsSlugRoute
   EnPhotographyAlbumsSlugRoute: typeof EnPhotographyAlbumsSlugRoute
 }
 
@@ -270,6 +323,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotographySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photography/edirne': {
+      id: '/photography/edirne'
+      path: '/photography/edirne'
+      fullPath: '/photography/edirne'
+      preLoaderRoute: typeof PhotographyEdirneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-worlds/collections/$slug': {
+      id: '/ai-worlds/collections/$slug'
+      path: '/ai-worlds/collections/$slug'
+      fullPath: '/ai-worlds/collections/$slug'
+      preLoaderRoute: typeof AiWorldsCollectionsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/en/ai-worlds/': {
       id: '/en/ai-worlds/'
       path: '/en/ai-worlds'
@@ -298,11 +365,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnPhotographySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/photography/edirne': {
+      id: '/en/photography/edirne'
+      path: '/en/photography/edirne'
+      fullPath: '/en/photography/edirne'
+      preLoaderRoute: typeof EnPhotographyEdirneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/photography/albums/$slug': {
       id: '/photography/albums/$slug'
       path: '/photography/albums/$slug'
       fullPath: '/photography/albums/$slug'
       preLoaderRoute: typeof PhotographyAlbumsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/ai-worlds/collections/$slug': {
+      id: '/en/ai-worlds/collections/$slug'
+      path: '/en/ai-worlds/collections/$slug'
+      fullPath: '/en/ai-worlds/collections/$slug'
+      preLoaderRoute: typeof EnAiWorldsCollectionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/en/photography/albums/$slug': {
@@ -321,14 +402,18 @@ const rootRouteChildren: RootRouteChildren = {
   AiWorldsSlugRoute: AiWorldsSlugRoute,
   EnAboutRoute: EnAboutRoute,
   PhotographySlugRoute: PhotographySlugRoute,
+  PhotographyEdirneRoute: PhotographyEdirneRoute,
   AiWorldsIndexRoute: AiWorldsIndexRoute,
   EnIndexRoute: EnIndexRoute,
   PhotographyIndexRoute: PhotographyIndexRoute,
+  AiWorldsCollectionsSlugRoute: AiWorldsCollectionsSlugRoute,
   EnAiWorldsSlugRoute: EnAiWorldsSlugRoute,
   EnPhotographySlugRoute: EnPhotographySlugRoute,
+  EnPhotographyEdirneRoute: EnPhotographyEdirneRoute,
   PhotographyAlbumsSlugRoute: PhotographyAlbumsSlugRoute,
   EnAiWorldsIndexRoute: EnAiWorldsIndexRoute,
   EnPhotographyIndexRoute: EnPhotographyIndexRoute,
+  EnAiWorldsCollectionsSlugRoute: EnAiWorldsCollectionsSlugRoute,
   EnPhotographyAlbumsSlugRoute: EnPhotographyAlbumsSlugRoute,
 }
 export const routeTree = rootRouteImport

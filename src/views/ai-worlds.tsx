@@ -1,5 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Copy } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import {
   aiWorks,
   aiCategoryLabel,
@@ -13,28 +14,39 @@ import {
   type AiImage,
   type AiWork,
 } from "@/content/ai-works";
-import { conceptText, futureAiConcepts, getPlannedGalleryConcepts } from "@/content/ai-concepts";
 import {
-  AiCard,
-  Chip,
-  ChipGroup,
-  EmptyState,
-  btnGold,
-  copyPromptWithToast,
-} from "@/components/site";
+  collectionText,
+  getAdjacentCollections,
+  getCollectionCover,
+  getCollectionForWork,
+  getCollectionWorks,
+  type AiCollection,
+} from "@/content/ai-collections";
+import { EmptyState, Lightbox, PageHeader, type LightboxItem } from "@/components/site";
+import { Surface } from "@/components/surface";
+import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/components/ai-filters";
+import {
+  ArtEdge,
+  ArtImage,
+  CollectionHalls,
+  ExhibitWork,
+  ExhibitionWall,
+  PromptNote,
+  toLightboxItem,
+} from "@/components/ai-exhibition";
+import { DestinationIndex } from "@/components/ai-atlas";
+import { getDestinations } from "@/content/ai-destinations";
+import { reveal } from "@/hooks/use-reveal";
+import { cn } from "@/lib/utils";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
-export type AiSearch = {
-  category?: string | undefined;
-  role?: string | undefined;
-  era?: string | undefined;
-  setting?: string | undefined;
-  tool?: string | undefined;
-};
+export type AiSearch = AiFilterValues & { view?: "works" | undefined };
+
 export const validateAiSearch = (s: Record<string, unknown>): AiSearch => {
   const options = getAiFilterOptions();
   return {
+    view: s["view"] === "works" ? "works" : undefined,
     category: options.categories.find((value) => value === s["category"]),
     role: options.roles.find((value) => value === s["role"]),
     era: options.eras.find((value) => value === s["era"]),
@@ -48,10 +60,29 @@ export const aiWorldsHead = (locale: Locale) => {
   return pageHead(locale, "/ai-worlds", m.metaTitle, m.metaDesc);
 };
 
+const NO_FILTERS: AiFilterValues = {
+  category: undefined,
+  role: undefined,
+  era: undefined,
+  setting: undefined,
+  tool: undefined,
+};
+
+/** AI Worlds landing: curated collections first, All Artworks (with filters) second. */
 export function AiWorldsView() {
   const { t, locale } = useT();
   const m = t.ai;
-  const { category, role, era, setting, tool } = useSearch({ strict: false }) as AiSearch;
+  const search = useSearch({ strict: false }) as AiSearch;
+  const filters: AiFilterValues = {
+    category: search.category,
+    role: search.role,
+    era: search.era,
+    setting: search.setting,
+    tool: search.tool,
+  };
+  const activeFilters = countActiveFilters(filters);
+  // Any filter in the URL opens All Artworks, so older deep links keep working.
+  const view = search.view === "works" || activeFilters > 0 ? "works" : "collections";
   const navigate = useNavigate();
   const set = (patch: AiSearch) =>
     navigate({
@@ -59,198 +90,186 @@ export function AiWorldsView() {
       search: (p: Record<string, unknown>) => ({ ...p, ...patch }),
       replace: true,
     });
-  const options = getAiFilterOptions();
-  const items = filterAiWorks(aiWorks, { category, role, era, setting, tool }).map((w) =>
-    localizeAiWork(w, locale),
-  );
-  const showPlannedPreview = !category && !role && !era && !setting && !tool;
+  const items = filterAiWorks(aiWorks, filters).map((w) => localizeAiWork(w, locale));
+
+  const tab = (active: boolean) =>
+    cn(
+      "border-b-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast) hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold",
+      active ? "border-gold text-foreground" : "border-transparent text-muted-foreground",
+    );
 
   return (
     <>
-      <div data-header-theme="dark" className="bg-navy text-navy-foreground">
-        <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
-          <p className="eyebrow text-gold">{m.eyebrow}</p>
-          <h1 className="mt-3 text-6xl md:text-7xl">{m.title}</h1>
-          <p className="mt-5 max-w-xl text-lg text-navy-muted">{m.intro}</p>
+      <Surface tone="dark" as="div">
+        <div className="container-page section-y">
+          <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
-          <div className="mt-12 space-y-4 border-y border-navy-border py-6 [&_button]:border-navy-border [&_button[aria-pressed=true]]:border-gold [&_button[aria-pressed=true]]:bg-gold [&_button[aria-pressed=true]]:text-accent-foreground">
-            <ChipGroup dark label={m.theme}>
-              <Chip active={!category} onClick={() => set({ category: undefined })}>
-                {t.common.all}
-              </Chip>
-              {options.categories.map((c) => (
-                <Chip
-                  key={c}
-                  active={category === c}
-                  onClick={() => set({ category: category === c ? undefined : c })}
-                >
-                  {aiCategoryLabel(c, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup dark label={m.role}>
-              <Chip active={!role} onClick={() => set({ role: undefined })}>
-                {t.common.all}
-              </Chip>
-              {options.roles.map((value) => (
-                <Chip
-                  key={value}
-                  active={role === value}
-                  onClick={() => set({ role: role === value ? undefined : value })}
-                >
-                  {aiRoleLabel(value, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup dark label={m.era}>
-              <Chip active={!era} onClick={() => set({ era: undefined })}>
-                {t.common.all}
-              </Chip>
-              {options.eras.map((value) => (
-                <Chip
-                  key={value}
-                  active={era === value}
-                  onClick={() => set({ era: era === value ? undefined : value })}
-                >
-                  {aiEraLabel(value, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup dark label={m.setting}>
-              <Chip active={!setting} onClick={() => set({ setting: undefined })}>
-                {t.common.all}
-              </Chip>
-              {options.settings.map((value) => (
-                <Chip
-                  key={value}
-                  active={setting === value}
-                  onClick={() => set({ setting: setting === value ? undefined : value })}
-                >
-                  {aiSettingLabel(value, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup dark label={m.tool}>
-              <Chip active={!tool} onClick={() => set({ tool: undefined })}>
-                {t.common.all}
-              </Chip>
-              {options.tools.map((x) => (
-                <Chip
-                  key={x}
-                  active={tool === x}
-                  onClick={() => set({ tool: tool === x ? undefined : x })}
-                >
-                  {toolLabel(x, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-          </div>
-
-          <p className="mt-6 text-sm text-navy-muted" aria-live="polite">
-            {m.count(items.length)}
-          </p>
-          {items.length ? (
-            <section
-              aria-label={m.title}
-              className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
+          <div role="group" aria-label={m.view} className="mt-12 flex gap-8 border-b border-border">
+            <button
+              type="button"
+              aria-pressed={view === "collections"}
+              onClick={() => set({ view: undefined, ...NO_FILTERS })}
+              className={tab(view === "collections")}
             >
-              {items.map((w) => (
-                <AiCard key={w.slug} work={w} />
-              ))}
-              {showPlannedPreview &&
-                getPlannedGalleryConcepts().map((concept) => (
-                  <article key={concept.id} className="min-w-0">
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-gold/40 bg-navy ring-1 ring-inset ring-gold/20">
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-4 rounded-sm border border-gold/20"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className="absolute -right-16 -top-16 size-64 rounded-full border border-gold/15"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className="absolute -right-6 -top-6 size-44 rounded-full border border-gold/15"
-                      />
-                      <span className="eyebrow absolute left-3 top-3 rounded-sm border border-gold/35 bg-navy/80 px-2 py-1 text-gold">
-                        {m.planned}
-                      </span>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-8 text-center">
-                        <span aria-hidden="true" className="font-serif text-5xl text-gold/75">
-                          ✦
-                        </span>
-                        <p className="max-w-48 font-serif text-2xl leading-snug text-navy-foreground">
-                          {m.imageComingSoon}
-                        </p>
-                      </div>
-                    </div>
-                    <h3 className="mt-3 font-serif text-2xl leading-tight text-navy-foreground">
-                      {conceptText(concept.galleryPreview.title, locale)}
-                    </h3>
-                    <p className="mt-2 text-sm text-gold">{m.planned}</p>
-                  </article>
-                ))}
-            </section>
-          ) : (
-            <EmptyState
-              dark
-              text={m.empty}
-              onClear={() =>
-                set({
-                  category: undefined,
-                  role: undefined,
-                  era: undefined,
-                  setting: undefined,
-                  tool: undefined,
-                })
-              }
-            />
-          )}
-        </div>
-      </div>
-      <section
-        data-header-theme="light"
-        aria-labelledby="future-ai-concepts"
-        className="border-t border-gold/30 bg-background text-foreground"
-      >
-        <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
-          <p className="eyebrow text-terracotta">{m.planned}</p>
-          <h2 id="future-ai-concepts" className="mt-3 font-serif text-4xl md:text-5xl">
-            {m.futureTitle}
-          </h2>
-          <p className="mt-4 max-w-2xl text-muted-foreground">{m.futureIntro}</p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {futureAiConcepts.map((concept, index) => (
-              <article
-                key={concept.id}
-                className="flex flex-col rounded-md border border-border bg-card p-6 shadow-soft"
-              >
-                <span className="eyebrow text-terracotta">
-                  {m.planned} · {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-5 font-serif text-2xl leading-tight">
-                  {conceptText(concept.title, locale)}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {conceptText(concept.description, locale)}
-                </p>
-                {concept.promptTemplate && (
-                  <details className="mt-5 border-t pt-4 text-sm">
-                    <summary className="cursor-pointer font-semibold text-terracotta hover:text-foreground">
-                      {m.promptTemplate}
-                    </summary>
-                    <p className="mt-3 leading-relaxed text-muted-foreground">
-                      {conceptText(concept.promptTemplate, locale)}
-                    </p>
-                  </details>
+              {m.collections}
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === "works"}
+              onClick={() => set({ view: "works" })}
+              className={tab(view === "works")}
+            >
+              {m.allWorks}
+            </button>
+          </div>
+
+          <div key={view} className="duration-300 motion-safe:animate-in motion-safe:fade-in-0">
+            {view === "collections" ? (
+              <CollectionHalls />
+            ) : (
+              <div className="mt-8">
+                <AiFilterBar values={filters} count={items.length} onChange={(p) => set(p)} />
+                {items.length ? (
+                  <section
+                    aria-label={m.allWorks}
+                    className="mt-12 grid grid-cols-1 items-start gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"
+                  >
+                    {items.map((work, i) => (
+                      <ExhibitWork key={work.slug} work={work} index={i} />
+                    ))}
+                  </section>
+                ) : (
+                  <EmptyState text={m.empty} onClear={() => set(NO_FILTERS)} />
                 )}
-              </article>
-            ))}
+              </div>
+            )}
           </div>
         </div>
-      </section>
+      </Surface>
     </>
+  );
+}
+
+export const aiCollectionHead = (locale: Locale, collection: AiCollection | undefined) => {
+  if (!collection) return notFoundHead(locale);
+  return pageHead(
+    locale,
+    `/ai-worlds/collections/${collection.slug}`,
+    `${collectionText(collection.title, locale)} — ${getMessages(locale).ai.title} · CHEFO`,
+    collectionText(collection.intro, locale),
+  );
+};
+
+export function AiCollectionNotFoundView() {
+  const { t } = useT();
+  return (
+    <Surface tone="dark" as="div" className="px-5 py-32 text-center">
+      <h1 className="text-4xl">{t.ai.collectionNotFound}</h1>
+      <LocaleLink to="/ai-worlds" className="mt-6 inline-block border-b border-gold pb-1">
+        {t.ai.backToCollections}
+      </LocaleLink>
+    </Surface>
+  );
+}
+
+function BackLink({ to, label }: { to: "/ai-worlds"; label: string }) {
+  return (
+    <LocaleLink
+      to={to}
+      className="group inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold"
+    >
+      <ArrowLeft className="size-4 transition-transform motion-safe:group-hover:-translate-x-1" />
+      {label}
+    </LocaleLink>
+  );
+}
+
+/** A collection presented as an exhibition wall. */
+export function AiCollectionView({ collection }: { collection: AiCollection }) {
+  const { t, locale } = useT();
+  const m = t.ai;
+  const works = getCollectionWorks(collection, locale);
+  const { prev, next } = getAdjacentCollections(collection);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const isAtlas = collection.kind === "destinations";
+
+  return (
+    <Surface tone="dark" as="article">
+      <header className="container-page pt-10 md:pt-14">
+        <BackLink to="/ai-worlds" label={m.backToCollections} />
+        <div className="mt-10 grid gap-6 md:grid-cols-12 md:items-end">
+          <div className="md:col-span-8">
+            <h1 className="title-page break-words">
+              {collectionText(collection.title, locale)}
+            </h1>
+            {collection.tagline && (
+              <p className="mt-4 font-serif text-2xl italic text-gold md:text-3xl">
+                {collectionText(collection.tagline, locale)}
+              </p>
+            )}
+          </div>
+          <div className="md:col-span-4">
+            <p className="lead text-muted-foreground">{collectionText(collection.intro, locale)}</p>
+            {isAtlas ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                {m.destinationsCount(getDestinations().length)} · {m.portraitsDone(works.length)}
+              </p>
+            ) : (
+              works.length > 0 && (
+                <p className="mt-4 text-sm text-muted-foreground">{m.count(works.length)}</p>
+              )
+            )}
+          </div>
+        </div>
+      </header>
+
+      {works.length > 0 && (
+        <>
+          <ExhibitionWall works={works} onOpen={setLightbox} />
+          <Lightbox items={works.map(toLightboxItem)} index={lightbox} onIndex={setLightbox} />
+        </>
+      )}
+      {isAtlas && <DestinationIndex />}
+
+      <nav
+        aria-label={m.collections}
+        className="seam-top container-page grid grid-cols-2 gap-6 py-10 md:py-14"
+      >
+        {[
+          { c: prev, label: m.prevCollection, align: "start" as const },
+          { c: next, label: m.nextCollection, align: "end" as const },
+        ].map(({ c, label, align }) => {
+          const cover = getCollectionCover(c, locale);
+          return (
+            <LocaleLink
+              key={align}
+              to="/ai-worlds/collections/$slug"
+              slug={c.slug}
+              className={cn(
+                "group flex items-center gap-4 transition-colors hover:text-gold",
+                align === "end" && "flex-row-reverse text-right",
+              )}
+            >
+              <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
+                {cover ? (
+                  <ArtImage work={cover} />
+                ) : (
+                  <span className="grid aspect-[4/5] place-items-center bg-surface-raised text-gold/70">
+                    ✦
+                  </span>
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="eyebrow block text-muted-foreground">{label}</span>
+                <span className="mt-1 block font-serif text-lg leading-snug sm:text-xl">
+                  {collectionText(c.title, locale)}
+                </span>
+              </span>
+            </LocaleLink>
+          );
+        })}
+      </nav>
+    </Surface>
   );
 }
 
@@ -278,30 +297,51 @@ export function AiNotFoundView() {
   );
 }
 
-function Step({ n, label }: { n: string; label: string }) {
+/** Reference and variant images: small plates at their own ratio, each opens the viewer. */
+function ProcessStrip({
+  title,
+  images,
+  offset,
+  onOpen,
+}: {
+  title: string;
+  images: AiImage[];
+  offset: number;
+  onOpen: (index: number) => void;
+}) {
+  const { t } = useT();
+  if (!images.length) return null;
   return (
-    <p className="eyebrow text-terracotta">
-      {n} — {label}
-    </p>
-  );
-}
-
-function Gallery({ images }: { images: AiImage[] }) {
-  return (
-    <div className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3">
-      {images.map((img, i) => (
-        <figure key={i}>
-          <img
-            src={img.src}
-            alt={img.alt}
-            loading="lazy"
-            className="aspect-[4/5] w-full rounded-md object-cover shadow-soft"
-          />
-          {img.caption && (
-            <figcaption className="mt-2 text-sm text-muted-foreground">{img.caption}</figcaption>
-          )}
-        </figure>
-      ))}
+    <div>
+      <h3 className="font-serif text-xl">{title}</h3>
+      <ul className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-3">
+        {images.map((img, i) => (
+          <li key={i} {...reveal(i)}>
+            <figure className="group">
+              <button
+                type="button"
+                onClick={() => onOpen(offset + i)}
+                aria-label={t.common.openFullscreen(img.caption ?? img.alt)}
+                className="relative block w-full cursor-zoom-in overflow-hidden rounded-sm bg-surface-raised"
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full object-contain transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-[1.02]"
+                />
+                <ArtEdge />
+              </button>
+              {img.caption && (
+                <figcaption className="mt-2 text-xs text-muted-foreground">
+                  {img.caption}
+                </figcaption>
+              )}
+            </figure>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -310,112 +350,158 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   const { t, locale } = useT();
   const m = t.ai;
   const work = localizeAiWork(raw, locale);
+  const collection = getCollectionForWork(raw.slug);
   const idx = aiWorks.findIndex((w) => w.slug === raw.slug);
   const prev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
   const next = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+
+  const processImages = [...work.references, ...work.variants];
+  const viewerItems: LightboxItem[] = [
+    toLightboxItem(work),
+    ...processImages.map((img, i) => ({
+      slug: `${work.slug}-process-${i}`,
+      image: img.src,
+      alt: img.alt,
+      title: img.caption ?? work.title,
+    })),
+  ];
+  const facts: [string, string][] = [
+    ...(work.tool ? [[m.tool, toolLabel(work.tool, locale)] as [string, string]] : []),
+    ...(work.date ? [[m.created, formatDate(work.date, locale)] as [string, string]] : []),
+    [m.theme, aiCategoryLabel(work.category, locale)],
+    ...(work.era ? [[m.era, aiEraLabel(work.era, locale)] as [string, string]] : []),
+    ...(work.setting
+      ? [[m.setting, aiSettingLabel(work.setting, locale)] as [string, string]]
+      : []),
+    ...(work.role ? [[m.role, aiRoleLabel(work.role, locale)] as [string, string]] : []),
+  ];
 
   return (
-    <article>
-      <section data-header-theme="dark" className="bg-navy text-navy-foreground">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.2fr_1fr] md:items-end md:px-8">
-          <img
-            src={work.image}
-            alt={work.alt}
-            width={1024}
-            height={1280}
-            className="aspect-[4/5] w-full rounded-md object-cover"
-          />
-          <div>
-            <Step n="01" label={m.stepImage} />
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="eyebrow rounded-sm bg-gold px-2 py-1 text-accent-foreground">
-                {aiCategoryLabel(work.category, locale)}
-              </span>
-              <span className="eyebrow rounded-sm border border-navy-border px-2 py-1">
-                {t.common.aiBadge}
-              </span>
-            </div>
-            <h1 className="mt-5 text-5xl md:text-6xl">{work.title}</h1>
-            <dl className="mt-8 grid grid-cols-2 gap-4 border-t border-navy-border pt-6 text-sm">
-              <div>
-                <dt className="eyebrow text-navy-muted">{m.tool}</dt>
-                <dd className="mt-1">{toolLabel(work.tool, locale)}</dd>
-              </div>
-              <div>
-                <dt className="eyebrow text-navy-muted">{m.created}</dt>
-                <dd className="mt-1">{formatDate(work.date, locale)}</dd>
-              </div>
-            </dl>
+    <Surface tone="dark" as="article">
+      <nav aria-label={m.title} className="container-page pt-10 text-sm md:pt-14">
+        <ol className="flex flex-wrap items-center gap-2 text-muted-foreground">
+          <li>
+            <LocaleLink to="/ai-worlds" className="transition-colors hover:text-gold">
+              {m.title}
+            </LocaleLink>
+          </li>
+          {collection && (
+            <>
+              <li aria-hidden="true">/</li>
+              <li>
+                <LocaleLink
+                  to="/ai-worlds/collections/$slug"
+                  slug={collection.slug}
+                  className="transition-colors hover:text-gold"
+                >
+                  {collectionText(collection.title, locale)}
+                </LocaleLink>
+              </li>
+            </>
+          )}
+        </ol>
+      </nav>
+
+      <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
+        <figure className="group relative self-start overflow-hidden rounded-sm lg:col-span-7">
+          <button
+            type="button"
+            onClick={() => setLightbox(0)}
+            aria-label={t.common.openFullscreen(work.title)}
+            className="block w-full cursor-zoom-in"
+          >
+            <ArtImage work={work} eager />
+            <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
+              <Expand aria-hidden="true" className="size-3.5" /> {m.fullscreen}
+            </span>
+          </button>
+          <ArtEdge />
+        </figure>
+
+        <div className="lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="eyebrow rounded-sm border border-border px-2 py-1 text-gold">
+              {t.common.aiBadge}
+            </span>
+            {collection && (
+              <LocaleLink
+                to="/ai-worlds/collections/$slug"
+                slug={collection.slug}
+                className="eyebrow px-1 py-1 text-eyebrow transition-colors hover:text-foreground"
+              >
+                {collectionText(collection.title, locale)}
+              </LocaleLink>
+            )}
           </div>
+          <h1 className="title-detail mt-5 break-words">{work.title}</h1>
+          <p className="mt-6 font-serif text-2xl leading-snug">{work.description}</p>
+          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
+            {facts.map(([key, value]) => (
+              <div key={key}>
+                <dt className="eyebrow text-muted-foreground">{key}</dt>
+                <dd className="mt-1">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <PromptNote work={work} prompt={raw.prompt} />
         </div>
-      </section>
+      </div>
 
-      <div className="mx-auto max-w-5xl space-y-20 px-5 py-20 md:px-8">
-        <section>
-          <Step n="02" label={m.stepConcept} />
-          <p className="mt-4 font-serif text-3xl leading-snug">{work.description}</p>
-        </section>
-
-        <section aria-labelledby="prompt-h">
-          <Step n="03" label={m.stepPrompt} />
-          <div className="mt-4 rounded-md border-l-4 border-gold bg-card p-6 shadow-soft md:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 id="prompt-h" className="text-2xl">
-                {m.fullPrompt}
-              </h2>
-              {raw.prompt?.trim() && (
-                <button onClick={() => copyPromptWithToast(raw.prompt, locale)} className={btnGold}>
-                  <Copy className="size-4" /> {t.common.copyPrompt}
-                </button>
-              )}
+      {processImages.length > 0 && (
+        <section aria-labelledby="process-h" className="seam-top">
+          <div className="container-page grid gap-12 py-16 md:grid-cols-12 md:py-24">
+            <h2 id="process-h" className="eyebrow text-eyebrow md:col-span-3">
+              {m.process}
+            </h2>
+            <div className="space-y-12 md:col-span-9">
+              <ProcessStrip
+                title={m.references}
+                images={work.references}
+                offset={1}
+                onOpen={setLightbox}
+              />
+              <ProcessStrip
+                title={m.series}
+                images={work.variants}
+                offset={1 + work.references.length}
+                onOpen={setLightbox}
+              />
             </div>
-            {/* Original prompt, never translated */}
-            <p lang="en" className="mt-5 whitespace-pre-wrap font-mono text-sm leading-relaxed">
-              {raw.prompt}
-            </p>
-            <p className="mt-4 text-xs text-muted-foreground">{m.promptNote}</p>
           </div>
         </section>
+      )}
 
-        <section>
-          <h2 className="text-3xl">{m.references}</h2>
-          <Gallery images={work.references} />
-        </section>
-
-        <section>
-          <Step n="04" label={m.stepVariants} />
-          <h2 className="mt-2 text-3xl">{m.series}</h2>
-          <Gallery images={work.variants} />
-        </section>
-      </div>
+      <Lightbox items={viewerItems} index={lightbox} onIndex={setLightbox} />
 
       <nav
         aria-label={m.others}
-        className="mx-auto flex max-w-5xl justify-between gap-4 border-t px-5 py-8 pb-20 md:px-8"
+        className="container-page grid grid-cols-2 gap-6 border-t border-border py-10 md:py-14"
       >
-        <LocaleLink
-          to="/ai-worlds/$slug"
-          slug={prev.slug}
-          className="flex items-center gap-3 hover:text-terracotta"
-        >
-          <ArrowLeft className="size-4" />{" "}
-          <span>
-            <span className="eyebrow block text-muted-foreground">{m.prev}</span>
-            <span className="font-serif text-lg">{prev.title}</span>
-          </span>
-        </LocaleLink>
-        <LocaleLink
-          to="/ai-worlds/$slug"
-          slug={next.slug}
-          className="flex items-center gap-3 text-right hover:text-terracotta"
-        >
-          <span>
-            <span className="eyebrow block text-muted-foreground">{m.next}</span>
-            <span className="font-serif text-lg">{next.title}</span>
-          </span>{" "}
-          <ArrowRight className="size-4" />
-        </LocaleLink>
+        {[
+          { w: prev, label: m.prev, align: "start" as const, Icon: ArrowLeft },
+          { w: next, label: m.next, align: "end" as const, Icon: ArrowRight },
+        ].map(({ w, label, align, Icon }) => (
+          <LocaleLink
+            key={align}
+            to="/ai-worlds/$slug"
+            slug={w.slug}
+            className={cn(
+              "group flex items-center gap-4 transition-colors hover:text-gold",
+              align === "end" && "flex-row-reverse text-right",
+            )}
+          >
+            <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
+              <ArtImage work={w} />
+            </span>
+            <Icon aria-hidden="true" className="size-4 shrink-0 sm:hidden" />
+            <span className="min-w-0">
+              <span className="eyebrow block text-muted-foreground">{label}</span>
+              <span className="mt-1 block font-serif text-lg leading-snug">{w.title}</span>
+            </span>
+          </LocaleLink>
+        ))}
       </nav>
-    </article>
+    </Surface>
   );
 }

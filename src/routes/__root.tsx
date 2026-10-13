@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader, SiteFooter } from "@/components/site";
 import { BackToTop } from "@/components/back-to-top";
+import { useReveal } from "@/hooks/use-reveal";
 import { Toaster } from "@/components/ui/sonner";
 import { localeFromPath, useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -25,7 +26,9 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl">404</h1>
         <p className="mt-4 text-muted-foreground">{t.notFound.page}</p>
-        <LocaleLink to="/" className="mt-6 inline-block border-b border-gold pb-1">{t.notFound.home}</LocaleLink>
+        <LocaleLink to="/" className="mt-6 inline-block border-b border-gold pb-1">
+          {t.notFound.home}
+        </LocaleLink>
       </div>
     </div>
   );
@@ -101,10 +104,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { t } = useT();
+  useReveal();
   return (
     <QueryClientProvider client={queryClient}>
+      <a
+        href="#content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[60] focus:rounded-sm focus:bg-gold focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent-foreground focus:shadow-soft"
+      >
+        {t.nav.skip}
+      </a>
       <SiteHeader />
-      <main>
+      <main id="content" tabIndex={-1} className="outline-none">
         <Outlet />
       </main>
       <BackToTop />

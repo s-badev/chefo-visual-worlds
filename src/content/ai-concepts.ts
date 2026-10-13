@@ -104,7 +104,23 @@ export const futureAiConcepts: FutureAiConcept[] = [
       "A story of discovering an unfamiliar landscape, with a map, a route and a sense of scale.",
     ),
   },
+  {
+    id: "neighborhood-fitness-instructor",
+    title: text("Квартален фитнес инструктор", "Neighborhood Fitness Instructor"),
+    description: text("Вътрешна идея за бъдещ портрет във фитнес среда.", "Internal idea for a future fitness portrait."),
+  },
+  {
+    id: "beach-lifeguard",
+    title: text("Плажен спасител", "Beach Lifeguard"),
+    description: text("Вътрешна идея за бъдещ портрет край морето.", "Internal idea for a future seaside portrait."),
+  },
 ];
+
+/** Internal notes only. Do not import this module into public AI Worlds views. */
+export const futureConceptCollectionIds: Record<string, string[]> = {
+  "professions-roles": ["airline-pilot", "construction-engineer", "yacht-captain", "archaeologist", "neighborhood-fitness-instructor", "beach-lifeguard"],
+  "cinema-archetypes": ["western-cowboy", "detective"],
+};
 
 export const getPlannedGalleryConcepts = (): Array<
   FutureAiConcept & { galleryPreview: PlannedGalleryPreview }

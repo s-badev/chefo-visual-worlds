@@ -6,8 +6,9 @@ import { useT } from "@/i18n";
 type Mode = "real" | "ai";
 
 /** Portrait with explicit "Реален кадър" / "AI версия" toggle. Generated images are always labelled as AI. */
-export function PortraitSwitch({ compact, className }: { compact?: boolean; className?: string }) {
-  const { real, ai } = siteConfig.portrait;
+export function PortraitSwitch({ compact, className, aiImage }: { compact?: boolean; className?: string; aiImage?: string }) {
+  const { real, ai: configuredAi } = siteConfig.portrait;
+  const ai = aiImage ?? configuredAi;
   const modes = (ai ? ["real", "ai"] : ["real"]) as Mode[];
   const [mode, setMode] = useState<Mode>(!real && ai ? "ai" : "real");
   const src = mode === "real" ? real : ai;
@@ -20,7 +21,11 @@ export function PortraitSwitch({ compact, className }: { compact?: boolean; clas
           <img
             src={src}
             alt={mode === "ai" ? t.portrait.aiAlt : t.portrait.realAlt}
-            className={cn("h-full w-full", mode === "real" && !compact ? "object-contain" : "object-cover")}
+            className={cn(
+              "h-full w-full",
+              (mode === "real" && !compact) || (mode === "ai" && aiImage) ? "object-contain" : "object-cover",
+              mode === "ai" && aiImage && (compact ? "translate-y-[11.5%] scale-[1.28]" : "translate-y-[8.7%] scale-[1.22]"),
+            )}
           />
         ) : (
           <div className="grid h-full place-items-center border-2 border-dashed border-border p-6 text-center text-sm text-muted-foreground">

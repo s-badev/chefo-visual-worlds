@@ -11,30 +11,58 @@ import { PHOTO_THEMES } from "@/content/photos";
 describe("photography filters", () => {
   const items = getAllGalleryPhotos("bg");
 
-  it("shows each existing photo once and derives ten destinations from albums", () => {
-    expect(items).toHaveLength(8);
-    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(8);
-    expect(getPhotoLocations()).toHaveLength(10);
+  it("shows each existing photo once and derives twelve destinations from albums", () => {
+    expect(items).toHaveLength(395);
+    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(395);
+    for (const slug of [
+      "nesebar-vyatarnata-melnitsa",
+      "nesebar-hram-pantokrator",
+      "nesebar-zlaten-chas",
+      "sofia-tramvay-12",
+      "slanchev-bryag-zalez",
+    ]) {
+      expect(items.some(({ photo }) => photo.slug === slug)).toBe(false);
+    }
+    expect(getPhotoLocations()).toHaveLength(12);
     expect(items.find(({ photo }) => photo.slug === "patyat-na-yug")?.albumSlug).toBeNull();
     expect(PHOTO_THEMES).toEqual(["sea", "city", "sunsets", "nature", "architecture", "travel"]);
   });
 
   it("applies theme and location together, including accurate empty results", () => {
+    const nessebarSunsets = filterGalleryPhotos(items, {
+      theme: "sunsets",
+      location: "nessebar",
+    }).map(({ photo }) => photo.slug);
+    expect(nessebarSunsets).toHaveLength(8);
+    expect(nessebarSunsets).toContain("nessebar-025");
     expect(
-      filterGalleryPhotos(items, { theme: "sunsets", location: "nessebar" }).map(
-        ({ photo }) => photo.slug,
-      ),
-    ).toEqual(["nesebar-vyatarnata-melnitsa", "nesebar-zlaten-chas"]);
+      filterGalleryPhotos(items, { theme: "architecture", location: "sofia" })
+        .map(({ photo }) => photo.slug)
+        .slice(0, 5),
+    ).toEqual(["sofia-001", "sofia-nevski-sinya-chas", "sofia-002", "sofia-005", "sofia-004"]);
     expect(
-      filterGalleryPhotos(items, { theme: "architecture", location: "sofia" }).map(
-        ({ photo }) => photo.slug,
-      ),
-    ).toEqual(["sofia-nevski-sinya-chas"]);
-    expect(filterGalleryPhotos(items, { theme: "nature" }).map(({ photo }) => photo.slug)).toEqual([
-      "patyat-na-yug",
-    ]);
-    expect(filterGalleryPhotos(items, { theme: "nature", location: "sofia" })).toHaveLength(0);
-    expect(filterGalleryPhotos(items, { location: "paris" })).toHaveLength(0);
+      filterGalleryPhotos(items, { theme: "nature" }).map(({ photo }) => photo.slug),
+    ).toContain("patyat-na-yug");
+    expect(
+      filterGalleryPhotos(items, { theme: "nature", location: "sofia" }).length,
+    ).toBeGreaterThan(0);
+    expect(filterGalleryPhotos(items, { location: "sofia" })).toHaveLength(45);
+    expect(filterGalleryPhotos(items, { location: "plovdiv" })).toHaveLength(18);
+    expect(filterGalleryPhotos(items, { location: "rila" })).toHaveLength(38);
+    expect(filterGalleryPhotos(items, { location: "sunny-beach" })).toHaveLength(58);
+    expect(filterGalleryPhotos(items, { location: "istanbul" })).toHaveLength(40);
+    expect(
+      filterGalleryPhotos(items, { theme: "architecture", location: "istanbul" }).length,
+    ).toBeGreaterThan(0);
+    expect(filterGalleryPhotos(items, { location: "paris" })).toHaveLength(57);
+    expect(filterGalleryPhotos(items, { location: "lyon" })).toHaveLength(24);
+    expect(filterGalleryPhotos(items, { location: "edirne" })).toHaveLength(21);
+    expect(
+      filterGalleryPhotos(items, { theme: "architecture", location: "edirne" }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      filterGalleryPhotos(items, { theme: "architecture", location: "paris" }).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -45,7 +73,12 @@ describe("AI taxonomy", () => {
     for (const era of options.eras) expect(aiWorks.some((work) => work.era === era)).toBe(true);
     for (const setting of options.settings)
       expect(aiWorks.some((work) => work.setting === setting)).toBe(true);
-    expect(futureAiConcepts).toHaveLength(8);
+    expect(options.categories).not.toContain("Фантастика");
+    expect(options.categories).not.toContain("Забавни колажи");
+    expect(options.settings).not.toContain("underwater-kingdom");
+    expect(options.settings).not.toContain("black-sea-beach");
+    expect(options.eras).not.toContain("1960s");
+    expect(futureAiConcepts).toHaveLength(10);
     expect(getPlannedGalleryConcepts().map((concept) => concept.id)).toEqual(["western-cowboy"]);
     expect(getPlannedGalleryConcepts()[0]?.galleryPreview).toMatchObject({
       status: "planned",
@@ -61,7 +94,7 @@ describe("AI taxonomy", () => {
   it("combines completed-work facets without adding planned concepts", () => {
     expect(
       filterAiWorks(aiWorks, { role: "ruler", tool: "Grok" }).map((work) => work.slug),
-    ).toEqual(["vladetel-na-morskoto-kralstvo"]);
+    ).toEqual([]);
     expect(
       filterAiWorks(aiWorks, { era: "renaissance", setting: "portrait-backdrop" }).map(
         (work) => work.slug,

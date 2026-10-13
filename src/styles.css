@@ -36,6 +36,15 @@
   --color-navy-foreground: var(--navy-foreground);
   --color-navy-muted: var(--navy-muted);
   --color-navy-border: var(--navy-border);
+  --color-gold-ink: var(--gold-ink);
+  --color-terracotta-ink: var(--terracotta-ink);
+  --color-eyebrow: var(--eyebrow-ink);
+  --color-primary-hover: var(--primary-hover);
+  --color-surface-raised: var(--surface-raised);
+  --color-hairline: var(--hairline);
+  --color-tint-sand: var(--tint-sand);
+  --color-tint-dusk: var(--tint-dusk);
+  --ease-cinematic: var(--motion-ease);
 }
 
 :root {
@@ -66,6 +75,63 @@
   --navy-muted: oklch(0.75 0.025 260);
   --navy-border: oklch(0.35 0.04 262);
   --shadow-soft: 0 18px 40px -24px oklch(0.21 0.045 262 / 0.45);
+
+  /* "Horizon" system — additive tokens; the values above stay frozen for the Hero. */
+  --gold-ink: oklch(0.5 0.09 75); /* gold text on cream, >= 4.5:1 */
+  --terracotta-ink: oklch(0.5 0.12 40); /* small terracotta text on cream, >= 4.5:1 */
+  --eyebrow-ink: var(--terracotta-ink);
+  --primary-hover: var(--terracotta);
+  --surface-raised: oklch(0.25 0.045 262);
+  --hairline: oklch(0.7 0.095 78 / 0.45);
+  --horizon-glow: oklch(0.3 0.05 262 / 0.55);
+  --tint-sand: oklch(0.935 0.024 80);
+  --tint-dusk: oklch(0.93 0.014 255);
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 700ms;
+}
+
+/* Dark world: components inside read navy/gold values from the same semantic tokens. */
+.surface-dark {
+  --background: var(--navy);
+  --foreground: var(--navy-foreground);
+  --card: var(--surface-raised);
+  --card-foreground: var(--navy-foreground);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--navy-foreground);
+  --primary: var(--gold);
+  --primary-foreground: var(--accent-foreground);
+  --primary-hover: var(--navy-foreground);
+  --secondary: var(--surface-raised);
+  --secondary-foreground: var(--navy-foreground);
+  --muted: var(--surface-raised);
+  --muted-foreground: var(--navy-muted);
+  --border: var(--navy-border);
+  --color-border: var(--navy-border);
+  --input: var(--navy-border);
+  --eyebrow-ink: var(--gold);
+  --gold-ink: var(--gold);
+  background-color: var(--navy);
+  color: var(--navy-foreground);
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal="pending"] {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  [data-reveal="shown"] {
+    animation: reveal-up var(--dur-slow) var(--motion-ease) both;
+    animation-delay: calc(var(--reveal-i, 0) * 70ms);
+  }
 }
 
 @layer base {
@@ -78,7 +144,9 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-serif);
     font-weight: 500;
     letter-spacing: -0.01em;
@@ -88,7 +156,9 @@
     outline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
@@ -109,7 +179,79 @@
 
 @utility no-scrollbar {
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility container-page {
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility section-y {
+  padding-block: 4rem;
+  @media (width >= 48rem) {
+    padding-block: 6rem;
+  }
+}
+
+/* Type scale: collection pages, detail pages, sections, cards. */
+@utility title-page {
+  font-size: 3.75rem;
+  line-height: 1;
+  @media (width >= 48rem) {
+    font-size: 4.5rem;
+  }
+}
+
+@utility title-detail {
+  font-size: 3rem;
+  line-height: 1;
+  @media (width >= 48rem) {
+    font-size: 3.75rem;
+  }
+}
+
+@utility title-section {
+  font-size: 2.25rem;
+  line-height: 1.11;
+  @media (width >= 48rem) {
+    font-size: 3rem;
+    line-height: 1;
+  }
+}
+
+@utility title-card {
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+@utility lead {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+/* Horizon: gold hairline plus a soft glow where a dark section begins. */
+@utility seam-top {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: min(10rem, 100%);
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent, var(--hairline) 25%, var(--hairline) 75%, transparent)
+        top / 100% 1px no-repeat,
+      radial-gradient(60% 100% at 50% 0%, var(--horizon-glow), transparent 75%);
+  }
 }
 
 @utility chip-row {

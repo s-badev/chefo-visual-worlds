@@ -24,7 +24,9 @@ import {
   getNextAlbum,
   type Album,
 } from "@/content/albums";
-import { Chip, ChipGroup, EmptyState, Lightbox, PhotoCard } from "@/components/site";
+import { Chip, ChipGroup, EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
+import { Surface } from "@/components/surface";
+import { reveal } from "@/hooks/use-reveal";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
@@ -43,6 +45,26 @@ export const photographyHead = (locale: Locale) => {
   const m = getMessages(locale).photos;
   return pageHead(locale, "/photography", m.metaTitle, m.metaDesc);
 };
+
+/** Cream mat with a fine double terracotta frame: an album still waiting for photographs. */
+function PassePartout() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-[radial-gradient(120%_80%_at_25%_0%,var(--card),transparent_70%)]"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-4 -z-10 rounded-sm border border-terracotta/30 sm:inset-5"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-6 -z-10 rounded-[2px] border border-terracotta/15 sm:inset-7"
+      />
+    </>
+  );
+}
 
 /** Destination albums are the Photography landing page, including drafts. */
 export function PhotographyView() {
@@ -77,12 +99,8 @@ export function PhotographyView() {
   ];
 
   return (
-    <main data-header-theme="light" className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
-      <header className="max-w-2xl">
-        <p className="eyebrow text-terracotta">{m.eyebrow}</p>
-        <h1 className="mt-3 text-6xl md:text-7xl">{m.title}</h1>
-        <p className="mt-5 text-lg text-muted-foreground">{m.intro}</p>
-      </header>
+    <Surface tone="light" as="div" className="container-page section-y">
+      <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
       <div role="group" aria-label={m.view} className="mt-10 flex gap-8 border-b">
         <button
@@ -143,14 +161,15 @@ export function PhotographyView() {
           {items.length ? (
             <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((photo, index) => (
-                <PhotoCard
-                  key={photo.slug}
-                  photo={photo}
-                  themeLabel={photo.themes
-                    .map((value) => photoThemeLabel(value, locale))
-                    .join(" · ")}
-                  onOpen={() => setLightbox(index)}
-                />
+                <div key={photo.slug} {...reveal(index)}>
+                  <PhotoCard
+                    photo={photo}
+                    themeLabel={photo.themes
+                      .map((value) => photoThemeLabel(value, locale))
+                      .join(" · ")}
+                    onOpen={() => setLightbox(index)}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -176,7 +195,7 @@ export function PhotographyView() {
                 key={album.id}
                 to="/photography/albums/$slug"
                 slug={album.slug}
-                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md bg-navy p-7 text-navy-foreground shadow-soft outline-none transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${layout[index]}`}
+                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md p-7 shadow-soft outline-none transition-[transform,box-shadow] duration-(--dur-base) ease-cinematic hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${populated ? "bg-navy text-navy-foreground" : "bg-secondary text-foreground"} ${layout[index % layout.length]}`}
               >
                 {populated ? (
                   <>
@@ -186,7 +205,8 @@ export function PhotographyView() {
                       width={cover!.width}
                       height={cover!.height}
                       loading={index === 0 ? "eager" : "lazy"}
-                      className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-105 motion-reduce:transition-none"
+                      decoding="async"
+                      className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
                     />
                     <span
                       aria-hidden="true"
@@ -194,37 +214,15 @@ export function PhotographyView() {
                     />
                   </>
                 ) : (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-5 -z-10 rounded-sm border border-gold/30 sm:inset-6"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-10 top-10 h-32 w-32 rounded-full border border-gold/20 sm:h-44 sm:w-44"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-16 top-16 h-20 w-20 rounded-full border border-gold/20 sm:h-32 sm:w-32"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="absolute left-0 top-0 h-full w-full bg-gradient-to-br from-gold/10 via-transparent to-navy"
-                    />
-                  </>
+                  <PassePartout />
                 )}
-                <span className="relative mb-auto flex items-start justify-between gap-4">
-                  <span className="eyebrow text-gold">{String(index + 1).padStart(2, "0")}</span>
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="size-5 text-gold transition-transform motion-safe:group-hover:translate-x-1 motion-reduce:transition-none"
-                  />
-                </span>
-                <span className="relative block border-t border-navy-foreground/40 pt-5">
+                <span className="relative block">
                   <span className="block font-serif text-4xl leading-tight md:text-5xl">
                     {name}
                   </span>
-                  <span className="mt-3 block text-sm font-medium text-navy-foreground/85">
+                  <span
+                    className={`mt-3 block text-sm font-medium ${populated ? "text-navy-foreground/85" : "text-muted-foreground"}`}
+                  >
                     {populated ? m.count(album.photos.length) : m.albumEmpty}
                   </span>
                 </span>
@@ -233,7 +231,7 @@ export function PhotographyView() {
           })}
         </section>
       )}
-    </main>
+    </Surface>
   );
 }
 
@@ -267,7 +265,7 @@ export function AlbumView({ album }: { album: Album }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   return (
-    <article data-header-theme="light" className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-20">
+    <Surface tone="light" as="article" className="container-page py-12 md:py-20">
       <nav aria-label={m.backToAlbums} className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
@@ -288,13 +286,11 @@ export function AlbumView({ album }: { album: Album }) {
         <ArrowLeft className="size-4" /> {m.backToAlbums}
       </LocaleLink>
       <div className="mt-10 flex flex-wrap items-end justify-between gap-6 border-b pb-10">
-        <div>
-          <p className="eyebrow text-terracotta">{m.eyebrow}</p>
-          <h1 className="mt-3 font-serif text-6xl md:text-7xl">{albumText(album.title, locale)}</h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            {albumText(album.description, locale)}
-          </p>
-        </div>
+        <PageHeader
+          eyebrow={m.eyebrow}
+          title={albumText(album.title, locale)}
+          intro={albumText(album.description, locale)}
+        />
         <p className="eyebrow text-muted-foreground">{m.count(items.length)}</p>
       </div>
 
@@ -304,7 +300,7 @@ export function AlbumView({ album }: { album: Album }) {
             <button
               type="button"
               onClick={() => setLightbox(0)}
-              className="block w-full overflow-hidden rounded-md bg-navy text-left shadow-soft"
+              className="block w-full overflow-hidden rounded-md bg-secondary text-left shadow-soft"
               aria-label={t.common.openFullscreen(items[0]!.title)}
             >
               <img
@@ -330,7 +326,7 @@ export function AlbumView({ album }: { album: Album }) {
           {items.length > 1 && (
             <div className="mt-12 columns-1 gap-6 sm:columns-2 lg:columns-3 md:gap-8">
               {items.slice(1).map((photo, i) => (
-                <figure key={photo.slug} className="mb-10 break-inside-avoid">
+                <figure key={photo.slug} className="mb-10 break-inside-avoid" {...reveal(i)}>
                   <button
                     type="button"
                     onClick={() => setLightbox(i + 1)}
@@ -343,6 +339,7 @@ export function AlbumView({ album }: { album: Album }) {
                       width={photo.width}
                       height={photo.height}
                       loading="lazy"
+                      decoding="async"
                       className="h-auto w-full"
                     />
                   </button>
@@ -363,20 +360,11 @@ export function AlbumView({ album }: { album: Album }) {
           <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
         </div>
       ) : (
-        <div className="relative mt-10 flex min-h-80 flex-col justify-end overflow-hidden rounded-md bg-navy p-8 text-navy-foreground shadow-soft sm:p-12">
-          <span
-            aria-hidden="true"
-            className="absolute inset-5 rounded-sm border border-gold/30 sm:inset-7"
-          />
-          <span
-            aria-hidden="true"
-            className="absolute right-10 top-8 size-40 rounded-full border border-gold/20"
-          />
-          <span className="relative eyebrow text-gold">{m.eyebrow}</span>
-          <p className="relative mt-3 font-serif text-4xl sm:text-5xl">
-            {albumText(album.title, locale)}
-          </p>
-          <p className="relative mt-3 text-navy-foreground/85">{m.albumEmpty}</p>
+        <div className="relative isolate mt-10 flex min-h-80 flex-col justify-end overflow-hidden rounded-md bg-secondary p-8 text-foreground shadow-soft sm:p-12">
+          <PassePartout />
+          <span className="eyebrow text-eyebrow">{m.eyebrow}</span>
+          <p className="mt-3 font-serif text-4xl sm:text-5xl">{albumText(album.title, locale)}</p>
+          <p className="mt-3 text-muted-foreground">{m.albumEmpty}</p>
         </div>
       )}
 
@@ -397,7 +385,7 @@ export function AlbumView({ album }: { album: Album }) {
           </LocaleLink>
         </nav>
       )}
-    </article>
+    </Surface>
   );
 }
 
@@ -442,14 +430,16 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
     .map((p) => localizePhoto(p, locale));
 
   return (
-    <article>
-      <div data-header-theme="dark" className="bg-navy">
+    <Surface tone="light" as="article">
+      {/* Cream mat: the photograph is presented like an editorial print. */}
+      <div className="bg-secondary px-4 py-6 md:py-10">
         <img
           src={photo.image}
           alt={photo.alt}
           width={photo.width}
           height={photo.height}
-          className="mx-auto max-h-[82vh] w-auto max-w-full object-contain"
+          fetchPriority="high"
+          className="mx-auto max-h-[78vh] w-auto max-w-full rounded-sm object-contain shadow-soft"
         />
       </div>
       <div className="mx-auto max-w-6xl px-5 pt-8 md:px-8">
@@ -472,10 +462,10 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
       </div>
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1.6fr_1fr] md:px-8">
         <div>
-          <span className="eyebrow inline-flex items-center gap-2 text-terracotta">
+          <span className="eyebrow inline-flex items-center gap-2 text-eyebrow">
             <MapPin className="size-3.5" /> {photo.location}
           </span>
-          <h1 className="mt-3 text-5xl md:text-6xl">{photo.title}</h1>
+          <h1 className="title-detail mt-3">{photo.title}</h1>
           {photo.story && (
             <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed">{photo.story}</p>
           )}
@@ -527,12 +517,14 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <section className="mx-auto max-w-6xl px-5 pb-24 md:px-8">
           <h2 className="text-3xl">{m.related}</h2>
           <div className="mt-8 grid gap-8 sm:grid-cols-3">
-            {related.map((item) => (
-              <PhotoCard key={item.slug} photo={item} ratio="aspect-[4/5]" />
+            {related.map((item, i) => (
+              <div key={item.slug} {...reveal(i)}>
+                <PhotoCard photo={item} ratio="aspect-[4/5]" />
+              </div>
             ))}
           </div>
         </section>
       )}
-    </article>
+    </Surface>
   );
 }

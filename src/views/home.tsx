@@ -4,10 +4,13 @@ import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/conten
 import { aiWorks, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnHero, btnPrimary, btnOutline } from "@/components/site";
 import { PortraitSwitch } from "@/components/portrait";
+import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-import heroPhoto from "@/assets/photo-nesebar-coast.jpg";
 import heroAi from "@/assets/ai-knight.png";
+import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
+
+const heroPhoto = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
 
 export const homeHead = (locale: Locale) => {
   const m = getMessages(locale).home;
@@ -58,7 +61,7 @@ export function HomeView() {
         </div>
       </section>
 
-      <section id="featured-albums" data-header-theme="light" className="mx-auto max-w-7xl px-5 py-24 md:px-8">
+      <Surface tone="light" id="featured-albums" className="container-page section-y">
         <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:h-[42rem] lg:grid-cols-[1.35fr_1fr] lg:grid-rows-2 lg:gap-6">
           {featuredAlbums.map(({ album, cover }, index) => (
@@ -74,16 +77,16 @@ export function HomeView() {
                 width={cover.width}
                 height={cover.height}
                 loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
                 style={cover.objectPosition ? { objectPosition: cover.objectPosition } : undefined}
-                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-105 motion-reduce:transition-none"
+                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
               />
               <span
                 aria-hidden="true"
                 className="absolute inset-0 -z-10 bg-gradient-to-t from-navy/95 via-navy/30 to-transparent"
               />
-              <span className="relative flex h-full min-h-[inherit] flex-col justify-between p-6 md:p-8">
-                <span className="eyebrow text-gold">{String(index + 1).padStart(2, "0")}</span>
-                <span className="flex items-end justify-between gap-4 border-t border-navy-foreground/40 pt-5">
+              <span className="relative flex h-full min-h-[inherit] flex-col justify-end p-6 md:p-8">
+                <span className="flex items-end justify-between gap-4">
                   <span>
                     <span
                       className={`block font-serif leading-tight ${index === 0 ? "text-4xl md:text-5xl" : "text-3xl md:text-4xl"}`}
@@ -112,34 +115,35 @@ export function HomeView() {
             />
           </LocaleLink>
         </div>
-      </section>
+      </Surface>
 
-      <section data-header-theme="dark" className="bg-navy text-navy-foreground">
-        <div className="mx-auto max-w-7xl px-5 py-24 md:px-8">
+      <Surface tone="dark" seam>
+        <div className="container-page section-y">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <SectionHeading dark eyebrow={m.aiEyebrow} title={m.aiTitle} text={m.aiText} />
+            <SectionHeading eyebrow={m.aiEyebrow} title={m.aiTitle} text={m.aiText} />
             <LocaleLink to="/ai-worlds" className={btnOutline}>
               {m.allAi} <ArrowRight className="size-4" />
             </LocaleLink>
           </div>
           <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {aiWorks.slice(0, 4).map((w) => (
-              <AiCard key={w.slug} work={localizeAiWork(w, locale)} />
+            {aiWorks.slice(0, 4).map((w, i) => (
+              <AiCard key={w.slug} work={localizeAiWork(w, locale)} revealIndex={i} />
             ))}
           </div>
         </div>
-      </section>
+      </Surface>
 
-      <section
-        data-header-theme="light"
-        className="mx-auto grid max-w-7xl gap-10 px-5 py-24 md:grid-cols-[220px_1fr] md:items-start md:px-8 lg:grid-cols-[260px_1fr]"
+      <Surface
+        tone="light"
+        className="container-page section-y grid gap-10 md:grid-cols-[220px_1fr] md:items-start lg:grid-cols-[260px_1fr]"
       >
-        <PortraitSwitch compact className="max-w-[260px]" />
+        <PortraitSwitch compact className="max-w-[260px]" aiImage={aboutAiRoyal} />
         <div className="max-w-2xl">
-          <h2 className="text-5xl">{m.aboutTitle}</h2>
-          {/* TODO: заменете с ваш текст (в src/i18n/messages.ts) */}
+          <h2 className="title-section">{m.aboutTitle}</h2>
           <p className="mt-6 font-serif text-2xl leading-snug">{m.aboutLead}</p>
-          <p className="mt-5 text-muted-foreground">{m.aboutText}</p>
+          {m.aboutText.split("\n\n").map((paragraph) => (
+            <p key={paragraph} className="mt-5 text-muted-foreground">{paragraph}</p>
+          ))}
           <LocaleLink
             to="/about"
             className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta"
@@ -147,7 +151,7 @@ export function HomeView() {
             {m.more} <ArrowRight className="size-4" />
           </LocaleLink>
         </div>
-      </section>
+      </Surface>
     </>
   );
 }
@@ -174,9 +178,9 @@ function HeroHalf({
         alt={alt}
         width={1280}
         height={1600}
-        className="absolute inset-0 h-full w-full object-cover object-top"
+        className={`absolute inset-0 h-full w-full object-cover ${to === "/photography" ? "object-center brightness-90" : "object-top"}`}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/45 to-navy/10 md:via-navy/55" />
+      <div className={`absolute inset-0 bg-gradient-to-t ${to === "/photography" ? "from-navy/85 via-navy/25 to-navy/10 md:via-navy/35" : "from-navy via-navy/45 to-navy/10 md:via-navy/55"}`} />
       <div
         className={`relative flex h-full min-h-[62vh] flex-col justify-between p-6 md:min-h-[88vh] md:p-10 ${align === "end" ? "md:items-end" : ""}`}
       >

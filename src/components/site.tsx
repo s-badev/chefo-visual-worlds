@@ -1,6 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { ArrowRight, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { photoCategoryLabel, type Photo } from "@/content/photos";
@@ -8,7 +8,8 @@ import { aiCategoryLabel, toolLabel, type AiWork } from "@/content/ai-works";
 import { getMessages, useT, type Locale } from "@/i18n";
 import { LanguageSwitcher, LocaleLink } from "@/i18n/link";
 import { siteConfig } from "@/content/site-config";
-import { copyText } from "@/lib/clipboard";
+import { reveal } from "@/hooks/use-reveal";
+import { copyText, type CopyResult } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -17,9 +18,13 @@ const NAV = [
   { to: "/about", key: "about" },
 ] as const;
 
-export function Wordmark({ className }: { className?: string }) {
+export function Wordmark({ className, onClick }: { className?: string; onClick?: () => void }) {
   return (
-    <LocaleLink to="/" className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}>
+    <LocaleLink
+      to="/"
+      onClick={onClick}
+      className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
+    >
       CHEFO <span className="text-gold">—</span> VISUAL WORLDS
     </LocaleLink>
   );
@@ -42,18 +47,25 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
       for (const el of document.elementsFromPoint(x, y)) {
         if (header.contains(el)) continue;
         const marked = el.closest<HTMLElement>("[data-header-theme]");
-        if (marked) { next = marked.dataset["headerTheme"] === "dark" ? "dark" : "light"; break; }
+        if (marked) {
+          next = marked.dataset["headerTheme"] === "dark" ? "dark" : "light";
+          break;
+        }
       }
       setTheme((cur) => (cur === next ? cur : next));
     };
-    const schedule = () => { if (!raf) raf = requestAnimationFrame(probe); };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(probe);
+    };
     probe();
     const t1 = setTimeout(probe, 50);
     const t2 = setTimeout(probe, 300); // after scroll restoration
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
-      cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2);
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
@@ -61,12 +73,20 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
   return theme;
 }
 
+/** Gold underline that unfolds from the centre on the active page (resting look unchanged). */
+const navUnderline =
+  "relative after:absolute after:inset-x-0 after:-bottom-px after:h-px after:origin-center after:scale-x-0 after:bg-gold after:transition-transform after:duration-(--dur-base) after:ease-cinematic";
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const theme = useHeaderTheme(ref);
   const { t } = useT();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const dark = theme === "dark" || open;
+
+  useEffect(() => setOpen(false), [pathname]);
+
   return (
     <header
       ref={ref}
@@ -86,8 +106,12 @@ export function SiteHeader() {
               <li key={n.to}>
                 <LocaleLink
                   to={n.to}
-                  className={cn("eyebrow border-b border-transparent pb-1 transition-colors", dark ? "hover:text-gold" : "hover:text-terracotta")}
-                  activeClassName={cn("!border-gold", dark && "text-gold")}
+                  className={cn(
+                    "eyebrow border-b border-transparent pb-1 transition-colors",
+                    navUnderline,
+                    dark ? "hover:text-gold" : "hover:text-terracotta",
+                  )}
+                  activeClassName={cn("after:scale-x-100", dark && "text-gold")}
                 >
                   {t.nav[n.key]}
                 </LocaleLink>
@@ -96,32 +120,67 @@ export function SiteHeader() {
           </ul>
           <LanguageSwitcher label={t.nav.language} />
         </nav>
-        <button
-          className="p-2 lg:hidden"
-          aria-label={open ? t.nav.close : t.nav.open}
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+        <Dialog.Root open={open} onOpenChange={setOpen}>
+          {/* The ::after enlarges the touch target to 44px without moving the icon. */}
+          <Dialog.Trigger
+            className="relative p-2 after:absolute after:-inset-1 lg:hidden"
+            aria-label={open ? t.nav.close : t.nav.open}
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            {/* Radix locks page scroll through the overlay. */}
+            <Dialog.Overlay className="fixed inset-0 z-50 bg-navy duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden" />
+            <Dialog.Content
+              aria-describedby={undefined}
+              className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-navy text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden"
+            >
+              <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
+              <div className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8">
+                <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
+                <Dialog.Close
+                  className="relative p-2 after:absolute after:-inset-1"
+                  aria-label={t.nav.close}
+                >
+                  <X className="size-5" />
+                </Dialog.Close>
+              </div>
+              <nav
+                aria-label={t.nav.mobile}
+                className="seam-top flex flex-1 flex-col justify-between px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 md:px-8"
+              >
+                <ul className="flex flex-col">
+                  {NAV.map((n, i) => (
+                    <li
+                      key={n.to}
+                      className="border-b border-navy-border duration-500 ease-cinematic fill-mode-both motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2"
+                      style={{ animationDelay: `${80 + i * 70}ms` }}
+                    >
+                      <LocaleLink
+                        to={n.to}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center justify-between gap-4 py-5 font-serif text-4xl transition-colors hover:text-gold"
+                        activeClassName="text-gold"
+                      >
+                        {t.nav[n.key]}
+                        <ArrowRight aria-hidden="true" className="size-5 text-gold" />
+                      </LocaleLink>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-10 flex items-center justify-between border-t border-navy-border pt-6">
+                  <span className="eyebrow text-navy-muted">{t.nav.language}</span>
+                  <LanguageSwitcher
+                    label={t.nav.language}
+                    onSwitch={() => setOpen(false)}
+                    className="text-sm"
+                  />
+                </div>
+              </nav>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
-      {open && (
-        <nav aria-label={t.nav.mobile} className="border-t border-navy-border lg:hidden">
-          <ul className="flex flex-col px-5 py-4">
-            {NAV.map((n) => (
-              <li key={n.to}>
-                <LocaleLink to={n.to} onClick={() => setOpen(false)} className="eyebrow block py-3" activeClassName="text-gold">
-                  {t.nav[n.key]}
-                </LocaleLink>
-              </li>
-            ))}
-          </ul>
-          <div className="flex items-center justify-between border-t border-navy-border px-5 py-4">
-            <span className="eyebrow text-navy-muted">{t.nav.language}</span>
-            <LanguageSwitcher label={t.nav.language} onSwitch={() => setOpen(false)} className="text-sm" />
-          </div>
-        </nav>
-      )}
     </header>
   );
 }
@@ -131,7 +190,7 @@ export function SiteFooter() {
   const email = siteConfig.contactEmail.trim();
   const { t } = useT();
   return (
-    <footer data-header-theme="dark" className="bg-navy text-navy-foreground">
+    <footer data-header-theme="dark" className="seam-top bg-navy text-navy-foreground">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 md:flex-row md:items-end md:justify-between md:px-8">
         <div>
           <Wordmark />
@@ -142,7 +201,12 @@ export function SiteFooter() {
             <ul className="flex gap-6 eyebrow">
               {instagram && (
                 <li>
-                  <a href={instagram} target="_blank" rel="noopener noreferrer" className="hover:text-gold">
+                  <a
+                    href={instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-gold"
+                  >
                     Instagram
                   </a>
                 </li>
@@ -156,32 +220,75 @@ export function SiteFooter() {
               )}
             </ul>
           )}
-          <p className="text-xs text-navy-muted">© {new Date().getFullYear()} Chefo. {t.footer.rights}</p>
+          <p className="text-xs text-navy-muted">
+            © {new Date().getFullYear()} Chefo. {t.footer.rights}
+          </p>
         </div>
       </div>
     </footer>
   );
 }
 
-export function SectionHeading({ eyebrow, title, text, dark }: { eyebrow?: string; title: string; text?: string; dark?: boolean }) {
+/** Page-level title block; colors follow the surrounding Surface. */
+export function PageHeader({
+  eyebrow,
+  title,
+  intro,
+  size = "page",
+  className,
+}: {
+  eyebrow: string;
+  title: string;
+  intro?: string;
+  size?: "page" | "detail";
+  className?: string;
+}) {
   return (
-    <div className="max-w-2xl">
-      {eyebrow && <p className={cn("eyebrow", dark ? "text-gold" : "text-terracotta")}>{eyebrow}</p>}
-      <h2 className="mt-3 text-4xl md:text-5xl">{title}</h2>
-      {text && <p className={cn("mt-4 text-lg", dark ? "text-navy-muted" : "text-muted-foreground")}>{text}</p>}
+    <header className={cn("max-w-2xl", className)}>
+      <p className="eyebrow text-eyebrow">{eyebrow}</p>
+      <h1 className={cn("mt-3", size === "page" ? "title-page" : "title-detail")}>{title}</h1>
+      {intro && <p className="lead mt-5 max-w-xl text-muted-foreground">{intro}</p>}
+    </header>
+  );
+}
+
+export function SectionHeading({
+  eyebrow,
+  title,
+  text,
+}: {
+  eyebrow?: string;
+  title: string;
+  text?: string;
+}) {
+  return (
+    <div className="max-w-2xl" {...reveal()}>
+      {eyebrow && <p className="eyebrow text-eyebrow">{eyebrow}</p>}
+      <h2 className="title-section mt-3">{title}</h2>
+      {text && <p className="lead mt-4 text-muted-foreground">{text}</p>}
     </div>
   );
 }
 
-export function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+export function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors",
-        active ? "border-primary bg-primary text-primary-foreground" : "hover:border-gold",
+        "shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border hover:border-gold",
       )}
     >
       {children}
@@ -190,10 +297,10 @@ export function Chip({ active, onClick, children }: { active: boolean; onClick: 
 }
 
 /** Labelled filter group: one scrollable row on mobile, wraps from sm up. */
-export function ChipGroup({ label, children, dark }: { label: string; children: React.ReactNode; dark?: boolean }) {
+export function ChipGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-2 sm:flex sm:items-center" role="group" aria-label={label}>
-      <span className={cn("eyebrow shrink-0 sm:mr-2 sm:w-24", dark ? "text-navy-muted" : "text-muted-foreground")}>{label}</span>
+      <span className="eyebrow shrink-0 text-muted-foreground sm:mr-2 sm:w-24">{label}</span>
       <div className="chip-row no-scrollbar -mx-1 flex min-w-0 gap-2 overflow-x-auto px-1 py-1 sm:flex-wrap sm:overflow-visible">
         {children}
       </div>
@@ -201,18 +308,33 @@ export function ChipGroup({ label, children, dark }: { label: string; children: 
   );
 }
 
-export function EmptyState({ text, onClear, dark }: { text: string; onClear: () => void; dark?: boolean }) {
+export function EmptyState({ text, onClear }: { text: string; onClear: () => void }) {
   const { t } = useT();
   return (
     <div className="mt-16 max-w-md">
-      <p className={cn("font-serif text-2xl italic", dark ? "text-navy-muted" : "text-muted-foreground")}>{text}</p>
-      <button type="button" onClick={onClear} className={cn("mt-6", dark ? btnGold : btnPrimary)}>{t.common.clearFilters}</button>
+      <p className="font-serif text-2xl italic text-muted-foreground">{text}</p>
+      <button type="button" onClick={onClear} className={cn("mt-6", btnPrimary)}>
+        {t.common.clearFilters}
+      </button>
     </div>
   );
 }
 
+const cardImage =
+  "h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-[1.03]";
+
 /** Expects a photo already localized with localizePhoto(). */
-export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen, themeLabel }: { photo: Photo; ratio?: string; onOpen?: () => void; themeLabel?: string }) {
+export function PhotoCard({
+  photo,
+  ratio = "aspect-[4/5]",
+  onOpen,
+  themeLabel,
+}: {
+  photo: Photo;
+  ratio?: string;
+  onOpen?: () => void;
+  themeLabel?: string;
+}) {
   const { t, locale } = useT();
   const img = (
     <div className={cn("relative overflow-hidden rounded-md bg-muted shadow-soft", ratio)}>
@@ -222,14 +344,17 @@ export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen, themeLabel }:
         width={photo.width}
         height={photo.height}
         loading="lazy"
+        decoding="async"
         style={photo.objectPosition ? { objectPosition: photo.objectPosition } : undefined}
-        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        className={cardImage}
       />
     </div>
   );
   const meta = (
     <div className="mt-3 space-y-1">
-      <p className="eyebrow text-terracotta">{themeLabel ?? photoCategoryLabel(photo.category, locale)}</p>
+      <p className="eyebrow text-eyebrow">
+        {themeLabel ?? photoCategoryLabel(photo.category, locale)}
+      </p>
       <p className="font-serif text-xl leading-tight">{photo.location}</p>
       <p className="text-sm text-muted-foreground">{photo.caption ?? photo.title}</p>
     </div>
@@ -237,11 +362,22 @@ export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen, themeLabel }:
   if (onOpen) {
     return (
       <figure className="group">
-        <button type="button" onClick={onOpen} className="block w-full text-left" aria-label={t.common.openFullscreen(photo.title)}>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="block w-full text-left"
+          aria-label={t.common.openFullscreen(photo.title)}
+        >
           {img}
         </button>
         <figcaption>
-          <LocaleLink to="/photography/$slug" slug={photo.slug} className="block hover:text-terracotta">{meta}</LocaleLink>
+          <LocaleLink
+            to="/photography/$slug"
+            slug={photo.slug}
+            className="block transition-colors hover:text-terracotta"
+          >
+            {meta}
+          </LocaleLink>
         </figcaption>
       </figure>
     );
@@ -254,44 +390,101 @@ export function PhotoCard({ photo, ratio = "aspect-[4/5]", onOpen, themeLabel }:
   );
 }
 
-export async function copyPromptWithToast(prompt: string | undefined, locale: Locale) {
+export async function copyPromptWithToast(
+  prompt: string | undefined,
+  locale: Locale,
+): Promise<CopyResult> {
   const m = getMessages(locale).common;
   const r = await copyText(prompt);
   if (r === "ok") toast.success(m.copied);
   else if (r === "error") toast.error(m.copyFailed);
+  return r;
 }
 
-/** AI overview card (expects a localized work) (dark sections). Copy button sits outside the link. */
-export function AiCard({ work, className }: { work: AiWork; className?: string }) {
-  const hasPrompt = Boolean(work.prompt?.trim());
+/** Copy action with a short-lived confirmed state for the button (toast still announces it). */
+export function useCopyPrompt(locale: Locale) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(id);
+  }, [copied]);
+  const copy = async (prompt: string | undefined) => {
+    if ((await copyPromptWithToast(prompt, locale)) === "ok") setCopied(true);
+  };
+  return [copied, copy] as const;
+}
+
+/** AI overview card (expects a localized work) (dark sections). */
+export function AiCard({
+  work,
+  className,
+  revealIndex,
+}: {
+  work: AiWork;
+  className?: string;
+  /** Position among siblings for the scroll reveal stagger. */
+  revealIndex?: number;
+}) {
   const { t, locale } = useT();
   return (
-    <article className={cn("group min-w-0", className)}>
+    <article
+      className={cn("group min-w-0", className)}
+      {...(revealIndex !== undefined ? reveal(revealIndex) : {})}
+    >
       <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="block">
         <div className="relative aspect-[4/5] overflow-hidden rounded-md">
-          <img src={work.image} alt={work.alt} width={1024} height={1280} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
-          <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">{t.common.aiBadge}</span>
+          <img
+            src={work.image}
+            alt={work.alt}
+            width={work.width ?? 1024}
+            height={work.height ?? 1280}
+            loading="lazy"
+            decoding="async"
+            className={cardImage}
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/40 group-focus-within:ring-gold/60"
+          />
+          <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
+            {t.common.aiBadge}
+          </span>
         </div>
-        <h3 className="mt-3 font-serif text-2xl leading-tight group-hover:text-gold">{work.title}</h3>
+        <h3 className="title-card mt-3 font-serif transition-colors group-hover:text-gold">
+          {work.title}
+        </h3>
       </LocaleLink>
       <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm text-navy-muted">{toolLabel(work.tool, locale)} · {aiCategoryLabel(work.category, locale)}</p>
-        {hasPrompt && (
-          <button
-            type="button"
-            onClick={() => copyPromptWithToast(work.prompt, locale)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-navy-border px-2.5 py-1.5 text-xs font-semibold transition-colors hover:border-gold hover:text-gold"
-            aria-label={t.common.copyPromptFor(work.title)}
-          >
-            <Copy className="size-3.5" /> {t.common.copyPrompt}
-          </button>
-        )}
+        <p className="min-w-0 truncate text-sm text-muted-foreground">
+          {work.tool && `${toolLabel(work.tool, locale)} · `}{aiCategoryLabel(work.category, locale)}
+        </p>
       </div>
     </article>
   );
 }
 
-export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: number | null; onIndex: (i: number | null) => void }) {
+/** Anything the viewer can show; a Photo fits as-is. */
+export interface LightboxItem {
+  slug: string;
+  image: string;
+  alt: string;
+  title: string;
+  width?: number | undefined;
+  height?: number | undefined;
+  caption?: string | undefined;
+  location?: string | undefined;
+}
+
+export function Lightbox({
+  items,
+  index,
+  onIndex,
+}: {
+  items: LightboxItem[];
+  index: number | null;
+  onIndex: (i: number | null) => void;
+}) {
   const open = index !== null && items[index] !== undefined;
   const item = open ? items[index!] : null;
   const { t } = useT();
@@ -312,14 +505,25 @@ export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: num
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onIndex(null)}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95 duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <Dialog.Content
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none md:p-10"
-          onOpenAutoFocus={() => { returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
-          onCloseAutoFocus={(event) => {
-            if (returnFocus.current?.isConnected) { event.preventDefault(); returnFocus.current.focus(); }
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:p-10"
+          onOpenAutoFocus={() => {
+            returnFocus.current =
+              document.activeElement instanceof HTMLElement ? document.activeElement : null;
           }}
-          onTouchStart={(event) => { touchStart.current = { x: event.touches[0]!.clientX, y: event.touches[0]!.clientY }; }}
+          onCloseAutoFocus={(event) => {
+            if (returnFocus.current?.isConnected) {
+              event.preventDefault();
+              returnFocus.current.focus();
+            }
+          }}
+          onTouchStart={(event) => {
+            touchStart.current = {
+              x: event.touches[0]!.clientX,
+              y: event.touches[0]!.clientY,
+            };
+          }}
           onTouchEnd={(event) => {
             if (!touchStart.current) return;
             const dx = event.changedTouches[0]!.clientX - touchStart.current.x;
@@ -332,17 +536,50 @@ export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: num
             <>
               <Dialog.Title className="sr-only">{item.title}</Dialog.Title>
               <Dialog.Description className="sr-only">{item.alt}</Dialog.Description>
-              <img src={item.image} alt={item.alt} width={item.width} height={item.height} className="max-h-[78vh] max-w-full rounded-md object-contain" />
+              <img
+                key={item.slug}
+                src={item.image}
+                alt={item.alt}
+                width={item.width}
+                height={item.height}
+                className="max-h-[78vh] max-w-full rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0"
+              />
               <div className="mt-4 text-center">
                 <p className="font-serif text-2xl">{item.title}</p>
-                {item.caption && <p className="mt-1 text-sm text-navy-foreground/80">{item.caption}</p>}
-                <p className="eyebrow mt-1 text-gold">{item.location} · {index! + 1} / {items.length}</p>
+                {item.caption && (
+                  <p className="mt-1 text-sm text-navy-foreground/80">{item.caption}</p>
+                )}
+                <p className="eyebrow mt-1 text-gold">
+                  {item.location ? `${item.location} · ` : ""}
+                  {index! + 1} / {items.length}
+                </p>
               </div>
-              {items.length > 1 && <>
-                <button type="button" onClick={() => go(-1)} aria-label={t.lightbox.prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 hover:border-gold md:left-6"><ChevronLeft className="size-5" /></button>
-                <button type="button" onClick={() => go(1)} aria-label={t.lightbox.next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 hover:border-gold md:right-6"><ChevronRight className="size-5" /></button>
-              </>}
-              <Dialog.Close aria-label={t.lightbox.close} className="absolute right-4 top-4 rounded-full border border-navy-border p-2 hover:border-gold"><X className="size-5" /></Dialog.Close>
+              {items.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => go(-1)}
+                    aria-label={t.lightbox.prev}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:left-6"
+                  >
+                    <ChevronLeft className="size-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => go(1)}
+                    aria-label={t.lightbox.next}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:right-6"
+                  >
+                    <ChevronRight className="size-5" />
+                  </button>
+                </>
+              )}
+              <Dialog.Close
+                aria-label={t.lightbox.close}
+                className="absolute right-4 top-4 rounded-full border border-navy-border p-2 transition-colors hover:border-gold"
+              >
+                <X className="size-5" />
+              </Dialog.Close>
             </>
           )}
         </Dialog.Content>
@@ -351,8 +588,10 @@ export function Lightbox({ items, index, onIndex }: { items: Photo[]; index: num
   );
 }
 
-export const btnPrimary = "inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground transition-colors hover:bg-terracotta";
-export const btnOutline = "inline-flex items-center gap-2 rounded-sm border border-current px-6 py-3 text-sm font-semibold tracking-wide transition-colors hover:border-gold hover:text-gold";
-export const btnGold = "inline-flex items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground transition-colors hover:bg-navy-foreground";
+const btnMotion = "transition-colors duration-(--dur-base) ease-cinematic";
+export const btnPrimary = `inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground ${btnMotion} hover:bg-primary-hover`;
+export const btnOutline = `inline-flex items-center gap-2 rounded-sm border border-current px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion} hover:border-gold hover:text-gold`;
+export const btnGold = `inline-flex items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground ${btnMotion} hover:bg-navy-foreground`;
 /** Shared hero CTA so both collections get identical weight. */
-export const btnHero = "inline-flex items-center gap-2 rounded-sm border border-gold bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground shadow-soft transition-colors hover:bg-navy-foreground hover:border-navy-foreground";
+export const btnHero =
+  "inline-flex items-center gap-2 rounded-sm border border-gold bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground shadow-soft transition-colors hover:bg-navy-foreground hover:border-navy-foreground";

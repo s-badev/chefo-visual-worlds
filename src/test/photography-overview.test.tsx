@@ -2,7 +2,9 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
-import { PhotographyView } from "@/views/photography";
+import { getAlbum } from "@/content/albums";
+import { filterGalleryPhotos, getAllGalleryPhotos } from "@/content/photo-gallery";
+import { AlbumView, PhotographyView } from "@/views/photography";
 
 let activeLocale: "bg" | "en" = "bg";
 let currentSearch: Record<string, unknown> = {};
@@ -65,7 +67,9 @@ describe("Photography album overview", () => {
         "Рила",
         "Тунис",
         "Париж",
+        "Лион",
         "Истанбул",
+        "Одрин",
         "Бодрум",
       ],
     ],
@@ -80,28 +84,96 @@ describe("Photography album overview", () => {
         "Rila",
         "Tunisia",
         "Paris",
+        "Lyon",
         "Istanbul",
+        "Edirne",
         "Bodrum",
       ],
     ],
-  ] as const)("renders ten unique %s destination cards", (locale, names) => {
+  ] as const)("renders twelve unique %s destination cards", (locale, names) => {
     activeLocale = locale;
     const { container } = render(<PhotographyView />);
     const links = Array.from(container.querySelectorAll('a[href^="/photography/albums/"]'));
 
-    expect(links).toHaveLength(10);
-    expect(new Set(links.map((link) => link.getAttribute("href"))).size).toBe(10);
+    expect(links).toHaveLength(12);
+    expect(new Set(links.map((link) => link.getAttribute("href"))).size).toBe(12);
+    expect(links.every((link) => link.querySelector("svg") === null)).toBe(true);
+    expect(links.every((link) => !link.textContent?.match(/^\s*\d{2}\b/))).toBe(true);
+    expect(
+      links
+        .find((link) => link.getAttribute("href") === "/photography/albums/bodrum")
+        ?.querySelector("img")
+        ?.getAttribute("src"),
+    ).toBe("/photos/bodrum/bodrum-013.webp");
+    expect(
+      links
+        .find((link) => link.getAttribute("href") === "/photography/albums/istanbul")
+        ?.querySelector("img")
+        ?.getAttribute("src"),
+    ).toBe("/photos/istanbul/istanbul-024-maidens-tower.webp");
+    expect(
+      links
+        .find((link) => link.getAttribute("href") === "/photography/albums/paris")
+        ?.querySelector("img")
+        ?.getAttribute("src"),
+    ).toBe("/photos/paris/paris-054.webp");
+    expect(
+      links
+        .find((link) => link.getAttribute("href") === "/photography/albums/lyon")
+        ?.querySelector("img")
+        ?.getAttribute("src"),
+    ).toBe("/photos/lyon/lyon-001.webp");
+    expect(
+      links
+        .find((link) => link.getAttribute("href") === "/photography/albums/edirne")
+        ?.querySelector("img")
+        ?.getAttribute("src"),
+    ).toBe("/photos/edirne/edirne-006.webp");
     for (const name of names) expect(screen.getByText(name)).toBeInTheDocument();
-    expect(screen.getAllByText(messages[locale].photos.albumEmpty)).toHaveLength(6);
+    expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.theme)).not.toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.place)).not.toBeInTheDocument();
+  });
+
+  it.each(["bg", "en"] as const)("shows the localized Lyon album in %s", (locale) => {
+    activeLocale = locale;
+    const { container } = render(<AlbumView album={getAlbum("lyon")!} />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: locale === "bg" ? "Лион" : "Lyon" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        locale === "bg"
+          ? "Градски пейзажи, архитектура и моменти от Лион, Франция."
+          : "Cityscapes, architecture, and moments from Lyon, France.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
+    expect(container.querySelectorAll('img[src^="/photos/lyon/"]')).toHaveLength(24);
+  });
+
+  it.each(["bg", "en"] as const)("shows the localized Edirne album in %s", (locale) => {
+    activeLocale = locale;
+    const { container } = render(<AlbumView album={getAlbum("edirne")!} />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: locale === "bg" ? "Одрин" : "Edirne" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        locale === "bg"
+          ? "Архитектура, градски улици и моменти от Одрин, Турция."
+          : "Architecture, city streets, and moments from Edirne, Turkey.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
+    expect(container.querySelectorAll('img[src^="/photos/edirne/"]')).toHaveLength(21);
   });
 
   it("switches to real photos and combines theme with album location", () => {
     const view = render(<PhotographyView />);
     fireEvent.click(screen.getByRole("button", { name: "Всички снимки" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("8 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("395 кадъра")).toBeInTheDocument();
     expect(view.container.querySelectorAll('a[href^="/photography/albums/"]')).toHaveLength(0);
 
     fireEvent.click(
@@ -115,7 +187,16 @@ describe("Photography album overview", () => {
     );
     view.rerender(<PhotographyView />);
 
-    expect(screen.getByText("1 кадър")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        messages.bg.photos.count(
+          filterGalleryPhotos(getAllGalleryPhotos("bg"), {
+            theme: "architecture",
+            location: "sofia",
+          }).length,
+        ),
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Отвори „Синият час на Невски“/ }),
     ).toBeInTheDocument();
@@ -123,11 +204,13 @@ describe("Photography album overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Отвори „Синият час на Невски“/ }));
     expect(screen.getByRole("dialog", { name: "Синият час на Невски" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Следваща снимка" }));
+    expect(screen.getByRole("dialog", { name: "Фонтан пред осветена сграда" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Затвори" }));
 
     fireEvent.click(
       within(screen.getByRole("group", { name: "Тема" })).getByRole("button", {
-        name: "Природа",
+        name: "Море",
       }),
     );
     view.rerender(<PhotographyView />);
@@ -136,6 +219,6 @@ describe("Photography album overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Изчисти филтрите" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("8 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("395 кадъра")).toBeInTheDocument();
   });
 });

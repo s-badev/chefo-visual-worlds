@@ -41,9 +41,29 @@ afterEach(() => {
 });
 
 describe("homepage featured albums", () => {
+  it.each(["bg", "en"] as const)("keeps four valid AI preview links in %s", (locale) => {
+    activeLocale = locale;
+    render(<HomeView />);
+    const heading = screen.getByRole("heading", { name: messages[locale].home.aiTitle });
+    const section = heading.closest("section")!;
+    const prefix = locale === "en" ? "/en" : "";
+    expect(
+      Array.from(section.querySelectorAll(`a[href^="${prefix}/ai-worlds/"]`)).map((link) =>
+        link.getAttribute("href"),
+      ),
+    ).toEqual([
+      `${prefix}/ai-worlds/chefo-srednovekoven-ritsar`,
+      `${prefix}/ai-worlds/renesansov-portret`,
+      `${prefix}/ai-worlds/chefo-v-badeshteto`,
+      `${prefix}/ai-worlds/chefo-v-sauditska-arabiya`,
+    ]);
+    expect(section.textContent).not.toContain("Владетел на морското кралство");
+    expect(section.textContent).not.toContain("Лято на морето — AI колаж");
+  });
+
   it.each([
-    ["bg", ["Несебър", "София", "Слънчев бряг"], "Разгледай всички 10 албума"],
-    ["en", ["Nessebar", "Sofia", "Sunny Beach"], "Explore All 10 Albums"],
+    ["bg", ["Несебър", "София", "Слънчев бряг"], "Разгледай всички 12 албума"],
+    ["en", ["Nessebar", "Sofia", "Sunny Beach"], "Explore All 12 Albums"],
   ] as const)("shows three album covers in %s", (locale, names, cta) => {
     activeLocale = locale;
     render(<HomeView />);
@@ -65,13 +85,13 @@ describe("homepage featured albums", () => {
       );
     }
     expect(
-      within(links[0] as HTMLElement).getByText(messages[locale].photos.count(3)),
+      within(links[0] as HTMLElement).getByText(messages[locale].photos.count(33)),
     ).toBeInTheDocument();
     expect(
-      within(links[1] as HTMLElement).getByText(messages[locale].photos.count(2)),
+      within(links[1] as HTMLElement).getByText(messages[locale].photos.count(45)),
     ).toBeInTheDocument();
     expect(
-      within(links[2] as HTMLElement).getByText(messages[locale].photos.count(1)),
+      within(links[2] as HTMLElement).getByText(messages[locale].photos.count(58)),
     ).toBeInTheDocument();
     expect(
       section.querySelectorAll(`a[href^="${prefix}/photography/"]:not([href*="/albums/"])`),
