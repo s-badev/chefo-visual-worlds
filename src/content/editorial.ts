@@ -1,0 +1,222 @@
+import type { AiWork } from "./ai-works";
+import type { Album } from "./albums";
+import type { Photo } from "./photos";
+
+type PhotoSlug = Photo["slug"];
+type ArtworkSlug = AiWork["slug"];
+type AlbumSlug = Album["slug"];
+
+export type GridColumn = `${number} / ${number}`;
+export type AspectRatio = `${number} / ${number}`;
+export type RemOffset = `${number}rem`;
+
+export interface EditorialImage {
+  readonly photoSlug: PhotoSlug;
+  readonly column?: GridColumn;
+  readonly aspectRatio?: AspectRatio;
+  readonly marginTop?: RemOffset;
+  readonly half?: boolean;
+  readonly wide?: boolean;
+}
+
+export interface EditorialChapter {
+  readonly images: readonly EditorialImage[];
+}
+
+export interface EditorialAlbum {
+  readonly albumSlug: AlbumSlug;
+  readonly treatment: "calm" | "reportage";
+  readonly chapters: readonly EditorialChapter[];
+}
+
+export interface EditorialConfig {
+  readonly photography: {
+    readonly opening: {
+      readonly photoSlug: PhotoSlug;
+      readonly objectPosition: string;
+    };
+    readonly reportage: {
+      readonly albumSlug: AlbumSlug;
+      readonly photoSlugs: readonly PhotoSlug[];
+    };
+    readonly panoramaPhotoSlug: PhotoSlug;
+  };
+  readonly albums: readonly EditorialAlbum[];
+  readonly about: {
+    readonly photoSlugs: readonly PhotoSlug[];
+    readonly artworkSlugs: readonly ArtworkSlug[];
+  };
+  readonly artworks: {
+    readonly representativeSlugs: readonly ArtworkSlug[];
+  };
+}
+
+/** Optional presentation choices. Published titles, descriptions and media stay in their registries. */
+export const editorial = {
+  photography: {
+    opening: { photoSlug: "paris-057", objectPosition: "62% 14%" },
+    reportage: {
+      albumSlug: "istanbul",
+      photoSlugs: ["istanbul-038", "istanbul-031", "istanbul-037"],
+    },
+    panoramaPhotoSlug: "rila-008",
+  },
+  albums: [
+    {
+      albumSlug: "paris",
+      treatment: "calm",
+      chapters: [
+        {
+          images: [
+            { photoSlug: "paris-048", column: "1 / 9", aspectRatio: "3 / 2" },
+            {
+              photoSlug: "paris-043",
+              column: "9 / 13",
+              aspectRatio: "3 / 4",
+              marginTop: "5rem",
+              half: true,
+            },
+            { photoSlug: "paris-013", column: "3 / 8", aspectRatio: "3 / 2", half: true },
+            {
+              photoSlug: "paris-009",
+              column: "8 / 13",
+              aspectRatio: "3 / 2",
+              marginTop: "3rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "paris-055", wide: true },
+            { photoSlug: "paris-039", column: "1 / 5", aspectRatio: "9 / 16", half: true },
+            {
+              photoSlug: "paris-056",
+              column: "5 / 13",
+              aspectRatio: "4 / 3",
+              marginTop: "8rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "paris-040", column: "1 / 5", aspectRatio: "9 / 16", half: true },
+            { photoSlug: "paris-031", column: "5 / 13", aspectRatio: "3 / 2", marginTop: "4rem" },
+            {
+              photoSlug: "paris-035",
+              column: "6 / 10",
+              aspectRatio: "9 / 16",
+              marginTop: "-3rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "paris-045", column: "1 / 5", aspectRatio: "3 / 4", half: true },
+            {
+              photoSlug: "paris-047",
+              column: "5 / 10",
+              aspectRatio: "4 / 3",
+              marginTop: "3rem",
+              half: true,
+            },
+            { photoSlug: "paris-044", column: "10 / 13", aspectRatio: "3 / 4", half: true },
+          ],
+        },
+      ],
+    },
+    {
+      albumSlug: "istanbul",
+      treatment: "reportage",
+      chapters: [
+        {
+          images: [
+            { photoSlug: "istanbul-017", wide: true },
+            { photoSlug: "istanbul-009", column: "1 / 8", aspectRatio: "3 / 2", half: true },
+            {
+              photoSlug: "istanbul-029",
+              column: "8 / 12",
+              aspectRatio: "9 / 16",
+              marginTop: "-4rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "istanbul-012", column: "1 / 7", aspectRatio: "4 / 3", half: true },
+            {
+              photoSlug: "istanbul-013",
+              column: "7 / 13",
+              aspectRatio: "4 / 3",
+              marginTop: "5rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "istanbul-032", column: "1 / 4", aspectRatio: "3 / 4", half: true },
+            {
+              photoSlug: "istanbul-025",
+              column: "4 / 10",
+              aspectRatio: "3 / 2",
+              marginTop: "4rem",
+              half: true,
+            },
+            { photoSlug: "istanbul-040", column: "10 / 13", aspectRatio: "3 / 4", half: true },
+            {
+              photoSlug: "istanbul-037",
+              column: "3 / 7",
+              aspectRatio: "3 / 4",
+              marginTop: "-2rem",
+              half: true,
+            },
+            {
+              photoSlug: "istanbul-031",
+              column: "8 / 12",
+              aspectRatio: "3 / 4",
+              marginTop: "2rem",
+              half: true,
+            },
+          ],
+        },
+        {
+          images: [
+            { photoSlug: "istanbul-038", wide: true },
+            { photoSlug: "istanbul-030", column: "2 / 6", aspectRatio: "3 / 4", half: true },
+            {
+              photoSlug: "istanbul-035",
+              column: "7 / 11",
+              aspectRatio: "3 / 4",
+              marginTop: "6rem",
+              half: true,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  about: {
+    photoSlugs: ["sveti-vlas-005", "istanbul-037", "paris-048"],
+    artworkSlugs: ["chefo-srednovekoven-ritsar", "renesansov-portret", "chefo-v-badeshteto"],
+  },
+  artworks: {
+    representativeSlugs: [
+      "chefo-srednovekoven-ritsar",
+      "chefo-taxi-driver",
+      "chefo-v-badeshteto",
+      "chefo-v-turtsiya",
+    ],
+  },
+} as const satisfies EditorialConfig;
+
+export const getEditorialAlbum = (slug: AlbumSlug): EditorialAlbum | undefined =>
+  editorial.albums.find((album) => album.albumSlug === slug);
+
+export const getEditorialChapterImages = (
+  slug: AlbumSlug,
+  chapterIndex: number,
+): readonly EditorialImage[] => getEditorialAlbum(slug)?.chapters[chapterIndex]?.images ?? [];
