@@ -146,7 +146,7 @@ export function HomeView() {
           ))}
           <LocaleLink
             to="/about"
-            className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta"
+            className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta-ink"
           >
             {m.more} <ArrowRight className="size-4" />
           </LocaleLink>

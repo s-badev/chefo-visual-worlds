@@ -42,7 +42,7 @@ export function PortraitSwitch({ compact, className, aiImage }: { compact?: bool
               type="button"
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
-              className={cn("rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground" : "hover:text-terracotta")}
+              className={cn("rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground" : "hover:text-terracotta-ink")}
             >
               {m === "real" ? t.portrait.real : t.portrait.ai}
             </button>

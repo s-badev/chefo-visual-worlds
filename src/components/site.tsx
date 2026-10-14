@@ -1,5 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { ArrowRight, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ import { siteConfig } from "@/content/site-config";
 import { reveal } from "@/hooks/use-reveal";
 import { copyText, type CopyResult } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
+import { getInitialHeaderTheme, type HeaderTheme } from "@/components/header-theme";
 
 const NAV = [
   { to: "/photography", key: "photography" },
@@ -25,25 +27,35 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
       onClick={onClick}
       className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
     >
-      CHEFO <span className="text-gold">—</span> VISUAL WORLDS
+      CHEFO <span className="text-gold [[data-theme=light]_&]:text-gold-ink">—</span> VISUAL WORLDS
     </LocaleLink>
   );
 }
 
-/** Reads the data-header-theme of whatever sits just under the header's bottom edge. */
-function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-  useEffect(() => {
-    let raf = 0;
-    const probe = () => {
-      raf = 0;
+/** Route theme is available in SSR; the rendered surface remains authoritative after mounting. */
+function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
+  const pathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  });
+  const pendingPath = useRouterState({ select: (s) => s.location.pathname });
+  const matches = useRouterState({ select: (s) => s.matches });
+  const [sample, setSample] = useState<{
+    pathname: string;
+    theme: HeaderTheme;
+    scroll: boolean;
+  } | null>(null);
+  const latestPath = useRef(pathname);
+  latestPath.current = pathname;
+
+  const probe = useCallback(
+    (scroll: boolean) => {
       const header = ref.current;
       if (!header) return;
-      const y = header.getBoundingClientRect().bottom + 4; // just below header, uses real height
+      const y = header.getBoundingClientRect().bottom + 1;
       const x = window.innerWidth / 2;
-      let next: "light" | "dark" = "light";
+      let next: HeaderTheme = "light";
       for (const el of document.elementsFromPoint(x, y)) {
         if (header.contains(el)) continue;
         const marked = el.closest<HTMLElement>("[data-header-theme]");
@@ -52,25 +64,44 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
           break;
         }
       }
-      setTheme((cur) => (cur === next ? cur : next));
-    };
+      const path = latestPath.current;
+      setSample((current) =>
+        current?.pathname === path && current.theme === next
+          ? current
+          : { pathname: path, theme: next, scroll },
+      );
+    },
+    [ref],
+  );
+
+  // TanStack updates resolvedLocation after the new view commits. The matches
+  // dependency lets this probe run during that commit, before the browser paints.
+  useIsomorphicLayoutEffect(() => {
+    probe(false);
+  }, [pathname, pendingPath, matches, probe]);
+
+  useEffect(() => {
+    let raf = 0;
     const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(probe);
+      if (!raf)
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          flushSync(() => probe(pendingPath === pathname));
+        });
     };
-    probe();
-    const t1 = setTimeout(probe, 50);
-    const t2 = setTimeout(probe, 300); // after scroll restoration
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [pathname, ref]);
-  return theme;
+  }, [pathname, pendingPath, probe]);
+
+  return {
+    theme: sample?.pathname === pathname ? sample.theme : getInitialHeaderTheme(pathname),
+    animate: sample?.pathname === pathname && sample.scroll && pendingPath === pathname,
+  };
 }
 
 /** Gold underline that unfolds from the centre on the active page (resting look unchanged). */
@@ -80,7 +111,7 @@ const navUnderline =
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
-  const theme = useHeaderTheme(ref);
+  const { theme, animate } = useHeaderTheme(ref);
   const { t } = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const dark = theme === "dark" || open;
@@ -92,10 +123,13 @@ export function SiteHeader() {
       ref={ref}
       data-theme={dark ? "dark" : "light"}
       className={cn(
-        "sticky top-0 z-40 border-b transition-colors duration-300 motion-reduce:transition-none",
+        "sticky top-0 z-40 border-b",
+        animate
+          ? "transition-colors duration-(--dur-base) motion-reduce:transition-none"
+          : "transition-none",
         dark
-          ? "border-navy-border bg-navy text-navy-foreground supports-[backdrop-filter]:bg-navy/80 supports-[backdrop-filter]:backdrop-blur-md"
-          : "bg-background/95 text-foreground supports-[backdrop-filter]:backdrop-blur",
+          ? "border-navy-border bg-navy text-navy-foreground"
+          : "border-border bg-background text-foreground",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
@@ -109,7 +143,7 @@ export function SiteHeader() {
                   className={cn(
                     "eyebrow border-b border-transparent pb-1 transition-colors",
                     navUnderline,
-                    dark ? "hover:text-gold" : "hover:text-terracotta",
+                    dark ? "hover:text-gold" : "hover:text-terracotta-ink",
                   )}
                   activeClassName={cn("after:scale-x-100", dark && "text-gold")}
                 >
@@ -374,7 +408,7 @@ export function PhotoCard({
           <LocaleLink
             to="/photography/$slug"
             slug={photo.slug}
-            className="block transition-colors hover:text-terracotta"
+            className="block transition-colors hover:text-terracotta-ink"
           >
             {meta}
           </LocaleLink>

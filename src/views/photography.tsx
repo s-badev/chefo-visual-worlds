@@ -107,7 +107,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view !== "photos"}
           onClick={() => set({ view: undefined })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.albums}
         </button>
@@ -115,7 +115,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view === "photos"}
           onClick={() => set({ view: "photos" })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.allPhotos}
         </button>
@@ -195,7 +195,7 @@ export function PhotographyView() {
                 key={album.id}
                 to="/photography/albums/$slug"
                 slug={album.slug}
-                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md p-7 shadow-soft outline-none transition-[transform,box-shadow] duration-(--dur-base) ease-cinematic hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${populated ? "bg-navy text-navy-foreground" : "bg-secondary text-foreground"} ${layout[index % layout.length]}`}
+                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md p-7 shadow-soft outline-none transition-[transform,box-shadow] duration-(--dur-base) ease-cinematic hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${populated ? "bg-navy text-navy-foreground focus-visible:ring-gold" : "bg-secondary text-foreground focus-visible:ring-foreground"} ${layout[index % layout.length]}`}
               >
                 {populated ? (
                   <>
@@ -269,7 +269,7 @@ export function AlbumView({ album }: { album: Album }) {
       <nav aria-label={m.backToAlbums} className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
-            <LocaleLink to="/photography" className="hover:text-terracotta">
+            <LocaleLink to="/photography" className="hover:text-terracotta-ink">
               {m.title}
             </LocaleLink>
           </li>
@@ -281,7 +281,7 @@ export function AlbumView({ album }: { album: Album }) {
       </nav>
       <LocaleLink
         to="/photography"
-        className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+        className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
       >
         <ArrowLeft className="size-4" /> {m.backToAlbums}
       </LocaleLink>
@@ -317,7 +317,7 @@ export function AlbumView({ album }: { album: Album }) {
               <LocaleLink
                 to="/photography/$slug"
                 slug={items[0]!.slug}
-                className="text-sm text-muted-foreground hover:text-terracotta"
+                className="text-sm text-muted-foreground hover:text-terracotta-ink"
               >
                 {items[0]!.location} <ArrowRight className="inline size-3.5" />
               </LocaleLink>
@@ -347,7 +347,7 @@ export function AlbumView({ album }: { album: Album }) {
                     <LocaleLink
                       to="/photography/$slug"
                       slug={photo.slug}
-                      className="font-serif text-xl hover:text-terracotta"
+                      className="font-serif text-xl hover:text-terracotta-ink"
                     >
                       {photo.caption ?? photo.title}
                     </LocaleLink>
@@ -373,7 +373,7 @@ export function AlbumView({ album }: { album: Album }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={next.slug}
-            className="group inline-flex items-center gap-5 hover:text-terracotta"
+            className="group inline-flex items-center gap-5 hover:text-terracotta-ink"
           >
             <span>
               <span className="eyebrow block text-muted-foreground">{m.nextAlbum}</span>
@@ -447,14 +447,14 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={album.slug}
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbum}: {albumText(album.title, locale)}
           </LocaleLink>
         ) : (
           <LocaleLink
             to="/photography"
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbums}
           </LocaleLink>
@@ -493,7 +493,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={prev.slug}
-          className="group flex items-center gap-3 hover:text-terracotta"
+          className="group flex items-center gap-3 hover:text-terracotta-ink"
         >
           <ArrowLeft className="size-4" />{" "}
           <span>
@@ -504,7 +504,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={next.slug}
-          className="group flex items-center gap-3 text-right hover:text-terracotta"
+          className="group flex items-center gap-3 text-right hover:text-terracotta-ink"
         >
           <span>
             <span className="eyebrow block text-muted-foreground">{m.next}</span>

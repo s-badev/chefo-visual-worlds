@@ -208,7 +208,7 @@ describe("header over the Hero", () => {
     await act(async () => {});
     const header = container.querySelector("header")!;
     expect(header).toHaveAttribute("data-theme", "light");
-    expect(header.classList).toContain("bg-background/95");
+    expect(header.classList).toContain("bg-background");
     cleanupMarked();
   });
 });
