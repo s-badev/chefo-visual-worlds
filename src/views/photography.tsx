@@ -26,6 +26,7 @@ import {
 import { Chip, ChipGroup, EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { PhotographyEditorial } from "@/components/photography-editorial";
+import { EditorialAlbumView } from "@/components/editorial-album";
 import { reveal } from "@/hooks/use-reveal";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -207,6 +208,13 @@ export function AlbumNotFoundView() {
 }
 
 export function AlbumView({ album }: { album: Album }) {
+  if (album.slug === "paris" || album.slug === "istanbul") {
+    return <EditorialAlbumView album={album} />;
+  }
+  return <StandardAlbumView album={album} />;
+}
+
+function StandardAlbumView({ album }: { album: Album }) {
   const { t, locale } = useT();
   const m = t.photos;
   const items = getAlbumPhotos(album, locale);

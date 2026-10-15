@@ -514,10 +514,12 @@ export function Lightbox({
   items,
   index,
   onIndex,
+  returnFocusTo,
 }: {
   items: LightboxItem[];
   index: number | null;
   onIndex: (i: number | null) => void;
+  returnFocusTo?: React.RefObject<HTMLElement | null>;
 }) {
   const open = index !== null && items[index] !== undefined;
   const item = open ? items[index!] : null;
@@ -544,7 +546,8 @@ export function Lightbox({
           className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:p-10"
           onOpenAutoFocus={() => {
             returnFocus.current =
-              document.activeElement instanceof HTMLElement ? document.activeElement : null;
+              returnFocusTo?.current ??
+              (document.activeElement instanceof HTMLElement ? document.activeElement : null);
           }}
           onCloseAutoFocus={(event) => {
             if (returnFocus.current?.isConnected) {

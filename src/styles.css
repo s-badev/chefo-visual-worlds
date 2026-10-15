@@ -571,6 +571,283 @@
 }
 
 /* Type scale: collection pages, detail pages, sections, cards. */
+/* Phase 2C: Paris and Istanbul album pages only. The complete gallery keeps natural ratios. */
+.editorial-album {
+  background: var(--background);
+  color: var(--foreground);
+}
+.editorial-album-cover {
+  height: min(72svh, 56vw);
+  min-height: 18rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.editorial-album-cover button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+}
+.editorial-album-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.editorial-album-mast {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 2rem 4rem;
+}
+.editorial-album-breadcrumb {
+  grid-column: 1 / -1;
+}
+.editorial-album-back,
+.editorial-album-jump {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.editorial-album-mast h1 {
+  margin-top: 0.65rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.2rem, 13vw, 10rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+}
+.editorial-album-intro {
+  display: grid;
+  align-content: end;
+  gap: 1rem;
+}
+.editorial-album-intro > p {
+  max-width: 34ch;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+.editorial-album-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.editorial-album-meta strong {
+  color: var(--foreground);
+}
+.editorial-album-jump {
+  justify-self: start;
+}
+@media (min-width: 900px) {
+  .editorial-album-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
+    column-gap: 4rem;
+  }
+}
+.editorial-album-chapter {
+  padding-block: 4.5rem 1rem;
+  border-top: 1px solid var(--border);
+}
+.editorial-album-spread {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  align-items: start;
+}
+.editorial-album-figure {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+.editorial-album-figure.is-half {
+  grid-column: auto;
+}
+.editorial-album-figure button,
+.editorial-album-all-grid button {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: zoom-in;
+}
+.editorial-album-image-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--album-ratio);
+  overflow: hidden;
+  background: var(--secondary);
+}
+.editorial-album-image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.editorial-album-figure.is-wide .editorial-album-image-frame {
+  aspect-ratio: auto;
+  height: min(78svh, 50vw);
+  min-height: 15rem;
+}
+.editorial-album-figure figcaption {
+  margin-top: 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+@media (min-width: 900px) {
+  .editorial-album-spread {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 2.5rem 2rem;
+  }
+  .editorial-album-figure,
+  .editorial-album-figure.is-half {
+    grid-column: var(--album-column);
+    margin-top: var(--album-offset);
+  }
+}
+.editorial-album-all {
+  padding-block: 4.5rem 4rem;
+}
+.editorial-album-all-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-bottom: 1.75rem;
+}
+.editorial-album-all-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1;
+}
+.editorial-album-all-head p {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.editorial-album-all-grid {
+  columns: 2;
+  column-gap: 0.6rem;
+}
+.editorial-album-all-grid li {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+.editorial-album-all-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--secondary);
+}
+.editorial-album-all-grid button {
+  overflow: hidden;
+}
+.editorial-album-zoom-cue {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .editorial-album-cover img,
+  .editorial-album-image-frame img,
+  .editorial-album-all-grid button img {
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .editorial-album-cover button:hover img {
+    transform: scale(1.015);
+  }
+  .editorial-album-figure button:hover img {
+    transform: scale(1.025);
+  }
+  .editorial-album-all-grid button:hover img {
+    transform: scale(1.035);
+  }
+  .editorial-album button:hover .editorial-album-zoom-cue {
+    opacity: 1;
+  }
+  .editorial-album button:hover + figcaption {
+    color: var(--gold-ink);
+  }
+}
+.editorial-album button:focus-visible .editorial-album-zoom-cue {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial-album-cover img,
+  .editorial-album-image-frame img,
+  .editorial-album-all-grid button img {
+    transition: none;
+    transform: none !important;
+  }
+  .editorial-album-zoom-cue {
+    transition: none;
+  }
+}
+.editorial-album-all-grid figcaption {
+  margin-top: 0.4rem;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+@media (min-width: 768px) {
+  .editorial-album-all-grid {
+    columns: 3;
+    column-gap: 1rem;
+  }
+}
+@media (min-width: 1200px) {
+  .editorial-album-all-grid {
+    columns: 4;
+  }
+}
+.editorial-album-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-block: 2rem 4rem;
+}
+.editorial-album-navigation a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 4vw, 2.25rem);
+  line-height: 1;
+}
+.editorial-album-navigation a + a {
+  justify-content: flex-end;
+  text-align: right;
+}
+.editorial-album a:hover {
+  color: var(--gold-ink);
+}
+.editorial-album a:focus-visible,
+.editorial-album button:focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 4px;
+}
+
 @utility title-page {
   font-size: 3.75rem;
   line-height: 1;
