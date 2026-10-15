@@ -93,11 +93,12 @@ describe("Photography album overview", () => {
   ] as const)("renders twelve unique %s destination cards", (locale, names) => {
     activeLocale = locale;
     const { container } = render(<PhotographyView />);
-    const links = Array.from(container.querySelectorAll('a[href^="/photography/albums/"]'));
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const links = Array.from(index.querySelectorAll('a[href^="/photography/albums/"]'));
 
     expect(links).toHaveLength(12);
     expect(new Set(links.map((link) => link.getAttribute("href"))).size).toBe(12);
-    expect(links.every((link) => link.querySelector("svg") === null)).toBe(true);
+    expect(links.every((link) => link.querySelector("img") !== null)).toBe(true);
     expect(links.every((link) => !link.textContent?.match(/^\s*\d{2}\b/))).toBe(true);
     expect(
       links
@@ -129,10 +130,47 @@ describe("Photography album overview", () => {
         ?.querySelector("img")
         ?.getAttribute("src"),
     ).toBe("/photos/edirne/edirne-006.webp");
-    for (const name of names) expect(screen.getByText(name)).toBeInTheDocument();
+    for (const name of names)
+      expect(within(index as HTMLElement).getByText(name)).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.theme)).not.toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.place)).not.toBeInTheDocument();
+  });
+
+  it("uses the approved opening and changes the desktop cover preview on hover and focus", () => {
+    activeLocale = "en";
+    const { container } = render(<PhotographyView />);
+    const opening = container.querySelector<HTMLImageElement>("[data-photo-opening] img")!;
+    expect(opening.getAttribute("src")).toBe("/photos/paris/paris-005.webp");
+    expect(opening).toHaveAttribute("fetchpriority", "high");
+    expect(opening).not.toHaveAttribute("loading", "lazy");
+    expect(Number(opening.getAttribute("width"))).toBeGreaterThan(0);
+    expect(Number(opening.getAttribute("height"))).toBeGreaterThan(0);
+
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("Istanbul")
+        .closest("li")!,
+    );
+    expect(container.querySelector(".photography-editorial-preview-frame img")).toHaveAttribute(
+      "src",
+      "/photos/istanbul/istanbul-024-maidens-tower.webp",
+    );
+    fireEvent.focusIn(
+      within(index as HTMLElement)
+        .getByText("Sofia")
+        .closest("a")!,
+    );
+    expect(container.querySelector(".photography-editorial-preview-frame img")).toHaveAttribute(
+      "src",
+      "/photos/sofia/sofia-001.webp",
+    );
+    expect(container.querySelectorAll(".photography-editorial-reportage-image")).toHaveLength(3);
+    expect(container.querySelector(".photography-editorial-panorama-frame img")).toHaveAttribute(
+      "src",
+      "/photos/rila/rila-008.webp",
+    );
   });
 
   it.each(["bg", "en"] as const)("shows the localized Lyon album in %s", (locale) => {

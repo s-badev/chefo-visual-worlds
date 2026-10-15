@@ -20,12 +20,12 @@ import {
   getAlbumCover,
   getAlbumForPhoto,
   getAlbumPhotos,
-  getAlbums,
   getNextAlbum,
   type Album,
 } from "@/content/albums";
 import { Chip, ChipGroup, EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
 import { Surface } from "@/components/surface";
+import { PhotographyEditorial } from "@/components/photography-editorial";
 import { reveal } from "@/hooks/use-reveal";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -81,26 +81,29 @@ export function PhotographyView() {
       replace: true,
     });
   };
-  const ordered = getAlbums();
   const items = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme, location }).map(
     ({ photo }) => photo,
   );
-  const layout = [
-    "lg:col-span-7 lg:min-h-[34rem]",
-    "lg:col-span-5 lg:min-h-[34rem]",
-    "lg:col-span-4 lg:min-h-[27rem]",
-    "lg:col-span-8 lg:min-h-[27rem]",
-    "lg:col-span-6 lg:min-h-[31rem]",
-    "lg:col-span-6 lg:min-h-[31rem]",
-    "lg:col-span-8 lg:min-h-[27rem]",
-    "lg:col-span-4 lg:min-h-[27rem]",
-    "lg:col-span-5 lg:min-h-[31rem]",
-    "lg:col-span-7 lg:min-h-[31rem]",
-  ];
+
+  if (view !== "photos") {
+    return (
+      <PhotographyEditorial
+        onAllPhotos={() => {
+          set({ view: "photos" });
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }}
+      />
+    );
+  }
 
   return (
     <Surface tone="light" as="div" className="container-page section-y">
-      <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
+      <PageHeader
+        eyebrow={m.eyebrow}
+        title={m.title}
+        intro={m.intro}
+        className="photography-all-photos-header"
+      />
 
       <div role="group" aria-label={m.view} className="mt-10 flex gap-8 border-b">
         <button
@@ -121,116 +124,62 @@ export function PhotographyView() {
         </button>
       </div>
 
-      {view === "photos" ? (
-        <section aria-label={m.allPhotos}>
-          <div className="mt-8 space-y-4 border-b pb-8">
-            <ChipGroup label={m.theme}>
-              <Chip active={!theme} onClick={() => set({ theme: undefined })}>
-                {t.common.all}
-              </Chip>
-              {PHOTO_THEMES.map((value) => (
-                <Chip
-                  key={value}
-                  active={theme === value}
-                  onClick={() => set({ theme: theme === value ? undefined : value })}
-                >
-                  {photoThemeLabel(value, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup label={m.place}>
-              <Chip active={!location} onClick={() => set({ location: undefined })}>
-                {t.common.all}
-              </Chip>
-              {getPhotoLocations().map((album) => (
-                <Chip
-                  key={album.id}
-                  active={location === album.slug}
-                  onClick={() =>
-                    set({ location: location === album.slug ? undefined : album.slug })
-                  }
-                >
-                  {albumText(album.title, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-          </div>
-          <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
-            {m.count(items.length)}
-          </p>
-          {items.length ? (
-            <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((photo, index) => (
-                <div key={photo.slug} {...reveal(index)}>
-                  <PhotoCard
-                    photo={photo}
-                    themeLabel={photo.themes
-                      .map((value) => photoThemeLabel(value, locale))
-                      .join(" · ")}
-                    onOpen={() => setLightbox(index)}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              text={m.empty}
-              onClear={() => set({ theme: undefined, location: undefined })}
-            />
-          )}
-          <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
-        </section>
-      ) : (
-        <section
-          aria-label={m.title}
-          className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-12 lg:gap-7"
-        >
-          {ordered.map((album, index) => {
-            const rawCover = getAlbumCover(album);
-            const cover = rawCover ? localizePhoto(rawCover, locale) : undefined;
-            const name = albumText(album.title, locale);
-            const populated = Boolean(cover && album.photos.length);
-            return (
-              <LocaleLink
-                key={album.id}
-                to="/photography/albums/$slug"
-                slug={album.slug}
-                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md p-7 shadow-soft outline-none transition-[transform,box-shadow] duration-(--dur-base) ease-cinematic hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${populated ? "bg-navy text-navy-foreground focus-visible:ring-gold" : "bg-secondary text-foreground focus-visible:ring-foreground"} ${layout[index % layout.length]}`}
+      <section aria-label={m.allPhotos}>
+        <div className="mt-8 space-y-4 border-b pb-8">
+          <ChipGroup label={m.theme}>
+            <Chip active={!theme} onClick={() => set({ theme: undefined })}>
+              {t.common.all}
+            </Chip>
+            {PHOTO_THEMES.map((value) => (
+              <Chip
+                key={value}
+                active={theme === value}
+                onClick={() => set({ theme: theme === value ? undefined : value })}
               >
-                {populated ? (
-                  <>
-                    <img
-                      src={cover!.image}
-                      alt={cover!.alt}
-                      width={cover!.width}
-                      height={cover!.height}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/25 to-navy/10 transition-colors duration-300 group-hover:from-navy/95"
-                    />
-                  </>
-                ) : (
-                  <PassePartout />
-                )}
-                <span className="relative block">
-                  <span className="block font-serif text-4xl leading-tight md:text-5xl">
-                    {name}
-                  </span>
-                  <span
-                    className={`mt-3 block text-sm font-medium ${populated ? "text-navy-foreground/85" : "text-muted-foreground"}`}
-                  >
-                    {populated ? m.count(album.photos.length) : m.albumEmpty}
-                  </span>
-                </span>
-              </LocaleLink>
-            );
-          })}
-        </section>
-      )}
+                {photoThemeLabel(value, locale)}
+              </Chip>
+            ))}
+          </ChipGroup>
+          <ChipGroup label={m.place}>
+            <Chip active={!location} onClick={() => set({ location: undefined })}>
+              {t.common.all}
+            </Chip>
+            {getPhotoLocations().map((album) => (
+              <Chip
+                key={album.id}
+                active={location === album.slug}
+                onClick={() => set({ location: location === album.slug ? undefined : album.slug })}
+              >
+                {albumText(album.title, locale)}
+              </Chip>
+            ))}
+          </ChipGroup>
+        </div>
+        <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
+          {m.count(items.length)}
+        </p>
+        {items.length ? (
+          <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((photo, index) => (
+              <div key={photo.slug} {...reveal(index)}>
+                <PhotoCard
+                  photo={photo}
+                  themeLabel={photo.themes
+                    .map((value) => photoThemeLabel(value, locale))
+                    .join(" · ")}
+                  onOpen={() => setLightbox(index)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            text={m.empty}
+            onClear={() => set({ theme: undefined, location: undefined })}
+          />
+        )}
+        <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
+      </section>
     </Surface>
   );
 }

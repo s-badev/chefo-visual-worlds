@@ -206,6 +206,370 @@
   }
 }
 
+/* Photography P1: editorial overview only. Album and All Photos layouts remain separate. */
+@media (max-width: 375px) {
+  .photography-all-photos-header h1 {
+    font-size: min(3.75rem, 16.4vw);
+  }
+}
+
+.photography-editorial {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.photography-editorial-opening-photo {
+  height: min(64svh, 56vw);
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-opening-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-mast {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 1.75rem 3rem;
+}
+.photography-editorial-heading h1 {
+  margin-top: 0.65rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.1rem, 11vw, 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+}
+.photography-editorial-heading h1 em {
+  color: var(--gold-ink);
+  font-weight: 400;
+}
+.photography-editorial-lead {
+  display: grid;
+  align-content: end;
+  gap: 0.9rem;
+}
+.photography-editorial-lead p {
+  max-width: 30ch;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+.photography-editorial-lead span {
+  color: var(--foreground);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+@media (min-width: 900px) {
+  .photography-editorial-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+    align-items: end;
+    column-gap: 4rem;
+    padding-bottom: 4rem;
+  }
+}
+@media (min-width: 1200px) {
+  .photography-editorial-heading h1 {
+    font-size: clamp(5rem, 6.4vw, 8rem);
+  }
+}
+
+.photography-editorial-index {
+  padding-block: 4rem 5rem;
+  border-top: 1px solid var(--border);
+}
+.photography-editorial-index-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: 2rem;
+}
+.photography-editorial-index-heading h2,
+.photography-editorial-reportage-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1;
+}
+.photography-editorial-all-photos,
+.photography-editorial-reportage-link,
+.photography-editorial-panorama figcaption a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.photography-editorial-all-photos:hover,
+.photography-editorial-reportage-link:hover,
+.photography-editorial-panorama figcaption a:hover {
+  color: var(--gold-ink);
+}
+.photography-editorial-index-grid {
+  display: grid;
+  gap: 2.5rem;
+  min-width: 0;
+}
+.photography-editorial-destination-list {
+  min-width: 0;
+}
+.photography-editorial-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto auto;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  text-decoration: none;
+}
+.photography-editorial-thumb {
+  display: block;
+  width: 4.5rem;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-destination-name {
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4.4vw, 2.6rem);
+  line-height: 1;
+}
+.photography-editorial-count {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.photography-editorial-row-arrow {
+  color: var(--gold-ink);
+  transition: transform var(--dur-base) var(--motion-ease);
+}
+.photography-editorial-row:hover .photography-editorial-destination-name,
+.photography-editorial-row:focus-visible .photography-editorial-destination-name {
+  color: var(--gold-ink);
+}
+.photography-editorial-row:hover .photography-editorial-row-arrow,
+.photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+  transform: translateX(4px);
+}
+.photography-editorial-preview {
+  display: none;
+  min-width: 0;
+}
+.photography-editorial-preview-frame {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-preview figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.photography-editorial-preview figcaption span:first-child {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--foreground);
+}
+.photography-editorial-preview p {
+  max-width: 46ch;
+  margin-top: 0.2rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+@media (min-width: 1024px) {
+  .photography-editorial-index-grid {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 7fr);
+    column-gap: 4rem;
+    align-items: start;
+  }
+  .photography-editorial-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 3.6rem;
+    padding-block: 0.35rem;
+  }
+  .photography-editorial-thumb {
+    display: none;
+  }
+  .photography-editorial-destination-name {
+    font-size: clamp(2rem, 2.6vw, 2.75rem);
+  }
+  .photography-editorial-preview {
+    display: block;
+    position: sticky;
+    top: 5.5rem;
+  }
+  .photography-editorial-row.is-selected .photography-editorial-destination-name {
+    color: var(--gold-ink);
+  }
+}
+
+.photography-editorial-reportage {
+  padding-block: 5rem;
+  background: var(--tint-sand);
+}
+.photography-editorial-reportage-head {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 2.25rem;
+}
+.photography-editorial-reportage-head p {
+  max-width: 44ch;
+  color: var(--muted-foreground);
+}
+.photography-editorial-reportage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  align-items: start;
+}
+.photography-editorial-reportage-image {
+  min-width: 0;
+}
+.photography-editorial-reportage-image-1 {
+  grid-column: 1 / -1;
+}
+.photography-editorial-reportage-frame {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: var(--secondary);
+}
+.photography-editorial-reportage-image-1 .photography-editorial-reportage-frame {
+  aspect-ratio: 3 / 2;
+}
+.photography-editorial-reportage-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-reportage-image figcaption {
+  margin-top: 0.55rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.45;
+}
+.photography-editorial-reportage-link {
+  justify-self: start;
+}
+@media (min-width: 900px) {
+  .photography-editorial-reportage-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 3rem;
+  }
+  .photography-editorial-reportage-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0 2rem;
+  }
+  .photography-editorial-reportage-image-1 {
+    grid-column: 1 / 9;
+    grid-row: 1 / 3;
+  }
+  .photography-editorial-reportage-image-2 {
+    grid-column: 9 / 13;
+    grid-row: 1;
+    margin-top: 6rem;
+  }
+  .photography-editorial-reportage-image-3 {
+    grid-column: 6 / 9;
+    grid-row: 3;
+    margin-top: -9rem;
+    position: relative;
+    z-index: 1;
+  }
+  .photography-editorial-reportage-image-3 .photography-editorial-reportage-frame {
+    box-shadow: 0 0 0 0.75rem var(--tint-sand);
+  }
+  .photography-editorial-reportage-link {
+    grid-column: 9 / 13;
+    grid-row: 3;
+    align-self: end;
+  }
+}
+.photography-editorial-panorama-frame {
+  display: block;
+  height: min(70svh, 44vw);
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-panorama-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-panorama figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-block: 0.85rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.photography-editorial-panorama figcaption strong {
+  font-family: var(--font-serif);
+  color: var(--foreground);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+.photography-editorial a:focus-visible,
+.photography-editorial button:focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 4px;
+}
+@media (max-width: 420px) {
+  .photography-editorial-row {
+    grid-template-columns: 3.75rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+  }
+  .photography-editorial-thumb {
+    width: 3.75rem;
+  }
+  .photography-editorial-count {
+    grid-column: 2;
+    font-size: 0.7rem;
+  }
+  .photography-editorial-row-arrow {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photography-editorial-row-arrow {
+    transition: none;
+  }
+  .photography-editorial-row:hover .photography-editorial-row-arrow,
+  .photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+    transform: none;
+  }
+}
+
 /* Type scale: collection pages, detail pages, sections, cards. */
 @utility title-page {
   font-size: 3.75rem;

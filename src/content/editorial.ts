@@ -54,7 +54,7 @@ export interface EditorialConfig {
 /** Optional presentation choices. Published titles, descriptions and media stay in their registries. */
 export const editorial = {
   photography: {
-    opening: { photoSlug: "paris-057", objectPosition: "62% 14%" },
+    opening: { photoSlug: "paris-005", objectPosition: "50% 50%" },
     reportage: {
       albumSlug: "istanbul",
       photoSlugs: ["istanbul-038", "istanbul-031", "istanbul-037"],
