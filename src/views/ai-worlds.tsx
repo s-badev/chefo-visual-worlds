@@ -322,7 +322,7 @@ function ProcessStrip({
                 type="button"
                 onClick={() => onOpen(offset + i)}
                 aria-label={t.common.openFullscreen(img.caption ?? img.alt)}
-                className="relative block w-full cursor-zoom-in overflow-hidden rounded-sm bg-surface-raised"
+                className="ai-frame-compact relative block w-full cursor-zoom-in overflow-hidden rounded-sm bg-surface-raised"
               >
                 <img
                   src={img.src}
@@ -404,7 +404,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       </nav>
 
       <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="group relative self-start overflow-hidden rounded-sm lg:col-span-7">
+        <figure className="ai-frame-portal group relative self-start overflow-hidden rounded-sm lg:col-span-7">
           <button
             type="button"
             onClick={() => setLightbox(0)}

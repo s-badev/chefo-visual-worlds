@@ -1,6 +1,8 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AiCard } from "@/components/site";
+import { aiWorks, localizeAiWork } from "@/content/ai-works";
 import { getAlbum, getAlbumCover } from "@/content/albums";
 import { messages } from "@/i18n/messages";
 import { HomeView } from "@/views/home";
@@ -57,8 +59,32 @@ describe("homepage featured albums", () => {
       `${prefix}/ai-worlds/chefo-v-badeshteto`,
       `${prefix}/ai-worlds/chefo-v-sauditska-arabiya`,
     ]);
+    expect(section.querySelectorAll(".ai-frame-compact")).toHaveLength(0);
     expect(section.textContent).not.toContain("Владетел на морското кралство");
     expect(section.textContent).not.toContain("Лято на морето — AI колаж");
+  });
+
+  it("keeps the shared AI card unframed by default without changing its link or image", () => {
+    const work = localizeAiWork(aiWorks[0]!, "bg");
+    render(<AiCard work={work} />);
+
+    const link = screen.getByRole("link", { name: new RegExp(work.title) });
+    const image = within(link).getByRole("img", { name: work.alt });
+    const imageFrame = image.parentElement;
+
+    expect(link).toHaveAttribute("href", `/ai-worlds/${work.slug}`);
+    expect(image).toHaveAttribute("src", work.image);
+    expect(image).toHaveAttribute("width", String(work.width ?? 1024));
+    expect(image).toHaveAttribute("height", String(work.height ?? 1280));
+    expect(imageFrame).not.toHaveClass("ai-frame-compact");
+  });
+
+  it("applies the compact frame only when the shared AI card explicitly opts in", () => {
+    const work = localizeAiWork(aiWorks[0]!, "bg");
+    render(<AiCard work={work} frame="compact" />);
+
+    const image = screen.getByRole("img", { name: work.alt });
+    expect(image.parentElement).toHaveClass("ai-frame-compact");
   });
 
   it.each([

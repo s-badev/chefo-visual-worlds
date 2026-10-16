@@ -253,6 +253,7 @@ describe("Around the World pages", () => {
     expect(screen.queryByText(messages.en.ai.portraitPlanned)).toBeNull();
     const portrait = screen.getByAltText(work.en!.alt!);
     expect(portrait).toBeInTheDocument();
+    expect(portrait.closest("figure")).toHaveClass("ai-frame-portal");
     expect(portrait).toHaveAttribute("width", String(work.width));
     expect(portrait).toHaveAttribute("height", String(work.height));
     expect(portrait).toHaveAttribute("loading", "eager");
@@ -268,6 +269,9 @@ describe("Around the World pages", () => {
       screen.getByRole("button", { name: `Open “${work.en!.title}” in full screen` }),
     );
     expect(screen.getByRole("dialog", { name: work.en!.title! })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog").querySelector(".ai-frame-portal, .ai-frame-compact"),
+    ).toBeNull();
   });
 
   it("shows the new Saudi portrait in Bulgarian and wraps destination navigation", () => {

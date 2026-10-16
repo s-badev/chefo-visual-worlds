@@ -454,11 +454,14 @@ export function AiCard({
   work,
   className,
   revealIndex,
+  frame,
 }: {
   work: AiWork;
   className?: string;
   /** Position among siblings for the scroll reveal stagger. */
   revealIndex?: number;
+  /** Optional decorative treatment for explicitly approved compact AI grids. */
+  frame?: "compact";
 }) {
   const { t, locale } = useT();
   return (
@@ -467,7 +470,12 @@ export function AiCard({
       {...(revealIndex !== undefined ? reveal(revealIndex) : {})}
     >
       <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-md">
+        <div
+          className={cn(
+            "relative aspect-[4/5] overflow-hidden rounded-md",
+            frame === "compact" && "ai-frame-compact",
+          )}
+        >
           <img
             src={work.image}
             alt={work.alt}

@@ -151,6 +151,7 @@ describe("AI collection page", () => {
     const { container } = render(<AiCollectionView collection={getAiCollection(slug)!} />);
     const wall = container.querySelector("ol.container-page")!;
     expect(wall.querySelectorAll("li article").length).toBeGreaterThan(0);
+    expect(wall.querySelectorAll(".ai-frame-portal")).toHaveLength(wall.querySelectorAll("figure").length);
     expect(wall.querySelector(".eyebrow.tabular-nums")).toBeNull();
     for (const title of new Set([firstTitle, laterTitle])) {
       expect(within(wall as HTMLElement).getByRole("heading", { level: 2, name: title }).previousElementSibling).toBeNull();
@@ -168,6 +169,7 @@ describe("AI collection page", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[1]!);
     const viewer = screen.getByRole("dialog", { name: "Renaissance portrait" });
     expect(within(viewer).getByText("2 / 2")).toBeInTheDocument();
+    expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
   });
 
   it("exhibits all fourteen professions without exposing planned ideas", () => {

@@ -82,6 +82,7 @@ describe("AI Worlds overview", () => {
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;
     expect(professions.querySelector("img")?.getAttribute("src")).toContain("chefo-taxi-driver.webp");
+    expect(professions.querySelector(".ai-frame-portal")).toBeInTheDocument();
     expect(professions.textContent).not.toMatch(/coming soon|очаква|подготвя/i);
     expect(container.textContent).not.toContain(
       locale === "bg" ? "Фантазия и космос" : "Fantasy & Space",
@@ -101,6 +102,8 @@ describe("AI Worlds overview", () => {
     const gallery = screen.getByRole("region", { name: messages[locale].ai.allWorks });
     const galleryCards = Array.from(gallery.querySelectorAll(":scope > article"));
     expect(galleryCards).toHaveLength(29);
+    expect(galleryCards.every((card) => card.querySelector(".ai-frame-compact"))).toBe(true);
+    expect(galleryCards.some((card) => card.querySelector(".ai-frame-portal"))).toBe(false);
     expect(gallery.className).toContain("sm:grid-cols-2");
     expect(gallery.className).toContain("lg:grid-cols-3");
     expect(screen.queryByRole("heading", { name: "Chefo as a Cowboy" })).toBeNull();

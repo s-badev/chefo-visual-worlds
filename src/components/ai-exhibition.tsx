@@ -105,6 +105,7 @@ function CollectionHall({
         <div
           className={cn(
             "relative overflow-hidden rounded-sm md:col-span-6",
+            cover && "ai-frame-portal",
             mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
           )}
         >
@@ -191,7 +192,7 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
       )}
       {...reveal(index)}
     >
-      <div className="relative overflow-hidden rounded-sm bg-surface-raised">
+      <div className="ai-frame-compact relative overflow-hidden rounded-sm bg-surface-raised">
         <ArtImage work={work} />
         <ArtEdge />
         <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
@@ -263,7 +264,7 @@ export function ExhibitionWall({
             <article className="grid items-end gap-8 lg:grid-cols-12 lg:gap-0">
               <figure
                 className={cn(
-                  "group relative overflow-hidden rounded-sm lg:col-span-7",
+                  "ai-frame-portal group relative overflow-hidden rounded-sm lg:col-span-7",
                   mirrored ? "lg:col-start-6 lg:row-start-1" : "lg:col-start-1",
                 )}
               >

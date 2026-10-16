@@ -279,6 +279,65 @@
   padding-block: 4rem 5rem;
   border-top: 1px solid var(--border);
 }
+
+/* Stage F Wave 1: paint-only Portal frames for production AI artwork surfaces. */
+.surface-dark .ai-frame-portal {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--gold) 42%, transparent),
+    0 12px 26px -22px color-mix(in oklch, var(--gold) 18%, transparent);
+}
+.surface-dark .ai-frame-portal::after {
+  --portal-corner-size: 16px;
+  --portal-corner-thickness: 2px;
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    conic-gradient(
+        from 90deg at var(--portal-corner-thickness) var(--portal-corner-thickness),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      0 0 / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 180deg at calc(100% - var(--portal-corner-thickness)) var(--portal-corner-thickness),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      100% 0 / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 0deg at var(--portal-corner-thickness) calc(100% - var(--portal-corner-thickness)),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      0 100% / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 270deg at calc(100% - var(--portal-corner-thickness))
+          calc(100% - var(--portal-corner-thickness)),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      100% 100% / var(--portal-corner-size) var(--portal-corner-size);
+  background-repeat: no-repeat;
+}
+.surface-dark .ai-frame-portal > button:focus-visible,
+.surface-dark .ai-frame-compact:focus-visible {
+  outline-offset: -3px;
+}
+.surface-dark .ai-frame-portal > button > .eyebrow {
+  z-index: 2;
+}
+.surface-dark .ai-frame-compact {
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--gold) 30%, transparent);
+}
+@media (forced-colors: active) {
+  .surface-dark .ai-frame-portal > button:focus-visible,
+  .surface-dark .ai-frame-compact:focus-visible {
+    outline-color: Highlight;
+  }
+}
 .photography-editorial-index-heading {
   display: flex;
   flex-wrap: wrap;

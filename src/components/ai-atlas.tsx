@@ -116,7 +116,12 @@ export function DestinationIndex() {
           return (
             <li key={d.slug} className="border-t border-border" {...reveal(i % 2)}>
               <article className="group relative flex gap-5 py-6 sm:gap-6">
-                <div className="relative w-20 shrink-0 overflow-hidden rounded-sm sm:w-24">
+                <div
+                  className={cn(
+                    "relative w-20 shrink-0 overflow-hidden rounded-sm sm:w-24",
+                    work && "ai-frame-compact",
+                  )}
+                >
                   {work ? (
                     <>
                       <ArtImage work={work} />
@@ -238,7 +243,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
       >
         <div className={cn("space-y-8", work ? "mx-auto w-full max-w-[68rem]" : "lg:col-span-6")}>
           {work ? (
-            <figure className="group relative overflow-hidden rounded-sm">
+            <figure className="ai-frame-portal group relative overflow-hidden rounded-sm">
               <button
                 type="button"
                 onClick={() => setLightbox(0)}
