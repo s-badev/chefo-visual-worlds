@@ -29,6 +29,14 @@ export interface EditorialAlbum {
   readonly chapters: readonly EditorialChapter[];
 }
 
+export type PilotLayoutRole = "wide" | "landscape" | "portrait";
+export interface PilotEditorialAlbum {
+  readonly albumSlug: AlbumSlug;
+  readonly variant: "coast" | "city" | "harbor" | "mountain";
+  /** The first slug is always the published album cover. */
+  readonly highlights: readonly { readonly photoSlug: PhotoSlug; readonly role: PilotLayoutRole }[];
+}
+
 export interface EditorialConfig {
   readonly photography: {
     readonly opening: {
@@ -42,6 +50,7 @@ export interface EditorialConfig {
     readonly panoramaPhotoSlug: PhotoSlug;
   };
   readonly albums: readonly EditorialAlbum[];
+  readonly pilotAlbums: readonly PilotEditorialAlbum[];
   readonly about: {
     readonly photoSlugs: readonly PhotoSlug[];
     readonly artworkSlugs: readonly ArtworkSlug[];
@@ -199,6 +208,55 @@ export const editorial = {
       ],
     },
   ],
+  pilotAlbums: [
+    {
+      albumSlug: "sunny-beach",
+      variant: "coast",
+      highlights: [
+        { photoSlug: "sunny-beach-010", role: "wide" },
+        { photoSlug: "sunny-beach-by-the-sea", role: "portrait" },
+        { photoSlug: "sunny-beach-005", role: "landscape" },
+        { photoSlug: "sunny-beach-024", role: "wide" },
+        { photoSlug: "coastal-sunset-over-the-lit-town", role: "portrait" },
+        { photoSlug: "sunny-beach-soft-evening-waves", role: "landscape" },
+      ],
+    },
+    {
+      albumSlug: "sofia",
+      variant: "city",
+      highlights: [
+        { photoSlug: "sofia-001", role: "wide" },
+        { photoSlug: "sofia-035", role: "wide" },
+        { photoSlug: "sofia-038", role: "landscape" },
+        { photoSlug: "sofia-042", role: "portrait" },
+        { photoSlug: "sofia-028", role: "landscape" },
+        { photoSlug: "sofia-030", role: "wide" },
+      ],
+    },
+    {
+      albumSlug: "sveti-vlas",
+      variant: "harbor",
+      highlights: [
+        { photoSlug: "sveti-vlas-005", role: "wide" },
+        { photoSlug: "sveti-vlas-001", role: "landscape" },
+        { photoSlug: "sveti-vlas-003", role: "portrait" },
+        { photoSlug: "sveti-vlas-006", role: "landscape" },
+        { photoSlug: "sveti-vlas-010", role: "portrait" },
+      ],
+    },
+    {
+      albumSlug: "rila",
+      variant: "mountain",
+      highlights: [
+        { photoSlug: "rila-008", role: "wide" },
+        { photoSlug: "rila-022", role: "landscape" },
+        { photoSlug: "rila-023", role: "portrait" },
+        { photoSlug: "rila-014", role: "wide" },
+        { photoSlug: "rila-032", role: "landscape" },
+        { photoSlug: "rila-035", role: "wide" },
+      ],
+    },
+  ],
   about: {
     photoSlugs: ["sveti-vlas-005", "istanbul-037", "paris-048"],
     artworkSlugs: ["chefo-srednovekoven-ritsar", "renesansov-portret", "chefo-v-badeshteto"],
@@ -215,6 +273,9 @@ export const editorial = {
 
 export const getEditorialAlbum = (slug: AlbumSlug): EditorialAlbum | undefined =>
   editorial.albums.find((album) => album.albumSlug === slug);
+
+export const getPilotEditorialAlbum = (slug: AlbumSlug): PilotEditorialAlbum | undefined =>
+  editorial.pilotAlbums.find((album) => album.albumSlug === slug);
 
 export const getEditorialChapterImages = (
   slug: AlbumSlug,

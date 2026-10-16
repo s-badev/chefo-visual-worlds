@@ -128,10 +128,11 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
   });
 });
 
-it("keeps Sofia on the existing standard album presentation", () => {
-  const { container } = render(<AlbumView album={getAlbum("sofia")!} />);
+it("keeps Nessebar on the existing standard album presentation", () => {
+  const { container } = render(<AlbumView album={getAlbum("nessebar")!} />);
   expect(container.querySelector(".editorial-album")).toBeNull();
+  expect(container.querySelector(".unified-album")).toBeNull();
   expect(container.querySelector("article figure button img")?.getAttribute("src")).toBe(
-    getAlbumPhotos(getAlbum("sofia")!, "bg")[0]!.image,
+    getAlbumPhotos(getAlbum("nessebar")!, "bg")[0]!.image,
   );
 });
