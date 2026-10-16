@@ -138,7 +138,7 @@ function FullGallery({
   );
 }
 
-/** Shared Phase 2D pilot UI; Paris/Istanbul and the six legacy albums use their existing renderers. */
+/** Shared Phase 2D album UI; Paris and Istanbul retain their editorial renderer. */
 export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlights" | "all" }) {
   const { t, locale } = useT();
   const selection = getPilotEditorialAlbum(album.slug);
@@ -211,6 +211,11 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
               alt={coverPhoto?.alt ?? cover.alt}
               width={cover.width}
               height={cover.height}
+              style={
+                selection.coverObjectPosition
+                  ? { objectPosition: selection.coverObjectPosition }
+                  : undefined
+              }
               fetchPriority="high"
               decoding="async"
               sizes="100vw"

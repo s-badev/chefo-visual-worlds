@@ -35,7 +35,19 @@ export interface PilotEditorialAlbum {
   readonly variant: "coast" | "city" | "harbor" | "mountain";
   /** The first slug is always the published album cover. */
   readonly highlights: readonly { readonly photoSlug: PhotoSlug; readonly role: PilotLayoutRole }[];
+  readonly coverObjectPosition?: string;
 }
+
+const edirneHighlights = [
+  { photoSlug: "edirne-006", role: "wide" },
+  { photoSlug: "edirne-011", role: "portrait" },
+  { photoSlug: "edirne-005", role: "landscape" },
+  { photoSlug: "edirne-021", role: "portrait" },
+  { photoSlug: "edirne-015", role: "wide" },
+] as const satisfies readonly {
+  readonly photoSlug: PhotoSlug;
+  readonly role: PilotLayoutRole;
+}[];
 
 export interface EditorialConfig {
   readonly photography: {
@@ -254,6 +266,69 @@ export const editorial = {
         { photoSlug: "rila-014", role: "wide" },
         { photoSlug: "rila-032", role: "landscape" },
         { photoSlug: "rila-035", role: "wide" },
+      ],
+    },
+    {
+      albumSlug: "lyon",
+      variant: "city",
+      highlights: [
+        { photoSlug: "lyon-001", role: "wide" },
+        { photoSlug: "lyon-006", role: "portrait" },
+        { photoSlug: "lyon-013", role: "portrait" },
+        { photoSlug: "lyon-016", role: "landscape" },
+        { photoSlug: "lyon-023", role: "wide" },
+      ],
+    },
+    {
+      albumSlug: "bodrum",
+      variant: "coast",
+      highlights: [
+        { photoSlug: "bodrum-013", role: "wide" },
+        { photoSlug: "bodrum-002", role: "wide" },
+        { photoSlug: "bodrum-021", role: "portrait" },
+        { photoSlug: "bodrum-020", role: "landscape" },
+        { photoSlug: "bodrum-024", role: "portrait" },
+      ],
+    },
+    {
+      albumSlug: "nessebar",
+      variant: "coast",
+      highlights: [
+        { photoSlug: "nessebar-015", role: "wide" },
+        { photoSlug: "nessebar-brick-church", role: "landscape" },
+        { photoSlug: "nessebar-023", role: "portrait" },
+        { photoSlug: "nessebar-windmill-by-water", role: "portrait" },
+        { photoSlug: "nessebar-beach-below-old-town", role: "wide" },
+        { photoSlug: "nessebar-012", role: "wide" },
+      ],
+    },
+    {
+      albumSlug: "tunisia",
+      variant: "coast",
+      highlights: [
+        { photoSlug: "tunisia-018", role: "wide" },
+        { photoSlug: "tunisia-024", role: "landscape" },
+        { photoSlug: "tunisia-015", role: "portrait" },
+        { photoSlug: "tunisia-011", role: "wide" },
+        { photoSlug: "tunisia-013", role: "portrait" },
+        { photoSlug: "tunisia-003", role: "landscape" },
+      ],
+    },
+    {
+      albumSlug: "edirne",
+      variant: "city",
+      highlights: edirneHighlights,
+    },
+    {
+      albumSlug: "plovdiv",
+      variant: "city",
+      coverObjectPosition: "50% 25%",
+      highlights: [
+        { photoSlug: "plovdiv-011", role: "wide" },
+        { photoSlug: "plovdiv-staria-grad", role: "portrait" },
+        { photoSlug: "plovdiv-009", role: "landscape" },
+        { photoSlug: "plovdiv-006", role: "portrait" },
+        { photoSlug: "plovdiv-016", role: "portrait" },
       ],
     },
   ],

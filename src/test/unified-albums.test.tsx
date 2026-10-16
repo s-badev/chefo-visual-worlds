@@ -69,8 +69,10 @@ afterEach(() => {
   locale = "bg";
 });
 
-const pilotSlugs = ["sunny-beach", "sofia", "sveti-vlas", "rila"];
-const legacySlugs = ["nessebar", "plovdiv", "tunisia", "lyon", "edirne", "bodrum"];
+const originalPilotSlugs = ["sunny-beach", "sofia", "sveti-vlas", "rila"] as const;
+const waveASlugs = ["lyon", "bodrum", "nessebar"] as const;
+const waveBSlugs = ["tunisia", "edirne", "plovdiv"] as const;
+const pilotSlugs = [...originalPilotSlugs, ...waveASlugs, ...waveBSlugs] as const;
 const canonicalHashes: Record<string, string> = {
   sofia: "4577f4086abe28dcc1eafe33feb1c9fc7c05804e11526da89b5005027b251daa",
   "sunny-beach": "14dbb180ebd3ba6402a8b2e7a562225d28a34eeb069243bc4017362d49cda216",
@@ -96,7 +98,7 @@ it("preserves all twelve committed canonical photo sequences", () => {
   }
 });
 
-it("configures exactly four pilot albums with published cover-first, unique highlights", () => {
+it("configures exactly ten unified albums with published cover-first, unique highlights", () => {
   expect(editorial.pilotAlbums.map((album) => album.albumSlug)).toEqual(pilotSlugs);
   for (const slug of pilotSlugs) {
     const album = getAlbum(slug)!;
@@ -173,28 +175,74 @@ it.each(pilotSlugs)("plans %s in canonical, complete, prefix-stable rows", (slug
       } else expect(row.end).toBe(photos.length);
     }
     expect(order).toEqual(photos.map((_, index) => index));
-    if (mode === "mobile" || mode === "desktop") {
-      expect(rows.some((row) => row.blocks.some((block) => block.end - block.start === 2))).toBe(
-        true,
-      );
-    }
     for (const end of plan.batchEnds) {
       expect(rows.some((row) => row.end === end)).toBe(true);
     }
   }
 });
 
-it.each(legacySlugs)("keeps %s on the standard album view, even with view=all", (slug) => {
-  const { container } = render(<AlbumView album={getAlbum(slug)!} view="all" />);
-  expect(container.querySelector(".unified-album")).toBeNull();
-  expect(container.querySelector(".editorial-album")).toBeNull();
-  expect(container.querySelector(".unified-album-view-nav")).toBeNull();
+const expectedStacks = {
+  "sunny-beach": { mobile: 4, smallTablet: 4, mediumTablet: 5, tablet: 3, desktop: 3 },
+  sofia: { mobile: 5, smallTablet: 6, mediumTablet: 2, tablet: 3, desktop: 6 },
+  "sveti-vlas": { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 0, desktop: 1 },
+  rila: { mobile: 5, smallTablet: 5, mediumTablet: 4, tablet: 3, desktop: 6 },
+  lyon: { mobile: 3, smallTablet: 3, mediumTablet: 2, tablet: 2, desktop: 4 },
+  bodrum: { mobile: 3, smallTablet: 4, mediumTablet: 2, tablet: 2, desktop: 4 },
+  nessebar: { mobile: 5, smallTablet: 6, mediumTablet: 5, tablet: 1, desktop: 4 },
+  tunisia: { mobile: 3, smallTablet: 2, mediumTablet: 1, tablet: 1, desktop: 2 },
+  edirne: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 0 },
+  plovdiv: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 1 },
+} as const;
+
+it.each(pilotSlugs)("keeps the explicit per-breakpoint stack contract for %s", (slug) => {
+  const plan = createMosaicPlan(getAlbumPhotos(getAlbum(slug)!, "bg"));
+  for (const mode of Object.keys(mosaicBreakpoints) as (keyof typeof mosaicBreakpoints)[]) {
+    const count = plan.rows[mode].reduce(
+      (sum, row) => sum + row.blocks.filter((block) => block.end - block.start === 2).length,
+      0,
+    );
+    expect(count, `${slug} ${mode} stack count`).toBe(expectedStacks[slug][mode]);
+  }
 });
+
+it.each([...waveASlugs, ...waveBSlugs] as const)(
+  "moves %s to the shared unified album view",
+  (slug) => {
+    const { container } = render(<AlbumView album={getAlbum(slug)!} view="all" />);
+    expect(container.querySelector(".unified-album")).toBeInTheDocument();
+    expect(container.querySelector(".editorial-album")).toBeNull();
+    expect(container.querySelector(".unified-album-view-nav")).toBeInTheDocument();
+  },
+);
 
 it.each(["paris", "istanbul"])("keeps %s on its Phase 2C editorial view", (slug) => {
   const { container } = render(<AlbumView album={getAlbum(slug)!} view="all" />);
   expect(container.querySelector(".editorial-album")).toBeInTheDocument();
   expect(container.querySelector(".unified-album-view-nav")).toBeNull();
+});
+
+it("keeps the owner-approved five Edirne highlights exact", () => {
+  expect(getPilotEditorialAlbum("edirne")?.highlights.map((item) => item.photoSlug)).toEqual([
+    "edirne-006",
+    "edirne-011",
+    "edirne-005",
+    "edirne-021",
+    "edirne-015",
+  ]);
+});
+
+it("applies an optional cover position only to Plovdiv", () => {
+  expect(getPilotEditorialAlbum("plovdiv")?.coverObjectPosition).toBe("50% 25%");
+  for (const slug of pilotSlugs.filter((item) => item !== "plovdiv")) {
+    expect(getPilotEditorialAlbum(slug)?.coverObjectPosition).toBeUndefined();
+  }
+  const plovdiv = render(<AlbumView album={getAlbum("plovdiv")!} />);
+  expect(plovdiv.container.querySelector(".unified-album-cover img")).toHaveStyle({
+    objectPosition: "50% 25%",
+  });
+  cleanup();
+  const lyon = render(<AlbumView album={getAlbum("lyon")!} />);
+  expect(lyon.container.querySelector(".unified-album-cover img")).not.toHaveAttribute("style");
 });
 
 it.each(pilotSlugs)("renders %s as concise Highlights and canonical batched gallery", (slug) => {

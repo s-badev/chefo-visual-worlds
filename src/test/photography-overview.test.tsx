@@ -13,6 +13,21 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@tanstack/react-router")>();
   return {
     ...actual,
+    Link: ({
+      to,
+      params,
+      children,
+      "aria-current": current,
+    }: {
+      to: string;
+      params?: { slug: string };
+      children: ReactNode;
+      "aria-current"?: "page";
+    }) => (
+      <a href={params ? to.replace("$slug", params.slug) : to} aria-current={current}>
+        {children}
+      </a>
+    ),
     useSearch: () => currentSearch,
     useNavigate:
       () =>
@@ -187,7 +202,8 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/lyon/"]')).toHaveLength(24);
+    expect(container.querySelectorAll('img[src^="/photos/lyon/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 
   it.each(["bg", "en"] as const)("shows the localized Edirne album in %s", (locale) => {
@@ -204,7 +220,8 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/edirne/"]')).toHaveLength(21);
+    expect(container.querySelectorAll('img[src^="/photos/edirne/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 
   it("switches to real photos and combines theme with album location", () => {

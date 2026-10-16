@@ -33,6 +33,28 @@ vi.mock("@/i18n/link", () => ({
   ),
 }));
 
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-router")>();
+  return {
+    ...actual,
+    Link: ({
+      to,
+      params,
+      children,
+      "aria-current": current,
+    }: {
+      to: string;
+      params?: { slug: string };
+      children: ReactNode;
+      "aria-current"?: "page";
+    }) => (
+      <a href={params ? to.replace("$slug", params.slug) : to} aria-current={current}>
+        {children}
+      </a>
+    ),
+  };
+});
+
 vi.mock("@/components/site", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/components/site")>();
   return {
@@ -128,11 +150,12 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
   });
 });
 
-it("keeps Nessebar on the existing standard album presentation", () => {
+it("moves Nessebar to the shared unified album presentation", () => {
   const { container } = render(<AlbumView album={getAlbum("nessebar")!} />);
   expect(container.querySelector(".editorial-album")).toBeNull();
-  expect(container.querySelector(".unified-album")).toBeNull();
-  expect(container.querySelector("article figure button img")?.getAttribute("src")).toBe(
-    getAlbumPhotos(getAlbum("nessebar")!, "bg")[0]!.image,
+  expect(container.querySelector(".unified-album")).toBeInTheDocument();
+  expect(container.querySelector("[data-opening-photo-slug]")).toHaveAttribute(
+    "data-opening-photo-slug",
+    getAlbum("nessebar")!.coverPhotoSlug,
   );
 });
