@@ -167,6 +167,7 @@ export function PhotographyView() {
               <div key={photo.slug} {...reveal(index)}>
                 <PhotoCard
                   photo={photo}
+                  frame="keyline"
                   themeLabel={photo.themes
                     .map((value) => photoThemeLabel(value, locale))
                     .join(" · ")}
@@ -401,7 +402,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           width={photo.width}
           height={photo.height}
           fetchPriority="high"
-          className="mx-auto max-h-[78vh] w-auto max-w-full rounded-sm object-contain shadow-soft"
+          className="photo-frame-print photo-frame-print--detail mx-auto max-h-[78vh] w-auto max-w-full rounded-sm object-contain shadow-soft"
         />
       </div>
       <div className="mx-auto max-w-6xl px-5 pt-8 md:px-8">
@@ -481,7 +482,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           <div className="mt-8 grid gap-8 sm:grid-cols-3">
             {related.map((item, i) => (
               <div key={item.slug} {...reveal(i)}>
-                <PhotoCard photo={item} ratio="aspect-[4/5]" />
+                <PhotoCard photo={item} ratio="aspect-[4/5]" frame="keyline" />
               </div>
             ))}
           </div>

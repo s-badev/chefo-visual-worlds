@@ -363,15 +363,23 @@ export function PhotoCard({
   ratio = "aspect-[4/5]",
   onOpen,
   themeLabel,
+  frame,
 }: {
   photo: Photo;
   ratio?: string;
   onOpen?: () => void;
   themeLabel?: string;
+  frame?: "keyline";
 }) {
   const { t, locale } = useT();
   const img = (
-    <div className={cn("relative overflow-hidden rounded-md bg-muted shadow-soft", ratio)}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-md bg-muted shadow-soft",
+        ratio,
+        frame === "keyline" && "photo-frame-keyline",
+      )}
+    >
       <img
         src={photo.image}
         alt={photo.alt}

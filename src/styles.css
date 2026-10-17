@@ -90,6 +90,13 @@
   --dur-fast: 180ms;
   --dur-base: 320ms;
   --dur-slow: 700ms;
+
+  /* Stage F · Photography frames — paint-only derivatives of existing tokens. */
+  --photo-frame-mat: var(--card);
+  --photo-frame-gold: color-mix(in oklch, var(--gold) 65%, transparent);
+  --photo-frame-ink: color-mix(in oklch, var(--navy) 16%, transparent);
+  --photo-frame-shadow-near: color-mix(in oklch, var(--navy) 10%, transparent);
+  --photo-frame-shadow-far: color-mix(in oklch, var(--navy) 24%, transparent);
 }
 
 /* Dark world: components inside read navy/gold values from the same semantic tokens. */
@@ -204,6 +211,36 @@
   @media (width >= 48rem) {
     padding-block: 6rem;
   }
+}
+
+/* Stage F · Wave 2: photographic frames outside published album galleries. */
+.photo-frame-print {
+  --photo-frame-mat-width: 3px;
+  --photo-frame-base-shadow: 0 14px 28px calc(var(--photo-frame-mat-width) - 14px)
+    var(--photo-frame-shadow-far);
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px var(--photo-frame-gold),
+    0 0 0 var(--photo-frame-mat-width) var(--photo-frame-mat),
+    0 0 0 calc(var(--photo-frame-mat-width) + 1px) var(--photo-frame-ink),
+    0 1px 2px calc(var(--photo-frame-mat-width) + 1px) var(--photo-frame-shadow-near),
+    var(--photo-frame-base-shadow);
+}
+.photo-frame-print--portrait,
+.photo-frame-print--detail {
+  --photo-frame-mat-width: 7px;
+}
+.photo-frame-print--detail.shadow-soft {
+  --photo-frame-base-shadow: var(--shadow-soft);
+}
+.photo-frame-keyline {
+  box-shadow:
+    0 0 0 1px var(--photo-frame-gold),
+    0 0 0 2px var(--photo-frame-ink),
+    var(--photo-frame-base-shadow, 0 0 #0000);
+}
+.photo-frame-keyline.shadow-soft {
+  --photo-frame-base-shadow: var(--shadow-soft);
 }
 
 /* Photography P1: editorial overview only. Album and All Photos layouts remain separate. */

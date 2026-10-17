@@ -73,7 +73,7 @@ export function AboutView() {
     >
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-16 md:px-8 md:py-24">
         <div className="md:sticky md:top-24 md:self-start">
-          <PortraitSwitch aiImage={aboutAiRoyal} />
+          <PortraitSwitch aiImage={aboutAiRoyal} frame="matted" />
         </div>
         <div className="max-w-[62ch]">
           <p className="eyebrow text-eyebrow">{m.eyebrow}</p>

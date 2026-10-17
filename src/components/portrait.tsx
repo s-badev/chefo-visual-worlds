@@ -6,7 +6,17 @@ import { useT } from "@/i18n";
 type Mode = "real" | "ai";
 
 /** Portrait with explicit "Реален кадър" / "AI версия" toggle. Generated images are always labelled as AI. */
-export function PortraitSwitch({ compact, className, aiImage }: { compact?: boolean; className?: string; aiImage?: string }) {
+export function PortraitSwitch({
+  compact,
+  className,
+  aiImage,
+  frame,
+}: {
+  compact?: boolean;
+  className?: string;
+  aiImage?: string;
+  frame?: "matted";
+}) {
   const { real, ai: configuredAi } = siteConfig.portrait;
   const ai = aiImage ?? configuredAi;
   const modes = (ai ? ["real", "ai"] : ["real"]) as Mode[];
@@ -16,7 +26,13 @@ export function PortraitSwitch({ compact, className, aiImage }: { compact?: bool
 
   return (
     <div className={className}>
-      <div className={cn("relative overflow-hidden rounded-md bg-muted", compact ? "aspect-square" : "aspect-[4/5]")}>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-md bg-muted",
+          compact ? "aspect-square" : "aspect-[4/5]",
+          frame === "matted" && "photo-frame-print photo-frame-print--portrait",
+        )}
+      >
         {src ? (
           <img
             src={src}

@@ -105,7 +105,10 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     className={`photography-editorial-row${selected ? " is-selected" : ""}`}
                   >
                     {localizedCover && (
-                      <span className="photography-editorial-thumb" aria-hidden="true">
+                      <span
+                        className="photography-editorial-thumb photo-frame-keyline"
+                        aria-hidden="true"
+                      >
                         <img
                           src={localizedCover.image}
                           alt=""
@@ -135,7 +138,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
           </ul>
           {selectedCover && (
             <figure className="photography-editorial-preview" aria-hidden="true">
-              <div className="photography-editorial-preview-frame">
+              <div className="photography-editorial-preview-frame photo-frame-print photo-frame-print--thin">
                 <img
                   key={selectedCover.slug}
                   src={selectedCover.image}
@@ -177,7 +180,9 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 className={`photography-editorial-reportage-image photography-editorial-reportage-image-${index + 1}`}
               >
                 <LocaleLink to="/photography/$slug" slug={photo.slug} aria-label={photo.title}>
-                  <span className="photography-editorial-reportage-frame">
+                  <span
+                    className={`photography-editorial-reportage-frame${index < 2 ? " photo-frame-print photo-frame-print--thin" : ""}`}
+                  >
                     <img
                       src={photo.image}
                       alt={photo.alt}

@@ -3,8 +3,12 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
 import { getAlbum } from "@/content/albums";
+import { photos } from "@/content/photos";
 import { filterGalleryPhotos, getAllGalleryPhotos } from "@/content/photo-gallery";
-import { AlbumView, PhotographyView } from "@/views/photography";
+import { PortraitSwitch } from "@/components/portrait";
+import { AboutView } from "@/views/about";
+import { HomeView } from "@/views/home";
+import { AlbumView, PhotographyView, PhotoDetailView } from "@/views/photography";
 
 let activeLocale: "bg" | "en" = "bg";
 let currentSearch: Record<string, unknown> = {};
@@ -186,6 +190,60 @@ describe("Photography album overview", () => {
       "src",
       "/photos/rila/rila-008.webp",
     );
+    expect(container.querySelector(".photography-editorial-opening-photo")).not.toHaveClass(
+      "photo-frame-print",
+    );
+    expect(container.querySelector(".photography-editorial-preview-frame")).toHaveClass(
+      "photo-frame-print",
+      "photo-frame-print--thin",
+    );
+    expect(
+      container.querySelectorAll(".photography-editorial-thumb.photo-frame-keyline"),
+    ).toHaveLength(12);
+    expect(
+      container.querySelectorAll(".photography-editorial-reportage-frame.photo-frame-print"),
+    ).toHaveLength(2);
+    expect(
+      container.querySelector(
+        ".photography-editorial-reportage-image-3 .photography-editorial-reportage-frame",
+      ),
+    ).not.toHaveClass("photo-frame-print");
+    expect(container.querySelector(".photography-editorial-panorama-frame")).not.toHaveClass(
+      "photo-frame-print",
+    );
+  });
+
+  it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
+    currentSearch = { view: "photos" };
+    const allPhotos = render(<PhotographyView />);
+    expect(allPhotos.container.querySelectorAll(".photo-frame-keyline").length).toBeGreaterThan(0);
+    expect(allPhotos.container.querySelector("[role=dialog] .photo-frame-keyline")).toBeNull();
+    cleanup();
+
+    const detail = render(<PhotoDetailView photo={photos[0]!} />);
+    expect(detail.container.querySelector(".photo-frame-print--detail")).toBeInTheDocument();
+    expect(detail.container.querySelectorAll(".photo-frame-keyline")).toHaveLength(3);
+    cleanup();
+
+    const album = render(<AlbumView album={getAlbum("rila")!} />);
+    expect(album.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
+    cleanup();
+
+    const sharedDefault = render(<PortraitSwitch compact aiImage="/ai.png" />);
+    expect(sharedDefault.container.querySelector(".photo-frame-print")).toBeNull();
+    cleanup();
+
+    const sharedOptIn = render(<PortraitSwitch aiImage="/ai.png" frame="matted" />);
+    expect(sharedOptIn.container.querySelector(".photo-frame-print--portrait")).toBeInTheDocument();
+  });
+
+  it("opts About into the portrait frame while Home remains unframed", () => {
+    const about = render(<AboutView />);
+    expect(about.container.querySelectorAll(".photo-frame-print--portrait")).toHaveLength(1);
+    cleanup();
+
+    const home = render(<HomeView />);
+    expect(home.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
   });
 
   it.each(["bg", "en"] as const)("shows the localized Lyon album in %s", (locale) => {
