@@ -5,14 +5,15 @@ import path from "node:path";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import heroAi from "@/assets/ai-knight.png";
 import { getPublishedAlbum } from "@/content/albums";
 import { getPhoto } from "@/content/photos";
 import { btnHero, SiteHeader } from "@/components/site";
 import { messages } from "@/i18n/messages";
 import { HomeView } from "@/views/home";
 
-const heroPhoto = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
+const heroPhoto = "/hero/sunny-beach-real-hero.webp";
+const heroAi = "/hero/sunny-beach-ai-future-hero-v2.webp";
+const heroPhotoSource = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
 
 let activeLocale: "bg" | "en" = "bg";
 
@@ -62,10 +63,11 @@ const FROZEN_COPY = {
     h1b: "безкрайни светове.",
     heroPhotoAlt: "Залез над морето с вълни и осветения Слънчев бряг",
     heroPhotoBadge: "СЛЪНЧЕВ БРЯГ",
-    heroAiAlt: "AI портрет на автора като средновековен владетел",
+    heroAiAlt:
+      "Футуристична AI визия на крайбрежието на Слънчев бряг с осветени кули, мостове и яхти",
     ctaPhotos: "Разгледай фотографиите",
     ctaAi: "Виж AI световете",
-    aiBadge: "AI генерация",
+    heroAiBadge: "AI ГЕНЕРИРАНО",
   },
   en: {
     eyebrow: "Mobile photography × AI visions",
@@ -73,10 +75,11 @@ const FROZEN_COPY = {
     h1b: "endless worlds.",
     heroPhotoAlt: "Sunset over the sea with waves and the illuminated Sunny Beach skyline",
     heroPhotoBadge: "SUNNY BEACH",
-    heroAiAlt: "AI portrait of the author as a medieval ruler",
+    heroAiAlt:
+      "Futuristic AI vision of the Sunny Beach coastline with illuminated towers, bridges and yachts",
     ctaPhotos: "Explore the photography",
     ctaAi: "See the AI worlds",
-    aiBadge: "AI generated",
+    heroAiBadge: "AI GENERATED",
   },
 } as const;
 
@@ -94,7 +97,7 @@ describe("homepage Hero (approved, frozen)", () => {
       heroAiAlt: m.heroAiAlt,
       ctaPhotos: m.ctaPhotos,
       ctaAi: m.ctaAi,
-      aiBadge: messages[locale].common.aiBadge,
+      heroAiBadge: m.heroAiBadge,
     }).toEqual(copy);
 
     const { container } = render(<HomeView />);
@@ -102,26 +105,51 @@ describe("homepage Hero (approved, frozen)", () => {
     expect(hero).toHaveAttribute("data-header-theme", "dark");
 
     const h1 = within(hero).getByRole("heading", { level: 1 });
+    expect(within(hero).getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(h1).toHaveTextContent(`${copy.h1a}${copy.h1b}`);
     expect(h1.querySelector("em")).toHaveTextContent(copy.h1b);
     expect(within(hero).getByText(copy.eyebrow)).toBeInTheDocument();
+    expect(hero.querySelector("[data-hero-copy]")).not.toBeNull();
+    expect(hero.querySelectorAll("[data-hero-scrim]")).toHaveLength(3);
+    for (const scrim of hero.querySelectorAll("[data-hero-scrim]")) {
+      expect(scrim).toHaveAttribute("aria-hidden", "true");
+    }
 
     const images = Array.from(hero.querySelectorAll("img"));
+    expect(images).toHaveLength(2);
     expect(images.map((img) => [img.getAttribute("src"), img.getAttribute("alt")])).toEqual([
       [heroPhoto, copy.heroPhotoAlt],
       [heroAi, copy.heroAiAlt],
     ]);
-    expect(getPhoto("coastal-sunset-over-the-lit-town")?.image).toBe(heroPhoto);
-    expect(getPublishedAlbum("sunny-beach")?.photos.some(({ photoSlug }) => photoSlug === "coastal-sunset-over-the-lit-town")).toBe(true);
-    expect(images[0].className).toContain("brightness-90");
-    expect(images[0].className).toContain("object-center");
-    expect(images[0].nextElementSibling?.className).toContain("via-navy/25");
-    expect(images[1].className).not.toContain("brightness-90");
-    expect(images[1].className).toContain("object-top");
-    expect(images[1].nextElementSibling?.className).toContain("md:via-navy/55");
+    expect(getPhoto("coastal-sunset-over-the-lit-town")?.image).toBe(heroPhotoSource);
+    expect(
+      getPublishedAlbum("sunny-beach")?.photos.some(
+        ({ photoSlug }) => photoSlug === "coastal-sunset-over-the-lit-town",
+      ),
+    ).toBe(true);
+    for (const image of images) {
+      expect(image).toHaveAttribute("width", "936");
+      expect(image).toHaveAttribute("height", "1053");
+      expect(image).toHaveAttribute("loading", "eager");
+      expect(image).toHaveAttribute("fetchpriority", "high");
+      expect(image.className).toContain("object-cover");
+      expect(image.className).toContain("object-top");
+    }
+    expect(
+      images.map((image) => image.closest("[data-hero-panel]")?.getAttribute("data-hero-panel")),
+    ).toEqual(["real", "future"]);
 
     expect(within(hero).getByText(copy.heroPhotoBadge)).toBeInTheDocument();
-    expect(within(hero).getByText(copy.aiBadge)).toBeInTheDocument();
+    expect(within(hero).getByText(copy.heroAiBadge)).toBeInTheDocument();
+    expect(hero.querySelector("[data-hero-separator]")).toHaveAttribute("aria-hidden", "true");
+    expect(hero.querySelector("[data-hero-mobile-separator]")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    expect(hero.textContent).not.toMatch(/\b(?:2025|2026|2126)\b/);
+    expect(images.map((image) => image.getAttribute("src"))).not.toContain(
+      "/src/assets/ai-knight.png",
+    );
 
     const prefix = locale === "en" ? "/en" : "";
     const ctas = within(hero).getAllByRole("link");
@@ -130,6 +158,9 @@ describe("homepage Hero (approved, frozen)", () => {
       [`${prefix}/ai-worlds`, copy.ctaAi],
     ]);
     for (const cta of ctas) expect(cta.className).toContain(btnHero);
+    expect(
+      ctas.map((a) => a.closest("[data-hero-panel]")?.getAttribute("data-hero-panel")),
+    ).toEqual(["real", "future"]);
   });
 
   it("keeps the shared Hero CTA style", () => {

@@ -7,10 +7,10 @@ import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-import heroAi from "@/assets/ai-knight.png";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
-const heroPhoto = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
+const heroPhoto = "/hero/sunny-beach-real-hero.webp";
+const heroAi = "/hero/sunny-beach-ai-future-hero-v2.webp";
 
 export const homeHead = (locale: Locale) => {
   const m = getMessages(locale).home;
@@ -27,17 +27,35 @@ export function HomeView() {
     const cover = album && getAlbumCover(album);
     return album && cover ? [{ album, cover: localizePhoto(cover, locale) }] : [];
   });
-
   return (
     <>
-      <section data-header-theme="dark" className="relative bg-navy text-navy-foreground">
-        <div className="px-5 pb-10 pt-12 md:pointer-events-none md:absolute md:inset-x-0 md:bottom-32 md:z-10 md:px-12 md:pb-0 md:pt-0 md:text-center">
-          <p className="eyebrow text-gold">{m.eyebrow}</p>
-          <h1 className="mt-4 text-5xl leading-[1.02] md:text-7xl lg:text-8xl">
-            {m.h1a}
-            <em className="text-gold">{m.h1b}</em>
-          </h1>
+      <section data-header-theme="dark" className="relative isolate bg-navy text-navy-foreground">
+        <div
+          data-hero-copy-region
+          className="relative z-20 px-5 pb-10 pt-12 md:pointer-events-none md:absolute md:inset-x-0 md:bottom-32 md:px-12 md:pb-0 md:pt-0 md:text-center"
+        >
+          <div data-hero-copy className="home-hero-copy">
+            <p data-hero-eyebrow className="home-hero-eyebrow eyebrow relative text-gold">
+              <span aria-hidden="true" data-hero-scrim className="home-hero-eyebrow-scrim" />
+              {m.eyebrow}
+            </p>
+            <h1 data-hero-heading className="home-hero-title relative mt-4">
+              <span className="home-hero-phrase">
+                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
+                {m.h1a}
+              </span>
+              <em className="home-hero-phrase text-gold">
+                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
+                {m.h1b}
+              </em>
+            </h1>
+          </div>
         </div>
+        <span
+          aria-hidden="true"
+          data-hero-separator
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 hidden w-px -translate-x-1/2 bg-gold/70 md:block"
+        />
         <div className="grid md:grid-cols-2">
           <HeroHalf
             img={heroPhoto}
@@ -49,14 +67,21 @@ export function HomeView() {
             }
             to="/photography"
             cta={m.ctaPhotos}
+            side="real"
+          />
+          <span
+            aria-hidden="true"
+            data-hero-mobile-separator
+            className="h-px bg-gold/70 md:hidden"
           />
           <HeroHalf
             img={heroAi}
             alt={m.heroAiAlt}
-            badge={<>{t.common.aiBadge}</>}
+            badge={<>{m.heroAiBadge}</>}
             to="/ai-worlds"
             cta={m.ctaAi}
             align="end"
+            side="future"
           />
         </div>
       </section>
@@ -163,6 +188,7 @@ function HeroHalf({
   to,
   cta,
   align,
+  side,
 }: {
   img: string;
   alt: string;
@@ -170,21 +196,28 @@ function HeroHalf({
   to: "/photography" | "/ai-worlds";
   cta: string;
   align?: "end";
+  side: "real" | "future";
 }) {
   return (
-    <div className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
+    <div data-hero-panel={side} className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
       <img
         src={img}
         alt={alt}
-        width={1280}
-        height={1600}
-        className={`absolute inset-0 h-full w-full object-cover ${to === "/photography" ? "object-center brightness-90" : "object-top"}`}
+        width={936}
+        height={1053}
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover object-top"
       />
-      <div className={`absolute inset-0 bg-gradient-to-t ${to === "/photography" ? "from-navy/85 via-navy/25 to-navy/10 md:via-navy/35" : "from-navy via-navy/45 to-navy/10 md:via-navy/55"}`} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-navy/5 md:from-navy/85 md:via-navy/30"
+      />
       <div
         className={`relative flex h-full min-h-[62vh] flex-col justify-between p-6 md:min-h-[88vh] md:p-10 ${align === "end" ? "md:items-end" : ""}`}
       >
-        <span className="eyebrow inline-flex w-fit items-center gap-2 rounded-sm bg-navy/80 px-3 py-1.5 text-navy-foreground">
+        <span className="eyebrow inline-flex min-h-8 w-fit items-center gap-2 rounded-sm bg-navy/90 px-3 py-1.5 text-navy-foreground shadow-soft">
           {badge}
         </span>
         <LocaleLink to={to} className={`${btnHero} w-fit`}>

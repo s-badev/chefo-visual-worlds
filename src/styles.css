@@ -214,6 +214,69 @@
 }
 
 /* Stage F · Wave 2: photographic frames outside published album galleries. */
+/* Home Hero: localized copy treatment; the approved photography remains untouched. */
+.home-hero-copy {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  max-width: calc(100vw - 2.5rem);
+  margin-inline: auto;
+}
+.home-hero-title {
+  isolation: isolate;
+  font-size: 3rem;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.home-hero-eyebrow {
+  z-index: 1;
+  width: fit-content;
+  margin-inline: auto;
+  isolation: isolate;
+}
+.home-hero-eyebrow-scrim,
+.home-hero-phrase-scrim {
+  display: none;
+}
+@media (min-width: 48rem) {
+  .home-hero-copy {
+    max-width: calc(100vw - 6rem);
+    padding: 0.75rem 1.25rem;
+  }
+  .home-hero-eyebrow-scrim,
+  .home-hero-phrase-scrim {
+    position: absolute;
+    z-index: -1;
+    display: block;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--navy) 86%, transparent);
+    filter: blur(0.5rem);
+    pointer-events: none;
+  }
+  .home-hero-eyebrow-scrim {
+    inset: -0.2rem -0.5rem;
+    filter: blur(0.35rem);
+  }
+  .home-hero-phrase {
+    position: relative;
+    display: inline-block;
+  }
+  .home-hero-phrase + .home-hero-phrase {
+    margin-inline-start: 0.14em;
+  }
+  .home-hero-phrase-scrim {
+    inset: -0.08em -0.16em;
+  }
+  .home-hero-title {
+    font-size: clamp(4rem, 8vw, 4.5rem);
+  }
+}
+@media (min-width: 64rem) {
+  .home-hero-title {
+    font-size: clamp(4.5rem, 5.56vw, 6rem);
+  }
+}
+
 .photo-frame-print {
   --photo-frame-mat-width: 3px;
   --photo-frame-base-shadow: 0 14px 28px calc(var(--photo-frame-mat-width) - 14px)
