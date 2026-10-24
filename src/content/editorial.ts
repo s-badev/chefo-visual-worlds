@@ -21,7 +21,30 @@ export interface EditorialImage {
 
 export interface EditorialChapter {
   readonly images: readonly EditorialImage[];
+  /**
+   * How many images share each justified row, in order. Each row keeps the images' own aspect
+   * ratios and gives them one common height. Without it, rows follow the column placement.
+   */
+  readonly rows?: readonly number[];
 }
+
+/** Rows as the 12-column grid placed them: an image starts a new row when its column starts
+ * before the previous image ended; wide and full-width images take a row of their own. */
+export const deriveRows = (images: readonly EditorialImage[]): number[] => {
+  const rows: number[] = [];
+  let cursor: number | null = null;
+  for (const image of images) {
+    const full = image.wide || !image.column;
+    const [start, end] = (image.column ?? "1 / 13").split("/").map(Number) as [number, number];
+    if (full || cursor === null || start < cursor) rows.push(1);
+    else rows[rows.length - 1]! += 1;
+    cursor = full ? null : end;
+  }
+  return rows;
+};
+
+export const getChapterRows = (chapter: EditorialChapter) =>
+  chapter.rows ?? deriveRows(chapter.images);
 
 export interface EditorialAlbum {
   readonly albumSlug: AlbumSlug;
@@ -86,64 +109,39 @@ export const editorial = {
     {
       albumSlug: "paris",
       treatment: "calm",
+      // Justified rows: same images, order and aspect ratios (crops) as before, equal heights per row.
       chapters: [
         {
+          rows: [2, 2],
           images: [
-            { photoSlug: "paris-048", column: "1 / 9", aspectRatio: "3 / 2" },
-            {
-              photoSlug: "paris-043",
-              column: "9 / 13",
-              aspectRatio: "3 / 4",
-              marginTop: "5rem",
-              half: true,
-            },
-            { photoSlug: "paris-013", column: "3 / 8", aspectRatio: "3 / 2", half: true },
-            {
-              photoSlug: "paris-009",
-              column: "8 / 13",
-              aspectRatio: "3 / 2",
-              marginTop: "3rem",
-              half: true,
-            },
+            { photoSlug: "paris-048", aspectRatio: "3 / 2" },
+            { photoSlug: "paris-043", aspectRatio: "3 / 4" },
+            { photoSlug: "paris-013", aspectRatio: "3 / 2" },
+            { photoSlug: "paris-009", aspectRatio: "3 / 2" },
           ],
         },
         {
+          rows: [1, 2],
           images: [
             { photoSlug: "paris-055", wide: true },
-            { photoSlug: "paris-039", column: "1 / 5", aspectRatio: "9 / 16", half: true },
-            {
-              photoSlug: "paris-056",
-              column: "5 / 13",
-              aspectRatio: "4 / 3",
-              marginTop: "8rem",
-              half: true,
-            },
+            { photoSlug: "paris-039", aspectRatio: "9 / 16" },
+            { photoSlug: "paris-056", aspectRatio: "4 / 3" },
           ],
         },
         {
+          rows: [3],
           images: [
-            { photoSlug: "paris-040", column: "1 / 5", aspectRatio: "9 / 16", half: true },
-            { photoSlug: "paris-031", column: "5 / 13", aspectRatio: "3 / 2", marginTop: "4rem" },
-            {
-              photoSlug: "paris-035",
-              column: "6 / 10",
-              aspectRatio: "9 / 16",
-              marginTop: "-3rem",
-              half: true,
-            },
+            { photoSlug: "paris-040", aspectRatio: "9 / 16" },
+            { photoSlug: "paris-031", aspectRatio: "3 / 2" },
+            { photoSlug: "paris-035", aspectRatio: "9 / 16" },
           ],
         },
         {
+          rows: [3],
           images: [
-            { photoSlug: "paris-045", column: "1 / 5", aspectRatio: "3 / 4", half: true },
-            {
-              photoSlug: "paris-047",
-              column: "5 / 10",
-              aspectRatio: "4 / 3",
-              marginTop: "3rem",
-              half: true,
-            },
-            { photoSlug: "paris-044", column: "10 / 13", aspectRatio: "3 / 4", half: true },
+            { photoSlug: "paris-045", aspectRatio: "3 / 4" },
+            { photoSlug: "paris-047", aspectRatio: "4 / 3" },
+            { photoSlug: "paris-044", aspectRatio: "3 / 4" },
           ],
         },
       ],
@@ -178,6 +176,8 @@ export const editorial = {
           ],
         },
         {
+          // Placement rows would be [3, 2]: a 384px row above a two-portrait row twice as tall.
+          rows: [2, 3],
           images: [
             { photoSlug: "istanbul-032", column: "1 / 4", aspectRatio: "3 / 4", half: true },
             {

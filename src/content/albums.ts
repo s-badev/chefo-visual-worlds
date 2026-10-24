@@ -272,7 +272,7 @@ export const albums: Album[] = [
       "Градски панорами, архитектура и детайли от пътуването до Париж.",
       "City panoramas, architecture and details from a journey to Paris.",
     ),
-    coverPhotoSlug: "paris-054",
+    coverPhotoSlug: "paris-052",
     photos: [
       ...batchEntries(
         "paris",

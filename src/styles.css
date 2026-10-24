@@ -1008,6 +1008,34 @@
     margin-top: var(--album-offset);
   }
 }
+/* Justified chapters: rows of equal image height; each frame keeps its ratio (no extra crop).
+   flex-grow and flex-basis scale with the ratio, so a line that wraps on narrow screens stays even.
+   Grow is ×10 so a lone item (grow sum below 1 would leave space unfilled) still spans the line. */
+.editorial-album-spread.is-justified {
+  grid-template-columns: minmax(0, 1fr);
+}
+.editorial-album-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem 1rem;
+}
+.editorial-album-row > .editorial-album-figure {
+  flex: calc(var(--album-grow) * 10) 1 calc(var(--album-grow) * 8rem);
+  margin-top: 0;
+}
+.editorial-album-row > .editorial-album-figure.is-wide {
+  flex-basis: 100%;
+}
+@media (min-width: 900px) {
+  /* Cap a row at 40rem image height (e.g. two portraits); --row-ratio is unset on wide rows. */
+  .editorial-album-row {
+    gap: 2.5rem 2rem;
+    width: 100%;
+    max-width: calc(var(--row-ratio) * 40rem + (var(--row-count) - 1) * 2rem);
+    margin-inline: auto;
+  }
+}
 .editorial-album-all {
   padding-block: 4.5rem 4rem;
 }

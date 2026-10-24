@@ -1,18 +1,38 @@
 import { useRef, useState, type CSSProperties } from "react";
 import { ArrowLeft, ArrowRight, ZoomIn } from "lucide-react";
 import { albumText, getAlbumCover, getAlbumPhotos, getAlbums, type Album } from "@/content/albums";
-import { getEditorialAlbum, type EditorialImage } from "@/content/editorial";
+import { getChapterRows, getEditorialAlbum, type EditorialImage } from "@/content/editorial";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
-const imageStyle = (image: EditorialImage): CSSProperties =>
+const ratioValue = (ratio: EditorialImage["aspectRatio"]) => {
+  if (!ratio) return 1;
+  const [width, height] = ratio.split("/").map(Number);
+  return width! / height!;
+};
+
+/** Justified rows: the grow factor equals the frame ratio, so every image in a row is equally tall. */
+const justifiedStyle = (image: EditorialImage): CSSProperties =>
   ({
-    "--album-column": image.column ?? "1 / -1",
     "--album-ratio": image.aspectRatio ?? "auto",
-    "--album-offset": image.marginTop ?? "0rem",
+    "--album-grow": String(ratioValue(image.aspectRatio)),
   }) as CSSProperties;
+
+const toRows = <T,>(images: readonly T[], rows: readonly number[]) => {
+  let start = 0;
+  return rows.map((count) => images.slice(start, (start += count)));
+};
+
+/** Ratio sum and count let CSS cap a row's height; rows with a wide image stay uncapped. */
+const rowStyle = (row: readonly EditorialImage[]): CSSProperties | undefined =>
+  row.some((image) => image.wide)
+    ? undefined
+    : ({
+        "--row-ratio": String(row.reduce((sum, image) => sum + ratioValue(image.aspectRatio), 0)),
+        "--row-count": String(row.length),
+      } as CSSProperties);
 
 /** Paris and Istanbul only. Photo records and the complete gallery order stay in albums.ts. */
 export function EditorialAlbumView({ album }: { album: Album }) {
@@ -34,6 +54,42 @@ export function EditorialAlbumView({ album }: { album: Album }) {
     if (index === undefined) return;
     origin.current = trigger;
     setLightbox(index);
+  };
+  const renderFigure = (image: EditorialImage, style: CSSProperties) => {
+    const index = indexBySlug.get(image.photoSlug);
+    if (index === undefined) return null;
+    const photo = items[index]!;
+    return (
+      <figure
+        key={photo.slug}
+        className={`editorial-album-figure${image.half ? " is-half" : ""}${image.wide ? " is-wide" : ""}`}
+        style={style}
+      >
+        <button
+          type="button"
+          data-curated-photo-slug={photo.slug}
+          data-full-index={index}
+          aria-label={t.common.openFullscreen(photo.title)}
+          onClick={(event) => open(photo.slug, event.currentTarget)}
+        >
+          <span className="editorial-album-image-frame">
+            <img
+              src={photo.image}
+              alt={photo.alt}
+              width={photo.width}
+              height={photo.height}
+              loading="lazy"
+              decoding="async"
+              sizes={image.wide ? "100vw" : "(min-width: 900px) 65vw, 100vw"}
+            />
+            <span className="editorial-album-zoom-cue" aria-hidden="true">
+              <ZoomIn size={18} />
+            </span>
+          </span>
+        </button>
+        <figcaption>{photo.caption ?? photo.title}</figcaption>
+      </figure>
+    );
   };
 
   return (
@@ -92,43 +148,12 @@ export function EditorialAlbumView({ album }: { album: Album }) {
       <div className="editorial-album-stories">
         {selection.chapters.map((chapter, chapterIndex) => (
           <div className="container-page editorial-album-chapter" key={chapterIndex}>
-            <div className="editorial-album-spread">
-              {chapter.images.map((image) => {
-                const index = indexBySlug.get(image.photoSlug);
-                if (index === undefined) return null;
-                const photo = items[index]!;
-                return (
-                  <figure
-                    key={photo.slug}
-                    className={`editorial-album-figure${image.half ? " is-half" : ""}${image.wide ? " is-wide" : ""}`}
-                    style={imageStyle(image)}
-                  >
-                    <button
-                      type="button"
-                      data-curated-photo-slug={photo.slug}
-                      data-full-index={index}
-                      aria-label={t.common.openFullscreen(photo.title)}
-                      onClick={(event) => open(photo.slug, event.currentTarget)}
-                    >
-                      <span className="editorial-album-image-frame">
-                        <img
-                          src={photo.image}
-                          alt={photo.alt}
-                          width={photo.width}
-                          height={photo.height}
-                          loading="lazy"
-                          decoding="async"
-                          sizes={image.wide ? "100vw" : "(min-width: 900px) 65vw, 100vw"}
-                        />
-                        <span className="editorial-album-zoom-cue" aria-hidden="true">
-                          <ZoomIn size={18} />
-                        </span>
-                      </span>
-                    </button>
-                    <figcaption>{photo.caption ?? photo.title}</figcaption>
-                  </figure>
-                );
-              })}
+            <div className="editorial-album-spread is-justified">
+              {toRows(chapter.images, getChapterRows(chapter)).map((row, rowIndex) => (
+                <div className="editorial-album-row" key={rowIndex} style={rowStyle(row)}>
+                  {row.map((image) => renderFigure(image, justifiedStyle(image)))}
+                </div>
+              ))}
             </div>
           </div>
         ))}

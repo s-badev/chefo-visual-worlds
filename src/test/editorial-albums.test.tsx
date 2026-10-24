@@ -150,6 +150,81 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
   });
 });
 
+it("lays out Paris chapters as justified rows with the cover paris-052", () => {
+  const album = getAlbum("paris")!;
+  const { container } = render(<AlbumView album={album} />);
+  const rows = [...container.querySelectorAll(".editorial-album-spread.is-justified")].map(
+    (spread) =>
+      [...spread.querySelectorAll(":scope > .editorial-album-row")].map((row) =>
+        [...row.querySelectorAll<HTMLButtonElement>("button[data-curated-photo-slug]")].map(
+          (button) => button.dataset["curatedPhotoSlug"],
+        ),
+      ),
+  );
+  expect(rows).toEqual([
+    [
+      ["paris-048", "paris-043"],
+      ["paris-013", "paris-009"],
+    ],
+    [["paris-055"], ["paris-039", "paris-056"]],
+    [["paris-040", "paris-031", "paris-035"]],
+    [["paris-045", "paris-047", "paris-044"]],
+  ]);
+  // Same frame ratios (and therefore crops) as the previous grid layout.
+  const figures = [...container.querySelectorAll<HTMLElement>(".editorial-album-row > figure")];
+  expect(figures.map((figure) => figure.style.getPropertyValue("--album-ratio"))).toEqual([
+    "3 / 2",
+    "3 / 4",
+    "3 / 2",
+    "3 / 2",
+    "auto",
+    "9 / 16",
+    "4 / 3",
+    "9 / 16",
+    "3 / 2",
+    "9 / 16",
+    "3 / 4",
+    "4 / 3",
+    "3 / 4",
+  ]);
+  expect(figures[1]!.style.getPropertyValue("--album-grow")).toBe("0.75");
+  for (const chapter of getEditorialAlbum("paris")!.chapters) {
+    expect(chapter.rows!.reduce((sum, count) => sum + count, 0)).toBe(chapter.images.length);
+  }
+  const cover = container.querySelector("[data-opening-photo-slug]")!;
+  expect(cover).toHaveAttribute("data-opening-photo-slug", "paris-052");
+  expect(cover.querySelector("img")).toHaveAttribute("src", "/photos/paris/paris-052.webp");
+});
+
+it("lays out Istanbul chapters as justified rows without staggered offsets", () => {
+  const { container } = render(<AlbumView album={getAlbum("istanbul")!} />);
+  const rows = [...container.querySelectorAll(".editorial-album-spread.is-justified")].map(
+    (spread) =>
+      [...spread.querySelectorAll(":scope > .editorial-album-row")].map((row) =>
+        [...row.querySelectorAll<HTMLButtonElement>("button[data-curated-photo-slug]")].map(
+          (button) => button.dataset["curatedPhotoSlug"],
+        ),
+      ),
+  );
+  expect(rows).toEqual([
+    [["istanbul-017"], ["istanbul-009", "istanbul-029"]],
+    [["istanbul-012", "istanbul-013"]],
+    [
+      ["istanbul-032", "istanbul-025"],
+      ["istanbul-040", "istanbul-037", "istanbul-031"],
+    ],
+    [["istanbul-038"], ["istanbul-030", "istanbul-035"]],
+  ]);
+  const figures = [...container.querySelectorAll<HTMLElement>(".editorial-album-row > figure")];
+  expect(figures.every((figure) => !figure.style.getPropertyValue("--album-offset"))).toBe(true);
+  // The two-portrait row carries its ratio sum so CSS can cap its height; wide rows stay uncapped.
+  const rowStyles = [...container.querySelectorAll<HTMLElement>(".editorial-album-row")].map(
+    (row) => [row.style.getPropertyValue("--row-ratio"), row.style.getPropertyValue("--row-count")],
+  );
+  expect(rowStyles.at(-1)).toEqual(["1.5", "2"]);
+  expect(rowStyles.at(-2)).toEqual(["", ""]);
+});
+
 it("moves Nessebar to the shared unified album presentation", () => {
   const { container } = render(<AlbumView album={getAlbum("nessebar")!} />);
   expect(container.querySelector(".editorial-album")).toBeNull();

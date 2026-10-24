@@ -136,7 +136,7 @@ describe("Photography album overview", () => {
         .find((link) => link.getAttribute("href") === "/photography/albums/paris")
         ?.querySelector("img")
         ?.getAttribute("src"),
-    ).toBe("/photos/paris/paris-054.webp");
+    ).toBe("/photos/paris/paris-052.webp");
     expect(
       links
         .find((link) => link.getAttribute("href") === "/photography/albums/lyon")

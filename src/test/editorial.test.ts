@@ -3,7 +3,9 @@ import { getAlbum } from "@/content/albums";
 import { getAiWork } from "@/content/ai-works";
 import { getPhoto } from "@/content/photos";
 import {
+  deriveRows,
   editorial,
+  getChapterRows,
   getEditorialAlbum,
   getEditorialChapterImages,
   type EditorialConfig,
@@ -79,6 +81,37 @@ describe("optional editorial presentation data", () => {
     expect(getEditorialAlbum("sofia")).toBeUndefined();
     expect(getEditorialChapterImages("sofia", 0)).toEqual([]);
     expect(getEditorialChapterImages("paris", 99)).toEqual([]);
+  });
+
+  it("derives justified rows from the column placement and keeps every row filled", () => {
+    expect(
+      deriveRows([
+        { photoSlug: "a", wide: true },
+        { photoSlug: "b", column: "1 / 8" },
+        { photoSlug: "c", column: "8 / 12" },
+        { photoSlug: "d", column: "3 / 7" },
+        { photoSlug: "e" },
+        { photoSlug: "f", column: "1 / 5" },
+      ]),
+    ).toEqual([1, 2, 1, 1, 1]);
+    expect(
+      editorial.albums.map((album) => album.chapters.map((chapter) => getChapterRows(chapter))),
+    ).toEqual([
+      [[2, 2], [1, 2], [3], [3]],
+      [[1, 2], [2], [2, 3], [1, 2]],
+    ]);
+    for (const album of typedEditorial.albums) {
+      for (const chapter of album.chapters) {
+        const rows = getChapterRows(chapter);
+        expect(rows.reduce((sum, count) => sum + count, 0)).toBe(chapter.images.length);
+        // No photograph sits alone in a row unless it is a deliberate full-width image.
+        let start = 0;
+        for (const count of rows) {
+          if (count === 1) expect(chapter.images[start]!.wide).toBe(true);
+          start += count;
+        }
+      }
+    }
   });
 
   it("contains only identifiers and layout values, with no editorial prose", () => {

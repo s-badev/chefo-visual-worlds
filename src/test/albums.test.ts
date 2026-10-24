@@ -327,9 +327,12 @@ describe("photography albums", () => {
     expect(bg).toHaveLength(57);
     expect(en).toHaveLength(57);
     expect(new Set(bg.map((photo) => photo.slug)).size).toBe(57);
-    expect(album.coverPhotoSlug).toBe("paris-054");
+    // Owner decision: paris-052 is the cover everywhere; the gallery order still starts with paris-054.
+    expect(album.coverPhotoSlug).toBe("paris-052");
     expect(bg[0]?.slug).toBe("paris-054");
-    expect(getAlbumCover(album)?.image).toBe("/photos/paris/paris-054.webp");
+    expect(getAlbumCover(album)?.image).toBe("/photos/paris/paris-052.webp");
+    expect(getAlbumCover(album)?.title).toBe("Париж преди нощта");
+    expect(bg.filter((photo) => photo.slug === "paris-052")).toHaveLength(1);
     expect(en[0]?.location).toBe("Paris");
     for (const photo of parisPhotos) {
       expect(getAlbumForPhoto(photo.slug)?.slug).toBe("paris");
