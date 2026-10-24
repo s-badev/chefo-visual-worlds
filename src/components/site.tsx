@@ -27,7 +27,11 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
       onClick={onClick}
       className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
     >
-      CHEFO <span className="text-gold [[data-theme=light]_&]:text-gold-ink">—</span> VISUAL WORLDS
+      CHEFO{" "}
+      <span className="text-gold [[data-theme=dark]_&]:text-white [[data-theme=light]_&]:text-gold-ink">
+        —
+      </span>{" "}
+      VISUAL WORLDS
     </LocaleLink>
   );
 }
@@ -170,7 +174,11 @@ export function SiteHeader() {
               className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-navy text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden"
             >
               <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
-              <div className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8">
+              {/* Dark header state inside the menu overlay (white wordmark dash). */}
+              <div
+                data-theme="dark"
+                className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
+              >
                 <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
                 <Dialog.Close
                   className="relative p-2 after:absolute after:-inset-1"
@@ -645,6 +653,3 @@ const btnMotion = "transition-colors duration-(--dur-base) ease-cinematic";
 export const btnPrimary = `inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground ${btnMotion} hover:bg-primary-hover`;
 export const btnOutline = `inline-flex items-center gap-2 rounded-sm border border-current px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion} hover:border-gold hover:text-gold`;
 export const btnGold = `inline-flex items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground ${btnMotion} hover:bg-navy-foreground`;
-/** Shared hero CTA so both collections get identical weight. */
-export const btnHero =
-  "inline-flex items-center gap-2 rounded-sm border border-gold bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground shadow-soft transition-colors hover:bg-navy-foreground hover:border-navy-foreground";

@@ -1,13 +1,13 @@
 // Guards the approved homepage Hero and the header that sits on top of it.
 // Checks meaning (copy, images, links, frozen tokens) rather than full markup snapshots.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getPublishedAlbum } from "@/content/albums";
 import { getPhoto } from "@/content/photos";
-import { btnHero, SiteHeader } from "@/components/site";
+import { SiteHeader } from "@/components/site";
 import { messages } from "@/i18n/messages";
 import { HomeView } from "@/views/home";
 
@@ -152,21 +152,84 @@ describe("homepage Hero (approved, frozen)", () => {
     );
 
     const prefix = locale === "en" ? "/en" : "";
+    // Two semantic links, named by the localized label only (the Gold Glow overlay is decorative).
+    expect(hero.querySelectorAll("a")).toHaveLength(2);
     const ctas = within(hero).getAllByRole("link");
-    expect(ctas.map((a) => [a.getAttribute("href"), a.textContent?.trim()])).toEqual([
-      [`${prefix}/photography`, copy.ctaPhotos],
-      [`${prefix}/ai-worlds`, copy.ctaAi],
+    expect(ctas).toHaveLength(2);
+    expect(ctas.map((a) => a.getAttribute("href"))).toEqual([
+      `${prefix}/photography`,
+      `${prefix}/ai-worlds`,
     ]);
-    for (const cta of ctas) expect(cta.className).toContain(btnHero);
+    expect(ctas[0]).toHaveAccessibleName(copy.ctaPhotos);
+    expect(ctas[1]).toHaveAccessibleName(copy.ctaAi);
+    expect(within(hero).getByRole("link", { name: copy.ctaPhotos })).toBe(ctas[0]);
+    expect(within(hero).getByRole("link", { name: copy.ctaAi })).toBe(ctas[1]);
     expect(
       ctas.map((a) => a.closest("[data-hero-panel]")?.getAttribute("data-hero-panel")),
     ).toEqual(["real", "future"]);
+    expect(ctas[0]).toHaveClass("hero-cta", "hero-cta--print");
+    expect(ctas[1]).toHaveClass("hero-cta", "hero-cta--glow");
+    for (const [cta, label, overlays] of [
+      [ctas[0]!, copy.ctaPhotos, 0],
+      [ctas[1]!, copy.ctaAi, 1],
+    ] as const) {
+      const faces = Array.from(cta.querySelectorAll(".hero-cta-face"));
+      expect(faces).toHaveLength(1 + overlays);
+      expect(faces.filter((f) => !f.closest("[aria-hidden='true']"))).toHaveLength(1);
+      for (const face of faces) expect(face.textContent).toBe(label);
+      const overlay = cta.querySelectorAll(".hero-cta-overlay");
+      expect(overlay).toHaveLength(overlays);
+      for (const o of overlay) expect(o).toHaveAttribute("aria-hidden", "true");
+      const icons = cta.querySelectorAll("svg");
+      expect(icons).toHaveLength(faces.length);
+      for (const icon of icons) expect(icon).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(hero.querySelectorAll("[data-hero-panel] > a")).toHaveLength(0);
+  });
+});
+
+describe("Hero CTA styles (Cream Print / Gold Glow)", () => {
+  const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
+
+  it("reveals the gold sweep and the navy label with one shared clip-path transition", () => {
+    expect(css).toContain(
+      ".hero-cta--glow::before, .hero-cta-overlay { clip-path: inset(0 100% 0 0); transition: clip-path var(--hero-cta-sweep); }",
+    );
+    expect(css).toContain(
+      ".hero-cta--glow:hover::before, .hero-cta--glow:hover .hero-cta-overlay { clip-path: inset(0 0 0 0); }",
+    );
+    expect(css).toMatch(/\.hero-cta--glow::before \{ content: ""; position: absolute; inset: 0;/);
+    expect(css).toMatch(
+      /\.hero-cta-overlay \{ position: absolute; inset: 0;[^}]*pointer-events: none;/,
+    );
   });
 
-  it("keeps the shared Hero CTA style", () => {
-    expect(btnHero).toBe(
-      "inline-flex items-center gap-2 rounded-sm border border-gold bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground shadow-soft transition-colors hover:bg-navy-foreground hover:border-navy-foreground",
+  it("keeps decorative motion behind hover and motion preferences", () => {
+    const hover = css.slice(css.indexOf("@media (hover: hover) and (pointer: fine) { .hero-cta"));
+    // Body of the motion block nested in the hover block (up to the next at-rule).
+    const motionOpen = "@media (prefers-reduced-motion: no-preference) {";
+    const motion = hover.slice(hover.indexOf(motionOpen) + motionOpen.length);
+    expect(motion).toMatch(/^[^@]*\.hero-cta--print:hover \{ transform: translateY\(-2px\); \}/);
+    expect(motion).toMatch(
+      /^[^@]*\.hero-cta--glow:hover \.hero-cta-icon \{ animation: hero-cta-spark-pulse var\(--hero-cta-sweep\) both; \}/,
     );
+    expect(css).toContain(
+      "@keyframes hero-cta-spark-pulse { 0%, 42% { transform: scale(1); } 58% { transform: scale(1.12); } 78%, 100% { transform: scale(1); } }",
+    );
+    expect(css).toContain(
+      "@media (prefers-reduced-motion: no-preference) { .hero-cta:active { transform: scale(0.98); } }",
+    );
+    const block = css.slice(css.indexOf("/* Home Hero CTAs"), css.indexOf(".photo-frame-print {"));
+    expect(block).not.toMatch(/hero-cta--print[^}]*hero-cta-icon[^}]*transform/);
+    expect(block).not.toMatch(/hero-cta--glow[^}]*rotate/);
+  });
+
+  it("is only used by the homepage Hero", () => {
+    const src = path.resolve(__dirname, "..");
+    const users = (readdirSync(src, { recursive: true }) as string[])
+      .filter((f) => /\.tsx?$/.test(f) && !f.includes("test"))
+      .filter((f) => readFileSync(path.join(src, f), "utf8").includes("hero-cta"));
+    expect(users.map((f) => f.replaceAll("\\", "/"))).toEqual(["views/home.tsx"]);
   });
 });
 
@@ -230,6 +293,17 @@ describe("header over the Hero", () => {
     );
     expect(screen.getByRole("button", { name: messages.bg.nav.open }).className).toContain(
       "lg:hidden",
+    );
+    // Wordmark dash: white on the dark header, gold-ink on the light one, gold elsewhere (footer).
+    const wordmark = within(header).getByRole("link", { name: "CHEFO — VISUAL WORLDS" });
+    const dash = wordmark.querySelector("span")!;
+    expect(dash).toHaveTextContent(/^—$/);
+    expect(dash.className.split(" ").sort()).toEqual(
+      [
+        "text-gold",
+        "[[data-theme=dark]_&]:text-white",
+        "[[data-theme=light]_&]:text-gold-ink",
+      ].sort(),
     );
     cleanupMarked();
   });

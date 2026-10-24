@@ -1,8 +1,8 @@
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, Camera, MapPin } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
 import { aiWorks, localizeAiWork } from "@/content/ai-works";
-import { AiCard, SectionHeading, btnHero, btnPrimary, btnOutline } from "@/components/site";
+import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
@@ -181,6 +181,15 @@ export function HomeView() {
   );
 }
 
+/** Four-point spark for the Gold Glow CTA; taller than wide so the 45° hover turn reads as a twinkle. */
+function Spark(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 1.5Q13.6 10.4 20 12Q13.6 13.6 12 22.5Q10.4 13.6 4 12Q10.4 10.4 12 1.5Z" />
+    </svg>
+  );
+}
+
 function HeroHalf({
   img,
   alt,
@@ -198,6 +207,7 @@ function HeroHalf({
   align?: "end";
   side: "real" | "future";
 }) {
+  const Icon = side === "real" ? Camera : Spark;
   return (
     <div data-hero-panel={side} className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
       <img
@@ -220,8 +230,22 @@ function HeroHalf({
         <span className="eyebrow inline-flex min-h-8 w-fit items-center gap-2 rounded-sm bg-navy/90 px-3 py-1.5 text-navy-foreground shadow-soft">
           {badge}
         </span>
-        <LocaleLink to={to} className={`${btnHero} w-fit`}>
-          {cta} <ArrowRight className="size-4" />
+        {/* Cream Print (photography) / Gold Glow (AI); styles live in styles.css. */}
+        <LocaleLink
+          to={to}
+          className={`hero-cta hero-cta--${side === "real" ? "print" : "glow"} w-fit`}
+        >
+          <span className="hero-cta-face">
+            {cta}
+            <Icon aria-hidden="true" className="hero-cta-icon" />
+          </span>
+          {side === "future" && (
+            // Same label in navy, revealed together with the gold sweep so each glyph keeps its contrast.
+            <span aria-hidden="true" className="hero-cta-face hero-cta-overlay">
+              {cta}
+              <Icon aria-hidden="true" className="hero-cta-icon" />
+            </span>
+          )}
         </LocaleLink>
       </div>
     </div>
