@@ -6,11 +6,9 @@ import {
   collectionText,
   getAiCollections,
   getCollectionCover,
-  getCollectionForWork,
   getCollectionWorkSlugs,
   type AiCollection,
 } from "@/content/ai-collections";
-import { getDestinations } from "@/content/ai-destinations";
 import { AtlasCover } from "@/components/ai-atlas";
 import {
   aiEraLabel,
@@ -86,13 +84,7 @@ function EmptyCollectionCover({ className }: { className?: string }) {
 }
 
 /** One collection on the AI Worlds landing page: cover and curatorial label, mirrored per row. */
-function CollectionHall({
-  collection,
-  index,
-}: {
-  collection: AiCollection;
-  index: number;
-}) {
+function CollectionHall({ collection, index }: { collection: AiCollection; index: number }) {
   const { t, locale } = useT();
   const m = t.ai;
   const cover = getCollectionCover(collection, locale);
@@ -144,12 +136,8 @@ function CollectionHall({
           <p className="lead mt-5 text-muted-foreground">
             {collectionText(collection.intro, locale)}
           </p>
-          {(isAtlas || finished > 0) && (
-            <p className="mt-6 text-sm text-muted-foreground">
-              {isAtlas
-                ? `${m.destinationsCount(getDestinations().length)} · ${m.portraitsDone(finished)}`
-                : m.count(finished)}
-            </p>
+          {finished > 0 && (
+            <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
           )}
           <span
             aria-hidden="true"
@@ -182,7 +170,10 @@ export function CollectionHalls() {
 /** A work in the All Artworks gallery: image at its own ratio and a museum-style label. */
 export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
   const { t, locale } = useT();
-  const collection = getCollectionForWork(work.slug);
+  const provider =
+    work.tool === "ChatGPT Image Generation" || work.tool === "Gemini Nano Banana"
+      ? toolLabel(work.tool, locale)
+      : null;
   return (
     <article
       className={cn(
@@ -214,11 +205,11 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
           className="size-4 shrink-0 text-gold opacity-0 transition-[opacity,translate] duration-(--dur-base) ease-cinematic group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
         />
       </div>
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm text-muted-foreground">
-          {[collection && collectionText(collection.title, locale), work.tool && toolLabel(work.tool, locale)].filter(Boolean).join(" · ")}
-        </p>
-      </div>
+      {provider && (
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-sm text-muted-foreground">{provider}</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -261,7 +252,7 @@ export function ExhibitionWall({
         const facts = workFacts(work, locale);
         return (
           <li key={work.slug} {...reveal()}>
-            <article className="grid items-end gap-8 lg:grid-cols-12 lg:gap-0">
+            <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
                   "ai-frame-portal group relative overflow-hidden rounded-sm lg:col-span-7",
@@ -280,42 +271,44 @@ export function ExhibitionWall({
               </figure>
               <div
                 className={cn(
-                  "lg:col-span-4 lg:row-start-1",
+                  "lg:col-span-4 lg:row-start-1 lg:grid lg:grid-rows-[minmax(0,1.7fr)_auto_minmax(0,1fr)]",
                   mirrored ? "lg:col-start-1" : "lg:col-start-9",
                 )}
               >
-                <h2 className="title-section break-words">
-                  <LocaleLink
-                    to="/ai-worlds/$slug"
-                    slug={work.slug}
-                    className="transition-colors hover:text-gold"
-                  >
-                    {work.title}
-                  </LocaleLink>
-                </h2>
-                <p className="mt-5 font-serif text-xl leading-snug">{work.description}</p>
-                {facts.length > 0 && (
-                  <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-                    {facts.join(" · ")}
-                  </p>
-                )}
-                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold">
-                  <LocaleLink
-                    to="/ai-worlds/$slug"
-                    slug={work.slug}
-                    className="group/link inline-flex items-center gap-2 border-b border-gold/50 pb-1 transition-colors hover:border-gold hover:text-gold"
-                    aria-label={`${m.viewWork}: ${work.title}`}
-                  >
-                    {m.viewWork}
-                    <ArrowRight className="size-4 transition-transform motion-safe:group-hover/link:translate-x-1" />
-                  </LocaleLink>
-                  <button
-                    type="button"
-                    onClick={() => onOpen(index)}
-                    className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-gold"
-                  >
-                    <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
-                  </button>
+                <div data-exhibit-copy-content className="lg:row-start-2">
+                  <h2 className="title-section break-words">
+                    <LocaleLink
+                      to="/ai-worlds/$slug"
+                      slug={work.slug}
+                      className="transition-colors hover:text-gold"
+                    >
+                      {work.title}
+                    </LocaleLink>
+                  </h2>
+                  <p className="mt-5 font-serif text-xl leading-snug">{work.description}</p>
+                  {facts.length > 0 && (
+                    <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                      {facts.join(" · ")}
+                    </p>
+                  )}
+                  <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold">
+                    <LocaleLink
+                      to="/ai-worlds/$slug"
+                      slug={work.slug}
+                      className="group/link inline-flex items-center gap-2 border-b border-gold/50 pb-1 transition-colors hover:border-gold hover:text-gold"
+                      aria-label={`${m.viewWork}: ${work.title}`}
+                    >
+                      {m.viewWork}
+                      <ArrowRight className="size-4 transition-transform motion-safe:group-hover/link:translate-x-1" />
+                    </LocaleLink>
+                    <button
+                      type="button"
+                      onClick={() => onOpen(index)}
+                      className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-gold"
+                    >
+                      <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
+                    </button>
+                  </div>
                 </div>
               </div>
             </article>
@@ -369,13 +362,25 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
                 : "border-gold/60 bg-navy text-gold hover:border-gold hover:bg-surface-raised",
             )}
           >
-            {copied ? <Check aria-hidden="true" className="size-4" /> : <Copy aria-hidden="true" className="size-4" />}
+            {copied ? (
+              <Check aria-hidden="true" className="size-4" />
+            ) : (
+              <Copy aria-hidden="true" className="size-4" />
+            )}
             <span>{copied ? m.copiedPromptButton : m.copyPromptButton}</span>
           </button>
         )}
       </div>
-      {copied && <span role="status" className="sr-only">{m.copiedPromptButton}</span>}
-      {copyError && <p role="alert" className="mt-2 text-xs text-gold">{m.copyPromptError}</p>}
+      {copied && (
+        <span role="status" className="sr-only">
+          {m.copiedPromptButton}
+        </span>
+      )}
+      {copyError && (
+        <p role="alert" className="mt-2 text-xs text-gold">
+          {m.copyPromptError}
+        </p>
+      )}
       {hasPrompt ? (
         <p
           id="prompt-text"

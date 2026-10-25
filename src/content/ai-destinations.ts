@@ -26,7 +26,7 @@ export interface Destination {
   order: number;
   /** Internal provenance only; never displayed as a visitor-facing label. */
   source: "video" | "added";
-  country: LocalizedText;
+  country?: LocalizedText;
   /** A city or region, only where it is specified (never guessed from the video). */
   place?: LocalizedText;
   /** Political or geographic context, e.g. Greenland within the Kingdom of Denmark. */
@@ -44,6 +44,8 @@ export interface Destination {
   tool?: AiWork["tool"];
   status: "planned" | "published";
   video?: DestinationVideo;
+  /** Per-destination opt-in: show the published portrait on the shared artwork detail template. */
+  artworkTemplate?: boolean;
 }
 
 const IDENTITY =
@@ -60,10 +62,16 @@ export const destinations: Destination[] = [
       "Бяла роба, палми и пясъчни дюни в топлата светлина на пустинята.",
       "A white robe, palms and sand dunes in warm desert light.",
     ),
-    clothing: text("Бяла роба и светло покривало за глава с черен агал.", "A white robe and light head covering with a black agal."),
+    clothing: text(
+      "Бяла роба и светло покривало за глава с черен агал.",
+      "A white robe and light head covering with a black agal.",
+    ),
     grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
     inspiration: text("Пустинен пейзаж и палми.", "A desert landscape and palm trees."),
-    setting: text("Пясъчни дюни и палми в мека вечерна светлина.", "Sand dunes and palms in soft evening light."),
+    setting: text(
+      "Пясъчни дюни и палми в мека вечерна светлина.",
+      "Sand dunes and palms in soft evening light.",
+    ),
     styles: [{ kind: "modern" }],
     promptDraft: `${IDENTITY} Saudi Arabian desert scene with a white thobe, light head covering and black agal, palms, sand dunes and warm evening light. This is a concept, not the original generation prompt.`,
     status: "published",
@@ -336,6 +344,7 @@ export const destinations: Destination[] = [
     styles: [{ kind: "modern" }, { kind: "historical", period: text("1870–1900", "1870–1900") }],
     promptDraft: `${IDENTITY} Turkey. Historical variant: stambouline frock coat and fez of the Tanzimat era (1870–1900), İznik tiles, wooden yalı houses on the Bosphorus. Modern variant: dark wool coat and scarf on a Bosphorus ferry deck, tea in a tulip glass.`,
     status: "published",
+    artworkTemplate: true,
   },
   {
     slug: "chefo-v-egipet",
@@ -396,6 +405,104 @@ export const destinations: Destination[] = [
       { kind: "historical", period: text("началото на XX век", "early 20th century") },
     ],
     promptDraft: `${IDENTITY} Dubai. Historical variant: white kandura with ghutra and agal in the early 20th-century Al Fahidi quarter, coral-stone walls, barjeel wind towers, abra boats on Dubai Creek. Modern variant: light linen suit by the Creek at blue hour, skyline behind.`,
+    status: "published",
+  },
+  {
+    slug: "chefo-rainy-new-york",
+    order: 13,
+    source: "added",
+    country: text("САЩ", "USA"),
+    place: text("Ню Йорк", "New York"),
+    title: text("Ню Йорк след дъжда", "New York After the Rain"),
+    description: text(
+      "Сред мокрите улици и отраженията на градските светлини Ню Йорк разкрива различното си лице — по-тихо, загадъчно и изпълнено с истории.",
+      "Among wet streets and reflections of city lights, New York reveals a different side—quieter, more mysterious and full of stories.",
+    ),
+    clothing: text("Тъмно вълнено палто и шал.", "A dark wool coat and scarf."),
+    grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
+    inspiration: text("Дъждовният ритъм на големия град.", "The rainy rhythm of the city."),
+    setting: text(
+      "Мокър нюйоркски булевард с таксита, чадъри и градски отражения.",
+      "A rain-soaked New York avenue with taxis, umbrellas and city reflections.",
+    ),
+    styles: [{ kind: "modern" }],
+    promptDraft: "Original generation prompt not supplied.",
+    status: "published",
+  },
+  {
+    slug: "chefo-sydney-harbour-sunset",
+    order: 14,
+    source: "added",
+    country: text("Австралия", "Australia"),
+    place: text("Сидни", "Sydney"),
+    title: text("Залез над Сидни", "Sydney at Sunset"),
+    description: text(
+      "Последните слънчеви лъчи огряват пристанището на Сидни. Един спокоен момент, в който шумът на града отстъпва пред красотата на вечерта.",
+      "The last rays of sunlight warm Sydney Harbour. A quiet moment when the city's noise gives way to the beauty of the evening.",
+    ),
+    clothing: text(
+      "Светлосиня ленена риза и слънчеви очила.",
+      "A light blue linen shirt and sunglasses.",
+    ),
+    grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
+    inspiration: text("Светлината над пристанището по залез.", "Sunset light over the harbour."),
+    setting: text(
+      "Пристанището на Сидни с Операта и Харбър Бридж в златна светлина.",
+      "Sydney Harbour with the Opera House and Harbour Bridge in golden light.",
+    ),
+    styles: [{ kind: "modern" }],
+    promptDraft: "Original generation prompt not supplied.",
+    status: "published",
+  },
+  {
+    slug: "chefo-coastal-adventure",
+    order: 15,
+    source: "added",
+    place: text("Тропическо крайбрежие", "Tropical coast"),
+    title: text("Последните лъчи", "The Last Light"),
+    description: text(
+      "Край морето денят бавно отстъпва на вечерта. Топлият залез и свободният дух на пътешествието превръщат обикновения миг в спомен.",
+      "By the sea, the day slowly gives way to evening. The warm sunset and the free spirit of travel turn an ordinary moment into a memory.",
+    ),
+    clothing: text(
+      "Ленена риза с тропически мотиви и раница.",
+      "A linen shirt with tropical motifs and a backpack.",
+    ),
+    grooming: text("Къса коса и естествена брада.", "Short hair and a natural beard."),
+    inspiration: text(
+      "Свободният дух на крайбрежното пътуване.",
+      "The free spirit of coastal travel.",
+    ),
+    setting: text(
+      "Неуточнен скалист тропически бряг с палми, вълни и планини по залез.",
+      "An unspecified rocky tropical coast with palms, waves and mountains at sunset.",
+    ),
+    styles: [{ kind: "modern" }],
+    promptDraft: "Original generation prompt not supplied.",
+    status: "published",
+  },
+  {
+    slug: "chefo-rice-terraces-morning",
+    order: 16,
+    source: "added",
+    place: text("Оризови тераси", "Rice terraces"),
+    title: text("Утро сред оризовите тераси", "Morning Among the Rice Terraces"),
+    description: text(
+      "Първото кафе за деня има различен вкус сред зелените тераси и спокойствието на тропическата природа. Пътешествието започва без бързане.",
+      "The first coffee of the day tastes different among green terraces and the calm of tropical nature. The journey begins without haste.",
+    ),
+    clothing: text("Светла ленена риза и панталон.", "A pale linen shirt and trousers."),
+    grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
+    inspiration: text(
+      "Спокойствието на тропическите земеделски тераси.",
+      "The calm of tropical farming terraces.",
+    ),
+    setting: text(
+      "Зелени оризови тераси, тропически палми и планини в мека утринна светлина.",
+      "Green rice terraces, tropical palms and mountains in soft morning light.",
+    ),
+    styles: [{ kind: "modern" }],
+    promptDraft: "Original generation prompt not supplied.",
     status: "published",
   },
 ];

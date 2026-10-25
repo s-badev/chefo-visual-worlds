@@ -1,11 +1,11 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { ArrowRight, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Menu, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { photoCategoryLabel, type Photo } from "@/content/photos";
-import { aiCategoryLabel, toolLabel, type AiWork } from "@/content/ai-works";
+import { toolLabel, type AiWork } from "@/content/ai-works";
 import { getMessages, useT, type Locale } from "@/i18n";
 import { LanguageSwitcher, LocaleLink } from "@/i18n/link";
 import { siteConfig } from "@/content/site-config";
@@ -471,6 +471,7 @@ export function AiCard({
   className,
   revealIndex,
   frame,
+  objectPosition,
 }: {
   work: AiWork;
   className?: string;
@@ -478,8 +479,14 @@ export function AiCard({
   revealIndex?: number;
   /** Optional decorative treatment for explicitly approved compact AI grids. */
   frame?: "compact";
+  /** Focal point for the 4:5 crop when the centred default would cut the subject. */
+  objectPosition?: string | undefined;
 }) {
   const { t, locale } = useT();
+  const provider =
+    work.tool === "ChatGPT Image Generation" || work.tool === "Gemini Nano Banana"
+      ? toolLabel(work.tool, locale)
+      : null;
   return (
     <article
       className={cn("group min-w-0", className)}
@@ -500,6 +507,7 @@ export function AiCard({
             loading="lazy"
             decoding="async"
             className={cardImage}
+            style={objectPosition ? { objectPosition } : undefined}
           />
           <span
             aria-hidden="true"
@@ -513,11 +521,11 @@ export function AiCard({
           {work.title}
         </h3>
       </LocaleLink>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm text-muted-foreground">
-          {work.tool && `${toolLabel(work.tool, locale)} · `}{aiCategoryLabel(work.category, locale)}
-        </p>
-      </div>
+      {provider && (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-sm text-muted-foreground">{provider}</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -539,18 +547,31 @@ export function Lightbox({
   index,
   onIndex,
   returnFocusTo,
+  variant = "default",
 }: {
   items: LightboxItem[];
   index: number | null;
   onIndex: (i: number | null) => void;
   returnFocusTo?: React.RefObject<HTMLElement | null>;
+  variant?: "default" | "artwork";
 }) {
   const open = index !== null && items[index] !== undefined;
   const item = open ? items[index!] : null;
+  const artwork = variant === "artwork";
+  const portrait = Boolean(item?.width && item?.height && item.width < item.height);
   const { t } = useT();
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const go = (d: number) => index !== null && onIndex((index + d + items.length) % items.length);
+  const [zoomed, setZoomed] = useState(false);
+  const go = (d: number) => {
+    if (index === null) return;
+    setZoomed(false);
+    onIndex((index + d + items.length) % items.length);
+  };
+
+  useEffect(() => {
+    setZoomed(false);
+  }, [index, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -567,7 +588,15 @@ export function Lightbox({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95 duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <Dialog.Content
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:p-10"
+          data-lightbox-variant={variant}
+          className={cn(
+            "fixed inset-0 z-50 flex flex-col items-center justify-center text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+            artwork
+              ? zoomed
+                ? "overflow-auto p-2 sm:p-3"
+                : "gap-2 overflow-hidden p-2 sm:p-3"
+              : "p-4 md:p-10",
+          )}
           onOpenAutoFocus={() => {
             returnFocus.current =
               returnFocusTo?.current ??
@@ -597,15 +626,54 @@ export function Lightbox({
             <>
               <Dialog.Title className="sr-only">{item.title}</Dialog.Title>
               <Dialog.Description className="sr-only">{item.alt}</Dialog.Description>
-              <img
-                key={item.slug}
-                src={item.image}
-                alt={item.alt}
-                width={item.width}
-                height={item.height}
-                className="max-h-[78vh] max-w-full rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0"
-              />
-              <div className="mt-4 text-center">
+              {artwork ? (
+                <div
+                  data-lightbox-stage
+                  className={cn(
+                    "flex items-center justify-center",
+                    zoomed
+                      ? "h-max min-h-full w-max min-w-full flex-none"
+                      : "min-h-0 w-full flex-1",
+                  )}
+                >
+                  <img
+                    key={item.slug}
+                    data-lightbox-image
+                    src={item.image}
+                    alt={item.alt}
+                    width={item.width}
+                    height={item.height}
+                    className={cn(
+                      "h-auto w-auto shrink-0 rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0",
+                      zoomed ? "max-h-none max-w-none cursor-zoom-out" : "max-h-full max-w-full",
+                    )}
+                  />
+                </div>
+              ) : (
+                <img
+                  key={item.slug}
+                  data-lightbox-image
+                  src={item.image}
+                  alt={item.alt}
+                  width={item.width}
+                  height={item.height}
+                  className="max-h-[78vh] max-w-full rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0"
+                />
+              )}
+              <div
+                data-lightbox-caption
+                className={cn(
+                  "text-center",
+                  artwork
+                    ? cn(
+                        zoomed && "sr-only",
+                        portrait
+                          ? "md:absolute md:bottom-5 md:right-5 md:w-64 md:rounded-sm md:bg-navy/85 md:p-3 md:text-left md:shadow-soft md:backdrop-blur-sm"
+                          : "shrink-0",
+                      )
+                    : "mt-4",
+                )}
+              >
                 <p className="font-serif text-2xl">{item.title}</p>
                 {item.caption && (
                   <p className="mt-1 text-sm text-navy-foreground/80">{item.caption}</p>
@@ -615,13 +683,27 @@ export function Lightbox({
                   {index! + 1} / {items.length}
                 </p>
               </div>
+              {artwork && (
+                <button
+                  type="button"
+                  aria-label={zoomed ? t.lightbox.zoomOut : t.lightbox.zoomIn}
+                  aria-pressed={zoomed}
+                  onClick={() => setZoomed((value) => !value)}
+                  className="fixed left-3 top-3 z-10 rounded-full border border-navy-border bg-navy/85 p-2.5 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:left-4 sm:top-4"
+                >
+                  {zoomed ? <ZoomOut className="size-5" /> : <ZoomIn className="size-5" />}
+                </button>
+              )}
               {items.length > 1 && (
                 <>
                   <button
                     type="button"
                     onClick={() => go(-1)}
                     aria-label={t.lightbox.prev}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:left-6"
+                    className={cn(
+                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      artwork ? "fixed left-2 md:left-6" : "absolute left-2 md:left-6",
+                    )}
                   >
                     <ChevronLeft className="size-5" />
                   </button>
@@ -629,7 +711,10 @@ export function Lightbox({
                     type="button"
                     onClick={() => go(1)}
                     aria-label={t.lightbox.next}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:right-6"
+                    className={cn(
+                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      artwork ? "fixed right-2 md:right-6" : "absolute right-2 md:right-6",
+                    )}
                   >
                     <ChevronRight className="size-5" />
                   </button>
@@ -637,7 +722,10 @@ export function Lightbox({
               )}
               <Dialog.Close
                 aria-label={t.lightbox.close}
-                className="absolute right-4 top-4 rounded-full border border-navy-border p-2 transition-colors hover:border-gold"
+                className={cn(
+                  "right-4 top-4 z-10 rounded-full border border-navy-border bg-navy/85 p-2 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                  artwork ? "fixed" : "absolute",
+                )}
               >
                 <X className="size-5" />
               </Dialog.Close>

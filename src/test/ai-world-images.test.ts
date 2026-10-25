@@ -40,7 +40,7 @@ describe("Around the World image replacements", () => {
 
 describe("published AI artwork prompts", () => {
   it("gives every published image an individual, substantial English prompt", () => {
-    expect(aiWorks).toHaveLength(29);
+    expect(aiWorks).toHaveLength(64);
     expect(new Set(aiWorks.map((work) => work.slug)).size).toBe(aiWorks.length);
     expect(new Set(aiWorks.map((work) => work.prompt)).size).toBe(aiWorks.length);
     for (const work of aiWorks) {
@@ -48,7 +48,9 @@ describe("published AI artwork prompts", () => {
       expect(work.prompt, work.slug).toMatch(/uploaded reference photograph/i);
       expect(work.prompt, work.slug).toMatch(/facial identity/i);
       expect(work.prompt, work.slug).not.toMatch(/\bChefo\b/i);
-      expect(work.prompt, work.slug).not.toMatch(/\b(?:short dark hair|trimmed beard|light stubble|dark moustache|neat beard)\b/i);
+      expect(work.prompt, work.slug).not.toMatch(
+        /\b(?:short dark hair|trimmed beard|light stubble|dark moustache|neat beard)\b/i,
+      );
       expect(work.promptKind, work.slug).toBe("illustrative");
     }
   });

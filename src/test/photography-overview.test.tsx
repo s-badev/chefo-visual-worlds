@@ -246,6 +246,22 @@ describe("Photography album overview", () => {
     expect(home.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
   });
 
+  it.each(["bg", "en"] as const)("removes the About creation pipeline in %s", (locale) => {
+    activeLocale = locale;
+    render(<AboutView />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: messages[locale].about.title }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(messages[locale].about.p1)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: messages[locale].about.howTitle })).toBeNull();
+    for (const step of messages[locale].about.steps) {
+      expect(screen.queryByText(step.title)).toBeNull();
+    }
+    expect(
+      screen.getByRole("group", { name: messages[locale].portrait.group }),
+    ).toBeInTheDocument();
+  });
+
   it.each(["bg", "en"] as const)("shows the localized Lyon album in %s", (locale) => {
     activeLocale = locale;
     const { container } = render(<AlbumView album={getAlbum("lyon")!} />);

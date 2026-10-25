@@ -55,7 +55,7 @@ export const futureAiConcepts: FutureAiConcept[] = [
     ),
     galleryPreview: {
       status: "planned",
-      title: text("Чефо като каубой", "Chefo as a Cowboy"),
+      title: text("Дивият запад", "The Wild West"),
       image: null,
       prompt: null,
     },

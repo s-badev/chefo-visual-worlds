@@ -1,7 +1,7 @@
 import { ArrowRight, Camera, MapPin } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
-import { aiWorks, localizeAiWork } from "@/content/ai-works";
+import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
@@ -19,6 +19,32 @@ export const homeHead = (locale: Locale) => {
 
 const FEATURED_ALBUM_SLUGS = ["nessebar", "sofia", "sunny-beach"] as const;
 
+/** Home AI preview: curated card titles aligned with the published artwork metadata. */
+const FEATURED_AI_WORKS: {
+  slug: string;
+  title: Record<Locale, string>;
+  objectPosition?: string;
+}[] = [
+  {
+    slug: "chefo-srednovekoven-ritsar",
+    title: { bg: "Средновековен владетел", en: "Medieval Ruler" },
+  },
+  {
+    slug: "captain-against-the-storm",
+    title: { bg: "Капитанът срещу бурята", en: "Captain Against the Storm" },
+  },
+  {
+    slug: "rainy-neon-noir",
+    title: { bg: "Последният свидетел", en: "The Last Witness" },
+  },
+  {
+    slug: "chefo-v-turtsiya",
+    title: { bg: "Вечер край Босфора", en: "Evening on the Bosphorus" },
+    // Lower focal point keeps the face, the mosque skyline and the tea glass in the 4:5 card.
+    objectPosition: "50% 70%",
+  },
+];
+
 export function HomeView() {
   const { t, locale } = useT();
   const m = t.home;
@@ -27,6 +53,13 @@ export function HomeView() {
     const cover = album && getAlbumCover(album);
     return album && cover ? [{ album, cover: localizePhoto(cover, locale) }] : [];
   });
+  const featuredAiWorks = FEATURED_AI_WORKS.flatMap(({ slug, title, objectPosition }) => {
+    const work = getAiWork(slug);
+    return work
+      ? [{ work: { ...localizeAiWork(work, locale), title: title[locale] }, objectPosition }]
+      : [];
+  });
+
   return (
     <>
       <section data-header-theme="dark" className="relative isolate bg-navy text-navy-foreground">
@@ -151,8 +184,8 @@ export function HomeView() {
             </LocaleLink>
           </div>
           <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {aiWorks.slice(0, 4).map((w, i) => (
-              <AiCard key={w.slug} work={localizeAiWork(w, locale)} revealIndex={i} />
+            {featuredAiWorks.map(({ work, objectPosition }, i) => (
+              <AiCard key={work.slug} work={work} objectPosition={objectPosition} revealIndex={i} />
             ))}
           </div>
         </div>
