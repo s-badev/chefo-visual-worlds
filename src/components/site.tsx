@@ -1,16 +1,18 @@
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import { ArrowRight, Menu, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { photoCategoryLabel, type Photo } from "@/content/photos";
-import { aiCategoryLabel, toolLabel, type AiWork } from "@/content/ai-works";
+import { toolLabel, type AiWork } from "@/content/ai-works";
 import { getMessages, useT, type Locale } from "@/i18n";
 import { LanguageSwitcher, LocaleLink } from "@/i18n/link";
 import { siteConfig } from "@/content/site-config";
 import { reveal } from "@/hooks/use-reveal";
 import { copyText, type CopyResult } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
+import { getInitialHeaderTheme, type HeaderTheme } from "@/components/header-theme";
 
 const NAV = [
   { to: "/photography", key: "photography" },
@@ -25,25 +27,39 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
       onClick={onClick}
       className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
     >
-      CHEFO <span className="text-gold">—</span> VISUAL WORLDS
+      CHEFO{" "}
+      <span className="text-gold [[data-theme=dark]_&]:text-white [[data-theme=light]_&]:text-gold-ink">
+        —
+      </span>{" "}
+      VISUAL WORLDS
     </LocaleLink>
   );
 }
 
-/** Reads the data-header-theme of whatever sits just under the header's bottom edge. */
-function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-  useEffect(() => {
-    let raf = 0;
-    const probe = () => {
-      raf = 0;
+/** Route theme is available in SSR; the rendered surface remains authoritative after mounting. */
+function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
+  const pathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  });
+  const pendingPath = useRouterState({ select: (s) => s.location.pathname });
+  const matches = useRouterState({ select: (s) => s.matches });
+  const [sample, setSample] = useState<{
+    pathname: string;
+    theme: HeaderTheme;
+    scroll: boolean;
+  } | null>(null);
+  const latestPath = useRef(pathname);
+  latestPath.current = pathname;
+
+  const probe = useCallback(
+    (scroll: boolean) => {
       const header = ref.current;
       if (!header) return;
-      const y = header.getBoundingClientRect().bottom + 4; // just below header, uses real height
+      const y = header.getBoundingClientRect().bottom + 1;
       const x = window.innerWidth / 2;
-      let next: "light" | "dark" = "light";
+      let next: HeaderTheme = "light";
       for (const el of document.elementsFromPoint(x, y)) {
         if (header.contains(el)) continue;
         const marked = el.closest<HTMLElement>("[data-header-theme]");
@@ -52,25 +68,44 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
           break;
         }
       }
-      setTheme((cur) => (cur === next ? cur : next));
-    };
+      const path = latestPath.current;
+      setSample((current) =>
+        current?.pathname === path && current.theme === next
+          ? current
+          : { pathname: path, theme: next, scroll },
+      );
+    },
+    [ref],
+  );
+
+  // TanStack updates resolvedLocation after the new view commits. The matches
+  // dependency lets this probe run during that commit, before the browser paints.
+  useIsomorphicLayoutEffect(() => {
+    probe(false);
+  }, [pathname, pendingPath, matches, probe]);
+
+  useEffect(() => {
+    let raf = 0;
     const schedule = () => {
-      if (!raf) raf = requestAnimationFrame(probe);
+      if (!raf)
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          flushSync(() => probe(pendingPath === pathname));
+        });
     };
-    probe();
-    const t1 = setTimeout(probe, 50);
-    const t2 = setTimeout(probe, 300); // after scroll restoration
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [pathname, ref]);
-  return theme;
+  }, [pathname, pendingPath, probe]);
+
+  return {
+    theme: sample?.pathname === pathname ? sample.theme : getInitialHeaderTheme(pathname),
+    animate: sample?.pathname === pathname && sample.scroll && pendingPath === pathname,
+  };
 }
 
 /** Gold underline that unfolds from the centre on the active page (resting look unchanged). */
@@ -80,7 +115,7 @@ const navUnderline =
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
-  const theme = useHeaderTheme(ref);
+  const { theme, animate } = useHeaderTheme(ref);
   const { t } = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const dark = theme === "dark" || open;
@@ -92,10 +127,13 @@ export function SiteHeader() {
       ref={ref}
       data-theme={dark ? "dark" : "light"}
       className={cn(
-        "sticky top-0 z-40 border-b transition-colors duration-300 motion-reduce:transition-none",
+        "sticky top-0 z-40 border-b",
+        animate
+          ? "transition-colors duration-(--dur-base) motion-reduce:transition-none"
+          : "transition-none",
         dark
-          ? "border-navy-border bg-navy text-navy-foreground supports-[backdrop-filter]:bg-navy/80 supports-[backdrop-filter]:backdrop-blur-md"
-          : "bg-background/95 text-foreground supports-[backdrop-filter]:backdrop-blur",
+          ? "border-navy-border bg-navy text-navy-foreground"
+          : "border-border bg-background text-foreground",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
@@ -109,7 +147,7 @@ export function SiteHeader() {
                   className={cn(
                     "eyebrow border-b border-transparent pb-1 transition-colors",
                     navUnderline,
-                    dark ? "hover:text-gold" : "hover:text-terracotta",
+                    dark ? "hover:text-gold" : "hover:text-terracotta-ink",
                   )}
                   activeClassName={cn("after:scale-x-100", dark && "text-gold")}
                 >
@@ -136,7 +174,11 @@ export function SiteHeader() {
               className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-navy text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden"
             >
               <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
-              <div className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8">
+              {/* Dark header state inside the menu overlay (white wordmark dash). */}
+              <div
+                data-theme="dark"
+                className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
+              >
                 <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
                 <Dialog.Close
                   className="relative p-2 after:absolute after:-inset-1"
@@ -329,15 +371,23 @@ export function PhotoCard({
   ratio = "aspect-[4/5]",
   onOpen,
   themeLabel,
+  frame,
 }: {
   photo: Photo;
   ratio?: string;
   onOpen?: () => void;
   themeLabel?: string;
+  frame?: "keyline";
 }) {
   const { t, locale } = useT();
   const img = (
-    <div className={cn("relative overflow-hidden rounded-md bg-muted shadow-soft", ratio)}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-md bg-muted shadow-soft",
+        ratio,
+        frame === "keyline" && "photo-frame-keyline",
+      )}
+    >
       <img
         src={photo.image}
         alt={photo.alt}
@@ -374,7 +424,7 @@ export function PhotoCard({
           <LocaleLink
             to="/photography/$slug"
             slug={photo.slug}
-            className="block transition-colors hover:text-terracotta"
+            className="block transition-colors hover:text-terracotta-ink"
           >
             {meta}
           </LocaleLink>
@@ -420,20 +470,35 @@ export function AiCard({
   work,
   className,
   revealIndex,
+  frame,
+  objectPosition,
 }: {
   work: AiWork;
   className?: string;
   /** Position among siblings for the scroll reveal stagger. */
   revealIndex?: number;
+  /** Optional decorative treatment for explicitly approved compact AI grids. */
+  frame?: "compact";
+  /** Focal point for the 4:5 crop when the centred default would cut the subject. */
+  objectPosition?: string | undefined;
 }) {
   const { t, locale } = useT();
+  const provider =
+    work.tool === "ChatGPT Image Generation" || work.tool === "Gemini Nano Banana"
+      ? toolLabel(work.tool, locale)
+      : null;
   return (
     <article
       className={cn("group min-w-0", className)}
       {...(revealIndex !== undefined ? reveal(revealIndex) : {})}
     >
       <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-md">
+        <div
+          className={cn(
+            "relative aspect-[4/5] overflow-hidden rounded-md",
+            frame === "compact" && "ai-frame-compact",
+          )}
+        >
           <img
             src={work.image}
             alt={work.alt}
@@ -442,6 +507,7 @@ export function AiCard({
             loading="lazy"
             decoding="async"
             className={cardImage}
+            style={objectPosition ? { objectPosition } : undefined}
           />
           <span
             aria-hidden="true"
@@ -455,11 +521,11 @@ export function AiCard({
           {work.title}
         </h3>
       </LocaleLink>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm text-muted-foreground">
-          {work.tool && `${toolLabel(work.tool, locale)} · `}{aiCategoryLabel(work.category, locale)}
-        </p>
-      </div>
+      {provider && (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-sm text-muted-foreground">{provider}</p>
+        </div>
+      )}
     </article>
   );
 }
@@ -480,17 +546,32 @@ export function Lightbox({
   items,
   index,
   onIndex,
+  returnFocusTo,
+  variant = "default",
 }: {
   items: LightboxItem[];
   index: number | null;
   onIndex: (i: number | null) => void;
+  returnFocusTo?: React.RefObject<HTMLElement | null>;
+  variant?: "default" | "artwork";
 }) {
   const open = index !== null && items[index] !== undefined;
   const item = open ? items[index!] : null;
+  const artwork = variant === "artwork";
+  const portrait = Boolean(item?.width && item?.height && item.width < item.height);
   const { t } = useT();
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const go = (d: number) => index !== null && onIndex((index + d + items.length) % items.length);
+  const [zoomed, setZoomed] = useState(false);
+  const go = (d: number) => {
+    if (index === null) return;
+    setZoomed(false);
+    onIndex((index + d + items.length) % items.length);
+  };
+
+  useEffect(() => {
+    setZoomed(false);
+  }, [index, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -507,10 +588,19 @@ export function Lightbox({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95 duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <Dialog.Content
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:p-10"
+          data-lightbox-variant={variant}
+          className={cn(
+            "fixed inset-0 z-50 flex flex-col items-center justify-center text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+            artwork
+              ? zoomed
+                ? "overflow-auto p-2 sm:p-3"
+                : "gap-2 overflow-hidden p-2 sm:p-3"
+              : "p-4 md:p-10",
+          )}
           onOpenAutoFocus={() => {
             returnFocus.current =
-              document.activeElement instanceof HTMLElement ? document.activeElement : null;
+              returnFocusTo?.current ??
+              (document.activeElement instanceof HTMLElement ? document.activeElement : null);
           }}
           onCloseAutoFocus={(event) => {
             if (returnFocus.current?.isConnected) {
@@ -536,15 +626,54 @@ export function Lightbox({
             <>
               <Dialog.Title className="sr-only">{item.title}</Dialog.Title>
               <Dialog.Description className="sr-only">{item.alt}</Dialog.Description>
-              <img
-                key={item.slug}
-                src={item.image}
-                alt={item.alt}
-                width={item.width}
-                height={item.height}
-                className="max-h-[78vh] max-w-full rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0"
-              />
-              <div className="mt-4 text-center">
+              {artwork ? (
+                <div
+                  data-lightbox-stage
+                  className={cn(
+                    "flex items-center justify-center",
+                    zoomed
+                      ? "h-max min-h-full w-max min-w-full flex-none"
+                      : "min-h-0 w-full flex-1",
+                  )}
+                >
+                  <img
+                    key={item.slug}
+                    data-lightbox-image
+                    src={item.image}
+                    alt={item.alt}
+                    width={item.width}
+                    height={item.height}
+                    className={cn(
+                      "h-auto w-auto shrink-0 rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0",
+                      zoomed ? "max-h-none max-w-none cursor-zoom-out" : "max-h-full max-w-full",
+                    )}
+                  />
+                </div>
+              ) : (
+                <img
+                  key={item.slug}
+                  data-lightbox-image
+                  src={item.image}
+                  alt={item.alt}
+                  width={item.width}
+                  height={item.height}
+                  className="max-h-[78vh] max-w-full rounded-md object-contain duration-(--dur-base) ease-cinematic motion-safe:animate-in motion-safe:fade-in-0"
+                />
+              )}
+              <div
+                data-lightbox-caption
+                className={cn(
+                  "text-center",
+                  artwork
+                    ? cn(
+                        zoomed && "sr-only",
+                        portrait
+                          ? "md:absolute md:bottom-5 md:right-5 md:w-64 md:rounded-sm md:bg-navy/85 md:p-3 md:text-left md:shadow-soft md:backdrop-blur-sm"
+                          : "shrink-0",
+                      )
+                    : "mt-4",
+                )}
+              >
                 <p className="font-serif text-2xl">{item.title}</p>
                 {item.caption && (
                   <p className="mt-1 text-sm text-navy-foreground/80">{item.caption}</p>
@@ -554,13 +683,27 @@ export function Lightbox({
                   {index! + 1} / {items.length}
                 </p>
               </div>
+              {artwork && (
+                <button
+                  type="button"
+                  aria-label={zoomed ? t.lightbox.zoomOut : t.lightbox.zoomIn}
+                  aria-pressed={zoomed}
+                  onClick={() => setZoomed((value) => !value)}
+                  className="fixed left-3 top-3 z-10 rounded-full border border-navy-border bg-navy/85 p-2.5 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:left-4 sm:top-4"
+                >
+                  {zoomed ? <ZoomOut className="size-5" /> : <ZoomIn className="size-5" />}
+                </button>
+              )}
               {items.length > 1 && (
                 <>
                   <button
                     type="button"
                     onClick={() => go(-1)}
                     aria-label={t.lightbox.prev}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:left-6"
+                    className={cn(
+                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      artwork ? "fixed left-2 md:left-6" : "absolute left-2 md:left-6",
+                    )}
                   >
                     <ChevronLeft className="size-5" />
                   </button>
@@ -568,7 +711,10 @@ export function Lightbox({
                     type="button"
                     onClick={() => go(1)}
                     aria-label={t.lightbox.next}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold md:right-6"
+                    className={cn(
+                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      artwork ? "fixed right-2 md:right-6" : "absolute right-2 md:right-6",
+                    )}
                   >
                     <ChevronRight className="size-5" />
                   </button>
@@ -576,7 +722,10 @@ export function Lightbox({
               )}
               <Dialog.Close
                 aria-label={t.lightbox.close}
-                className="absolute right-4 top-4 rounded-full border border-navy-border p-2 transition-colors hover:border-gold"
+                className={cn(
+                  "right-4 top-4 z-10 rounded-full border border-navy-border bg-navy/85 p-2 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                  artwork ? "fixed" : "absolute",
+                )}
               >
                 <X className="size-5" />
               </Dialog.Close>
@@ -592,6 +741,3 @@ const btnMotion = "transition-colors duration-(--dur-base) ease-cinematic";
 export const btnPrimary = `inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground ${btnMotion} hover:bg-primary-hover`;
 export const btnOutline = `inline-flex items-center gap-2 rounded-sm border border-current px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion} hover:border-gold hover:text-gold`;
 export const btnGold = `inline-flex items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground ${btnMotion} hover:bg-navy-foreground`;
-/** Shared hero CTA so both collections get identical weight. */
-export const btnHero =
-  "inline-flex items-center gap-2 rounded-sm border border-gold bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground shadow-soft transition-colors hover:bg-navy-foreground hover:border-navy-foreground";

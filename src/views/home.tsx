@@ -1,16 +1,16 @@
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, Camera, MapPin } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
-import { aiWorks, localizeAiWork } from "@/content/ai-works";
-import { AiCard, SectionHeading, btnHero, btnPrimary, btnOutline } from "@/components/site";
+import { getAiWork, localizeAiWork } from "@/content/ai-works";
+import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-import heroAi from "@/assets/ai-knight.png";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
-const heroPhoto = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
+const heroPhoto = "/hero/sunny-beach-real-hero.webp";
+const heroAi = "/hero/sunny-beach-ai-future-hero-v2.webp";
 
 export const homeHead = (locale: Locale) => {
   const m = getMessages(locale).home;
@@ -18,6 +18,32 @@ export const homeHead = (locale: Locale) => {
 };
 
 const FEATURED_ALBUM_SLUGS = ["nessebar", "sofia", "sunny-beach"] as const;
+
+/** Home AI preview: curated card titles aligned with the published artwork metadata. */
+const FEATURED_AI_WORKS: {
+  slug: string;
+  title: Record<Locale, string>;
+  objectPosition?: string;
+}[] = [
+  {
+    slug: "chefo-srednovekoven-ritsar",
+    title: { bg: "Средновековен владетел", en: "Medieval Ruler" },
+  },
+  {
+    slug: "captain-against-the-storm",
+    title: { bg: "Капитанът срещу бурята", en: "Captain Against the Storm" },
+  },
+  {
+    slug: "rainy-neon-noir",
+    title: { bg: "Последният свидетел", en: "The Last Witness" },
+  },
+  {
+    slug: "chefo-v-turtsiya",
+    title: { bg: "Вечер край Босфора", en: "Evening on the Bosphorus" },
+    // Lower focal point keeps the face, the mosque skyline and the tea glass in the 4:5 card.
+    objectPosition: "50% 70%",
+  },
+];
 
 export function HomeView() {
   const { t, locale } = useT();
@@ -27,17 +53,42 @@ export function HomeView() {
     const cover = album && getAlbumCover(album);
     return album && cover ? [{ album, cover: localizePhoto(cover, locale) }] : [];
   });
+  const featuredAiWorks = FEATURED_AI_WORKS.flatMap(({ slug, title, objectPosition }) => {
+    const work = getAiWork(slug);
+    return work
+      ? [{ work: { ...localizeAiWork(work, locale), title: title[locale] }, objectPosition }]
+      : [];
+  });
 
   return (
     <>
-      <section data-header-theme="dark" className="relative bg-navy text-navy-foreground">
-        <div className="px-5 pb-10 pt-12 md:pointer-events-none md:absolute md:inset-x-0 md:bottom-32 md:z-10 md:px-12 md:pb-0 md:pt-0 md:text-center">
-          <p className="eyebrow text-gold">{m.eyebrow}</p>
-          <h1 className="mt-4 text-5xl leading-[1.02] md:text-7xl lg:text-8xl">
-            {m.h1a}
-            <em className="text-gold">{m.h1b}</em>
-          </h1>
+      <section data-header-theme="dark" className="relative isolate bg-navy text-navy-foreground">
+        <div
+          data-hero-copy-region
+          className="relative z-20 px-5 pb-10 pt-12 md:pointer-events-none md:absolute md:inset-x-0 md:bottom-32 md:px-12 md:pb-0 md:pt-0 md:text-center"
+        >
+          <div data-hero-copy className="home-hero-copy">
+            <p data-hero-eyebrow className="home-hero-eyebrow eyebrow relative text-gold">
+              <span aria-hidden="true" data-hero-scrim className="home-hero-eyebrow-scrim" />
+              {m.eyebrow}
+            </p>
+            <h1 data-hero-heading className="home-hero-title relative mt-4">
+              <span className="home-hero-phrase">
+                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
+                {m.h1a}
+              </span>
+              <em className="home-hero-phrase text-gold">
+                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
+                {m.h1b}
+              </em>
+            </h1>
+          </div>
         </div>
+        <span
+          aria-hidden="true"
+          data-hero-separator
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 hidden w-px -translate-x-1/2 bg-gold/70 md:block"
+        />
         <div className="grid md:grid-cols-2">
           <HeroHalf
             img={heroPhoto}
@@ -49,14 +100,21 @@ export function HomeView() {
             }
             to="/photography"
             cta={m.ctaPhotos}
+            side="real"
+          />
+          <span
+            aria-hidden="true"
+            data-hero-mobile-separator
+            className="h-px bg-gold/70 md:hidden"
           />
           <HeroHalf
             img={heroAi}
             alt={m.heroAiAlt}
-            badge={<>{t.common.aiBadge}</>}
+            badge={<>{m.heroAiBadge}</>}
             to="/ai-worlds"
             cta={m.ctaAi}
             align="end"
+            side="future"
           />
         </div>
       </section>
@@ -126,8 +184,8 @@ export function HomeView() {
             </LocaleLink>
           </div>
           <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {aiWorks.slice(0, 4).map((w, i) => (
-              <AiCard key={w.slug} work={localizeAiWork(w, locale)} revealIndex={i} />
+            {featuredAiWorks.map(({ work, objectPosition }, i) => (
+              <AiCard key={work.slug} work={work} objectPosition={objectPosition} revealIndex={i} />
             ))}
           </div>
         </div>
@@ -146,13 +204,22 @@ export function HomeView() {
           ))}
           <LocaleLink
             to="/about"
-            className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta"
+            className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta-ink"
           >
             {m.more} <ArrowRight className="size-4" />
           </LocaleLink>
         </div>
       </Surface>
     </>
+  );
+}
+
+/** Four-point spark for the Gold Glow CTA; taller than wide so the 45° hover turn reads as a twinkle. */
+function Spark(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 1.5Q13.6 10.4 20 12Q13.6 13.6 12 22.5Q10.4 13.6 4 12Q10.4 10.4 12 1.5Z" />
+    </svg>
   );
 }
 
@@ -163,6 +230,7 @@ function HeroHalf({
   to,
   cta,
   align,
+  side,
 }: {
   img: string;
   alt: string;
@@ -170,25 +238,47 @@ function HeroHalf({
   to: "/photography" | "/ai-worlds";
   cta: string;
   align?: "end";
+  side: "real" | "future";
 }) {
+  const Icon = side === "real" ? Camera : Spark;
   return (
-    <div className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
+    <div data-hero-panel={side} className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
       <img
         src={img}
         alt={alt}
-        width={1280}
-        height={1600}
-        className={`absolute inset-0 h-full w-full object-cover ${to === "/photography" ? "object-center brightness-90" : "object-top"}`}
+        width={936}
+        height={1053}
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover object-top"
       />
-      <div className={`absolute inset-0 bg-gradient-to-t ${to === "/photography" ? "from-navy/85 via-navy/25 to-navy/10 md:via-navy/35" : "from-navy via-navy/45 to-navy/10 md:via-navy/55"}`} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-navy/5 md:from-navy/85 md:via-navy/30"
+      />
       <div
         className={`relative flex h-full min-h-[62vh] flex-col justify-between p-6 md:min-h-[88vh] md:p-10 ${align === "end" ? "md:items-end" : ""}`}
       >
-        <span className="eyebrow inline-flex w-fit items-center gap-2 rounded-sm bg-navy/80 px-3 py-1.5 text-navy-foreground">
+        <span className="eyebrow inline-flex min-h-8 w-fit items-center gap-2 rounded-sm bg-navy/90 px-3 py-1.5 text-navy-foreground shadow-soft">
           {badge}
         </span>
-        <LocaleLink to={to} className={`${btnHero} w-fit`}>
-          {cta} <ArrowRight className="size-4" />
+        {/* Cream Print (photography) / Gold Glow (AI); styles live in styles.css. */}
+        <LocaleLink
+          to={to}
+          className={`hero-cta hero-cta--${side === "real" ? "print" : "glow"} w-fit`}
+        >
+          <span className="hero-cta-face">
+            {cta}
+            <Icon aria-hidden="true" className="hero-cta-icon" />
+          </span>
+          {side === "future" && (
+            // Same label in navy, revealed together with the gold sweep so each glyph keeps its contrast.
+            <span aria-hidden="true" className="hero-cta-face hero-cta-overlay">
+              {cta}
+              <Icon aria-hidden="true" className="hero-cta-icon" />
+            </span>
+          )}
         </LocaleLink>
       </div>
     </div>

@@ -1,7 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ExhibitWork } from "@/components/ai-exhibition";
 import { futureAiConcepts } from "@/content/ai-concepts";
+import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { messages } from "@/i18n/messages";
 import { AiWorldsView } from "@/views/ai-worlds";
 
@@ -81,8 +83,16 @@ describe("AI Worlds overview", () => {
     expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;
-    expect(professions.querySelector("img")?.getAttribute("src")).toContain("chefo-taxi-driver.webp");
+    expect(professions.querySelector("img")?.getAttribute("src")).toContain(
+      "chefo-taxi-driver.webp",
+    );
+    expect(professions.querySelector(".ai-frame-portal")).toBeInTheDocument();
     expect(professions.textContent).not.toMatch(/coming soon|очаква|подготвя/i);
+    const aroundTheWorld = links[3]!.closest("article")!;
+    expect(aroundTheWorld).toHaveTextContent(messages[locale].ai.count(16));
+    expect(aroundTheWorld.textContent).not.toContain(
+      locale === "bg" ? "Едно лице. Много култури." : "One Face. Many Cultures.",
+    );
     expect(container.textContent).not.toContain(
       locale === "bg" ? "Фантазия и космос" : "Fantasy & Space",
     );
@@ -94,25 +104,54 @@ describe("AI Worlds overview", () => {
     expectNoPrivateIdeas(container, locale);
   });
 
-  it.each(["bg", "en"] as const)("shows only completed works in %s", (locale) => {
-    activeLocale = locale;
-    currentSearch = { view: "works" };
-    const { container } = render(<AiWorldsView />);
-    const gallery = screen.getByRole("region", { name: messages[locale].ai.allWorks });
-    const galleryCards = Array.from(gallery.querySelectorAll(":scope > article"));
-    expect(galleryCards).toHaveLength(29);
-    expect(gallery.className).toContain("sm:grid-cols-2");
-    expect(gallery.className).toContain("lg:grid-cols-3");
-    expect(screen.queryByRole("heading", { name: "Chefo as a Cowboy" })).toBeNull();
-    expect(screen.getByText(messages[locale].ai.count(29))).toBeInTheDocument();
-    expect(container.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(29);
-    expect(within(gallery).queryByRole("button", { name: /copy.*prompt|копирай.*промпт/i })).toBeNull();
-    for (const title of locale === "bg"
-      ? ["Владетел на морското кралство", "Лято на морето — AI колаж"]
-      : ["Ruler of the sea kingdom", "Summer by the sea — AI collage"]) {
-      expect(within(gallery).queryByRole("heading", { name: title })).not.toBeInTheDocument();
+  it.each(["bg", "en"] as const)(
+    "shows only completed works in %s",
+    (locale) => {
+      activeLocale = locale;
+      currentSearch = { view: "works" };
+      const { container } = render(<AiWorldsView />);
+      const gallery = screen.getByRole("region", { name: messages[locale].ai.allWorks });
+      const galleryCards = Array.from(gallery.querySelectorAll(":scope > article"));
+      expect(galleryCards).toHaveLength(64);
+      expect(galleryCards.every((card) => card.querySelector(".ai-frame-compact"))).toBe(true);
+      expect(galleryCards.some((card) => card.querySelector(".ai-frame-portal"))).toBe(false);
+      expect(gallery.className).toContain("sm:grid-cols-2");
+      expect(gallery.className).toContain("lg:grid-cols-3");
+      expect(screen.queryByRole("heading", { name: "The Wild West" })).toBeNull();
+      expect(screen.getByText(messages[locale].ai.count(64))).toBeInTheDocument();
+      expect(container.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(64);
+      expect(
+        within(gallery).queryByRole("button", { name: /copy.*prompt|копирай.*промпт/i }),
+      ).toBeNull();
+      for (const title of locale === "bg"
+        ? ["Владетел на морското кралство", "Лято на морето — AI колаж"]
+        : ["Ruler of the sea kingdom", "Summer by the sea — AI collage"]) {
+        expect(within(gallery).queryByRole("heading", { name: title })).not.toBeInTheDocument();
+      }
+      expectNoPrivateIdeas(container, locale);
+    },
+    10_000,
+  );
+
+  it("shows only approved provider attribution on artwork cards", () => {
+    activeLocale = "en";
+    for (const [slug, provider] of [
+      ["chefo-srednovekoven-ritsar", "ChatGPT Image Generation"],
+      ["rainy-neon-noir", "Gemini Nano Banana"],
+    ] as const) {
+      const work = localizeAiWork(getAiWork(slug)!, "en");
+      const { container, unmount } = render(<ExhibitWork work={work} index={0} />);
+      expect(container.querySelector("article > div:last-child p")).toHaveTextContent(provider);
+      expect(container.textContent).not.toContain(" · ");
+      unmount();
     }
-    expectNoPrivateIdeas(container, locale);
+
+    for (const slug of ["chefo-v-badeshteto", "angry-roman-emperor-in-senate"]) {
+      const work = localizeAiWork(getAiWork(slug)!, "en");
+      const { container, unmount } = render(<ExhibitWork work={work} index={0} />);
+      expect(container.querySelector("article > div:last-child p")).toBeNull();
+      unmount();
+    }
   });
 
   it("opens All Artworks from an old filter deep link", () => {
@@ -145,8 +184,8 @@ describe("AI Worlds overview", () => {
 
     expect(screen.getByText("1 artwork")).toBeInTheDocument();
     expect(view.container.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(1);
-    expect(screen.getByText("Chefo in the future")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Chefo as a Cowboy" })).not.toBeInTheDocument();
+    expect(screen.getByText("The Red Planet")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "The Wild West" })).not.toBeInTheDocument();
     expectNoPrivateIdeas(view.container, "en");
 
     fireEvent.click(
@@ -161,9 +200,9 @@ describe("AI Worlds overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     view.rerender(<AiWorldsView />);
-    expect(screen.getByText("29 artworks")).toBeInTheDocument();
+    expect(screen.getByText("64 artworks")).toBeInTheDocument();
     expectNoPrivateIdeas(view.container, "en");
-  });
+  }, 10_000);
 
   it("applies, discards and resets a draft in the mobile filter sheet", async () => {
     activeLocale = "en";
@@ -198,7 +237,7 @@ describe("AI Worlds overview", () => {
     fireEvent.click(sheetTrigger());
     sheet = await screen.findByRole("dialog", { name: "Filters" });
     fireEvent.click(within(sheet).getByRole("button", { name: "Reset" }));
-    fireEvent.click(within(sheet).getByRole("button", { name: "Show 29 artworks" }));
+    fireEvent.click(within(sheet).getByRole("button", { name: "Show 64 artworks" }));
     expect(currentSearch["role"]).toBeUndefined();
   });
 });

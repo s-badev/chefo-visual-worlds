@@ -6,10 +6,11 @@ import { DestinationView, destinationHead } from "@/components/ai-atlas";
 
 export const Route = createFileRoute("/ai-worlds/$slug")({
   // A "Chefo Around the World" destination owns its slug; its portrait, once published,
-  // is the AiWork with the same slug and is shown on the destination page.
+  // is the AiWork with the same slug and is shown on the destination page, unless the
+  // destination opts into the shared artwork template.
   loader: ({ params }) => {
     const destination = getDestination(params.slug);
-    if (destination) return { destination, work: undefined };
+    if (destination && !destination.artworkTemplate) return { destination, work: undefined };
     const work = getAiWork(params.slug);
     if (!work) throw notFound();
     return { work, destination: undefined };

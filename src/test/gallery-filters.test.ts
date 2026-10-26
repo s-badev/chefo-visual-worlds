@@ -84,11 +84,27 @@ describe("AI taxonomy", () => {
       status: "planned",
       image: null,
       prompt: null,
-      title: { bg: "Чефо като каубой", en: "Chefo as a Cowboy" },
+      title: { bg: "Дивият запад", en: "The Wild West" },
     });
     expect(
       futureAiConcepts.every((concept) => !aiWorks.some((work) => work.slug === concept.id)),
     ).toBe(true);
+  });
+
+  it("keeps every AI creation date between 2026-09-01 and 2026-10-22", () => {
+    const dated = aiWorks.filter((work) => work.date !== undefined);
+    expect(dated.map((work) => [work.slug, work.date])).toEqual([
+      ["chefo-srednovekoven-ritsar", "2026-09-12"],
+      ["renesansov-portret", "2026-09-03"],
+      ["chefo-v-badeshteto", "2026-10-01"],
+      ["chefo-v-turtsiya", "2026-10-12"],
+    ]);
+    for (const work of dated) {
+      expect(work.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(work.date! >= "2026-09-01").toBe(true);
+      expect(work.date! <= "2026-10-22").toBe(true);
+    }
+    for (const concept of futureAiConcepts) expect(concept).not.toHaveProperty("date");
   });
 
   it("combines completed-work facets without adding planned concepts", () => {

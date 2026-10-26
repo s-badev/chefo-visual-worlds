@@ -11,7 +11,6 @@ import {
   getAiFilterOptions,
   localizeAiWork,
   toolLabel,
-  type AiImage,
   type AiWork,
 } from "@/content/ai-works";
 import {
@@ -22,7 +21,7 @@ import {
   getCollectionWorks,
   type AiCollection,
 } from "@/content/ai-collections";
-import { EmptyState, Lightbox, PageHeader, type LightboxItem } from "@/components/site";
+import { EmptyState, Lightbox, PageHeader } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/components/ai-filters";
 import {
@@ -34,9 +33,8 @@ import {
   PromptNote,
   toLightboxItem,
 } from "@/components/ai-exhibition";
-import { DestinationIndex } from "@/components/ai-atlas";
-import { getDestinations } from "@/content/ai-destinations";
-import { reveal } from "@/hooks/use-reveal";
+import { AiBackLink } from "@/components/ai-back-link";
+import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -172,18 +170,6 @@ export function AiCollectionNotFoundView() {
   );
 }
 
-function BackLink({ to, label }: { to: "/ai-worlds"; label: string }) {
-  return (
-    <LocaleLink
-      to={to}
-      className="group inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold"
-    >
-      <ArrowLeft className="size-4 transition-transform motion-safe:group-hover:-translate-x-1" />
-      {label}
-    </LocaleLink>
-  );
-}
-
 /** A collection presented as an exhibition wall. */
 export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const { t, locale } = useT();
@@ -191,33 +177,23 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const works = getCollectionWorks(collection, locale);
   const { prev, next } = getAdjacentCollections(collection);
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const isAtlas = collection.kind === "destinations";
-
   return (
     <Surface tone="dark" as="article">
       <header className="container-page pt-10 md:pt-14">
-        <BackLink to="/ai-worlds" label={m.backToCollections} />
+        <AiBackLink to="/ai-worlds" label={m.backToAiWorlds} />
         <div className="mt-10 grid gap-6 md:grid-cols-12 md:items-end">
-          <div className="md:col-span-8">
-            <h1 className="title-page break-words">
-              {collectionText(collection.title, locale)}
-            </h1>
+          <div className="min-w-0 md:col-span-8">
+            <h1 className="title-page break-words">{collectionText(collection.title, locale)}</h1>
             {collection.tagline && (
               <p className="mt-4 font-serif text-2xl italic text-gold md:text-3xl">
                 {collectionText(collection.tagline, locale)}
               </p>
             )}
           </div>
-          <div className="md:col-span-4">
+          <div className="min-w-0 md:col-span-4">
             <p className="lead text-muted-foreground">{collectionText(collection.intro, locale)}</p>
-            {isAtlas ? (
-              <p className="mt-4 text-sm text-muted-foreground">
-                {m.destinationsCount(getDestinations().length)} · {m.portraitsDone(works.length)}
-              </p>
-            ) : (
-              works.length > 0 && (
-                <p className="mt-4 text-sm text-muted-foreground">{m.count(works.length)}</p>
-              )
+            {works.length > 0 && (
+              <p className="mt-4 text-sm text-muted-foreground">{m.count(works.length)}</p>
             )}
           </div>
         </div>
@@ -226,11 +202,14 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
       {works.length > 0 && (
         <>
           <ExhibitionWall works={works} onOpen={setLightbox} />
-          <Lightbox items={works.map(toLightboxItem)} index={lightbox} onIndex={setLightbox} />
+          <Lightbox
+            items={works.map(toLightboxItem)}
+            index={lightbox}
+            onIndex={setLightbox}
+            variant="artwork"
+          />
         </>
       )}
-      {isAtlas && <DestinationIndex />}
-
       <nav
         aria-label={m.collections}
         className="seam-top container-page grid grid-cols-2 gap-6 py-10 md:py-14"
@@ -297,75 +276,20 @@ export function AiNotFoundView() {
   );
 }
 
-/** Reference and variant images: small plates at their own ratio, each opens the viewer. */
-function ProcessStrip({
-  title,
-  images,
-  offset,
-  onOpen,
-}: {
-  title: string;
-  images: AiImage[];
-  offset: number;
-  onOpen: (index: number) => void;
-}) {
-  const { t } = useT();
-  if (!images.length) return null;
-  return (
-    <div>
-      <h3 className="font-serif text-xl">{title}</h3>
-      <ul className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-3">
-        {images.map((img, i) => (
-          <li key={i} {...reveal(i)}>
-            <figure className="group">
-              <button
-                type="button"
-                onClick={() => onOpen(offset + i)}
-                aria-label={t.common.openFullscreen(img.caption ?? img.alt)}
-                className="relative block w-full cursor-zoom-in overflow-hidden rounded-sm bg-surface-raised"
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-[4/5] w-full object-contain transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-[1.02]"
-                />
-                <ArtEdge />
-              </button>
-              {img.caption && (
-                <figcaption className="mt-2 text-xs text-muted-foreground">
-                  {img.caption}
-                </figcaption>
-              )}
-            </figure>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export function AiDetailView({ work: raw }: { work: AiWork }) {
   const { t, locale } = useT();
   const m = t.ai;
   const work = localizeAiWork(raw, locale);
   const collection = getCollectionForWork(raw.slug);
+  // A destination shown on this template keeps its brief (see Destination.artworkTemplate).
+  const destination = getDestination(raw.slug);
+  const details = work.portraitDetails;
   const idx = aiWorks.findIndex((w) => w.slug === raw.slug);
   const prev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
   const next = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
-  const processImages = [...work.references, ...work.variants];
-  const viewerItems: LightboxItem[] = [
-    toLightboxItem(work),
-    ...processImages.map((img, i) => ({
-      slug: `${work.slug}-process-${i}`,
-      image: img.src,
-      alt: img.alt,
-      title: img.caption ?? work.title,
-    })),
-  ];
+  const viewerItems = [toLightboxItem(work)];
   const facts: [string, string][] = [
     ...(work.tool ? [[m.tool, toolLabel(work.tool, locale)] as [string, string]] : []),
     ...(work.date ? [[m.created, formatDate(work.date, locale)] as [string, string]] : []),
@@ -375,12 +299,35 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       ? [[m.setting, aiSettingLabel(work.setting, locale)] as [string, string]]
       : []),
     ...(work.role ? [[m.role, aiRoleLabel(work.role, locale)] as [string, string]] : []),
+    ...(destination
+      ? ([
+          [
+            t.photos.place,
+            [destination.place, destination.country]
+              .filter((part) => part !== undefined)
+              .map((part) => destinationText(part, locale))
+              .join(", ") +
+              (destination.context ? ` — ${destinationText(destination.context, locale)}` : ""),
+          ],
+          [m.clothing, destinationText(details?.clothing ?? destination.clothing, locale)],
+          [m.grooming, destinationText(details?.grooming ?? destination.grooming, locale)],
+          [m.settingLabel, destinationText(details?.setting ?? destination.setting, locale)],
+          [m.status, destination.status === "published" ? m.statusPublished : m.statusPlanned],
+        ] as [string, string][])
+      : []),
   ];
 
   return (
     <Surface tone="dark" as="article">
       <nav aria-label={m.title} className="container-page pt-10 text-sm md:pt-14">
-        <ol className="flex flex-wrap items-center gap-2 text-muted-foreground">
+        {collection && (
+          <AiBackLink
+            to="/ai-worlds/collections/$slug"
+            slug={collection.slug}
+            label={m.backToCollection}
+          />
+        )}
+        <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
           <li>
             <LocaleLink to="/ai-worlds" className="transition-colors hover:text-gold">
               {m.title}
@@ -404,7 +351,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       </nav>
 
       <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="group relative self-start overflow-hidden rounded-sm lg:col-span-7">
+        <figure className="ai-frame-portal group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
           <button
             type="button"
             onClick={() => setLightbox(0)}
@@ -419,7 +366,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           <ArtEdge />
         </figure>
 
-        <div className="lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
           <div className="flex flex-wrap items-center gap-2">
             <span className="eyebrow rounded-sm border border-border px-2 py-1 text-gold">
               {t.common.aiBadge}
@@ -448,31 +395,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
         </div>
       </div>
 
-      {processImages.length > 0 && (
-        <section aria-labelledby="process-h" className="seam-top">
-          <div className="container-page grid gap-12 py-16 md:grid-cols-12 md:py-24">
-            <h2 id="process-h" className="eyebrow text-eyebrow md:col-span-3">
-              {m.process}
-            </h2>
-            <div className="space-y-12 md:col-span-9">
-              <ProcessStrip
-                title={m.references}
-                images={work.references}
-                offset={1}
-                onOpen={setLightbox}
-              />
-              <ProcessStrip
-                title={m.series}
-                images={work.variants}
-                offset={1 + work.references.length}
-                onOpen={setLightbox}
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      <Lightbox items={viewerItems} index={lightbox} onIndex={setLightbox} />
+      <Lightbox items={viewerItems} index={lightbox} onIndex={setLightbox} variant="artwork" />
 
       <nav
         aria-label={m.others}

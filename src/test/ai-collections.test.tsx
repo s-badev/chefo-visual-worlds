@@ -71,14 +71,14 @@ describe("AI collections data", () => {
     const referenced = aiCollections.flatMap(getCollectionWorkSlugs);
     expect(new Set(referenced).size).toBe(referenced.length);
     expect(referenced.every((slug) => aiWorks.some((w) => w.slug === slug))).toBe(true);
-    expect(aiWorks).toHaveLength(29);
+    expect(aiWorks).toHaveLength(64);
     for (const slug of ["vladetel-na-morskoto-kralstvo", "lyato-na-moreto-ai-kolazh"]) {
       expect(getAiWork(slug)).toBeUndefined();
       expect(getCollectionForWork(slug)).toBeUndefined();
       expect(referenced).not.toContain(slug);
     }
     expect(aiCollections.map(getCollectionWorkSlugs).map((works) => works.length)).toEqual([
-      2, 14, 1, 12,
+      16, 16, 16, 16,
     ]);
     for (const slug of [
       "chefo-srednovekoven-ritsar",
@@ -142,35 +142,66 @@ describe("AI collections data", () => {
 });
 
 describe("AI collection page", () => {
+  it.each(["bg", "en"] as const)(
+    "links every collection back to the localized AI Worlds parent in %s",
+    (locale) => {
+      activeLocale = locale;
+      for (const collection of aiCollections) {
+        const { unmount } = render(<AiCollectionView collection={collection} />);
+        const link = screen.getByRole("link", { name: messages[locale].ai.backToAiWorlds });
+        expect(link).toHaveAttribute("href", "/ai-worlds");
+        expect(link).toHaveClass("min-h-11", "focus-visible:outline-gold");
+        unmount();
+      }
+    },
+  );
+
   it.each([
-    ["historical-eras-rulers", "Chefo as a medieval knight", "Renaissance portrait"],
+    ["historical-eras-rulers", "Medieval Ruler", "Knight of the Last Wall"],
     ["professions-roles", "The Neighborhood Barber", "Sanitation Worker on an Early Shift"],
-    ["cinema-archetypes", "Chefo in the future", "Chefo in the future"],
+    ["cinema-archetypes", "The Red Planet", "The Final Assault"],
     ["chefo-around-the-world", "Under the Arabian Sun", "A Greek Afternoon"],
-  ])("renders %s artwork titles without decorative sequence labels", (slug, firstTitle, laterTitle) => {
-    const { container } = render(<AiCollectionView collection={getAiCollection(slug)!} />);
-    const wall = container.querySelector("ol.container-page")!;
-    expect(wall.querySelectorAll("li article").length).toBeGreaterThan(0);
-    expect(wall.querySelector(".eyebrow.tabular-nums")).toBeNull();
-    for (const title of new Set([firstTitle, laterTitle])) {
-      expect(within(wall as HTMLElement).getByRole("heading", { level: 2, name: title }).previousElementSibling).toBeNull();
-    }
-  });
+  ])(
+    "renders %s artwork titles without decorative sequence labels",
+    (slug, firstTitle, laterTitle) => {
+      const { container } = render(<AiCollectionView collection={getAiCollection(slug)!} />);
+      const wall = container.querySelector("ol.container-page")!;
+      expect(wall.querySelectorAll("li article").length).toBeGreaterThan(0);
+      expect(wall.querySelectorAll(".ai-frame-portal")).toHaveLength(
+        wall.querySelectorAll("figure").length,
+      );
+      expect(wall.querySelector(".eyebrow.tabular-nums")).toBeNull();
+      for (const title of new Set([firstTitle, laterTitle])) {
+        expect(
+          within(wall as HTMLElement).getByRole("heading", { level: 2, name: title })
+            .previousElementSibling,
+        ).toBeNull();
+      }
+    },
+  );
 
   it("hangs each work with a label and opens it full screen", () => {
-    const { container } = render(<AiCollectionView collection={getAiCollection("historical-eras-rulers")!} />);
+    const { container } = render(
+      <AiCollectionView collection={getAiCollection("historical-eras-rulers")!} />,
+    );
     expect(
       screen.getByRole("heading", { level: 1, name: "Historical Eras & Rulers" }),
     ).toBeInTheDocument();
     expect(container.querySelector("header .tabular-nums")).toBeNull();
     const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-    expect(titles).toEqual(["Chefo as a medieval knight", "Renaissance portrait"]);
-    fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[1]!);
-    const viewer = screen.getByRole("dialog", { name: "Renaissance portrait" });
-    expect(within(viewer).getByText("2 / 2")).toBeInTheDocument();
+    expect(titles).toHaveLength(16);
+    expect(titles.slice(0, 3)).toEqual([
+      "Medieval Ruler",
+      "Roman Emperor",
+      "Italian Renaissance Nobleman",
+    ]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[2]!);
+    const viewer = screen.getByRole("dialog", { name: "Italian Renaissance Nobleman" });
+    expect(within(viewer).getByText("3 / 16")).toBeInTheDocument();
+    expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
   });
 
-  it("exhibits all fourteen professions without exposing planned ideas", () => {
+  it("exhibits all sixteen professions without exposing planned ideas", () => {
     activeLocale = "bg";
     const { container } = render(
       <AiCollectionView collection={getAiCollection("professions-roles")!} />,
@@ -179,9 +210,9 @@ describe("AI collection page", () => {
     const imagesOutsideNav = Array.from(container.querySelectorAll("img")).filter(
       (img) => !img.closest("nav"),
     );
-    expect(imagesOutsideNav).toHaveLength(14);
+    expect(imagesOutsideNav).toHaveLength(16);
     expect(screen.getByRole("heading", { level: 1, name: "Професии и роли" })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(14);
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(16);
     expect(container.querySelector("#planned-for-collection")).toBeNull();
     for (const concept of futureAiConcepts) {
       expect(container.textContent).not.toContain(concept.title.bg);

@@ -3,14 +3,16 @@ import { createRouter } from "@tanstack/react-router";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { aiCollections, getAiCollection } from "@/content/ai-collections";
+import { aiCollections, getAiCollection, getCollectionWorks } from "@/content/ai-collections";
 import { destinations, getDestination, getDestinations } from "@/content/ai-destinations";
 import { aiWorks, getAiWork } from "@/content/ai-works";
 import { messages } from "@/i18n/messages";
 import { routeTree } from "@/routeTree.gen";
+import { Route as BgDetailRoute } from "@/routes/ai-worlds.$slug";
+import { Route as EnDetailRoute } from "@/routes/en.ai-worlds.$slug";
 import { DestinationView } from "@/components/ai-atlas";
 import { PromptNote } from "@/components/ai-exhibition";
-import { AiCollectionView } from "@/views/ai-worlds";
+import { AiCollectionView, AiDetailView } from "@/views/ai-worlds";
 
 let activeLocale: "bg" | "en" = "en";
 
@@ -55,6 +57,10 @@ const FINAL_DESTINATIONS = [
   ["chefo-v-turtsiya", "Turkey"],
   ["chefo-v-egipet", "Egypt"],
   ["chefo-v-dubai", "UAE"],
+  ["chefo-rainy-new-york", "USA"],
+  ["chefo-sydney-harbour-sunset", "Australia"],
+  ["chefo-coastal-adventure", "Tropical coast"],
+  ["chefo-rice-terraces-morning", "Rice terraces"],
 ] as const;
 
 const REMOVED = ["chefo-v-kioto", "chefo-v-edinburg", "chefo-vav-fes", "chefo-v-teksas"];
@@ -65,22 +71,24 @@ describe("Around the World data", () => {
     const atlas = getAiCollection("chefo-around-the-world")!;
     expect(atlas.order).toBe(4);
     expect(atlas.title).toEqual({ bg: "По света", en: "Around the World" });
-    expect(atlas.tagline).toEqual({ bg: "Едно лице. Много култури.", en: "One Face. Many Cultures." });
+    expect(atlas.tagline).toBeUndefined();
     expect(atlas.intro).toEqual({
-      bg: "Пътешествие през 12 дестинации, в които облеклото, прическите и атмосферата се променят, но лицето остава същото. Различни култури, епохи и светове, пресъздадени с AI.",
-      en: "A journey across 12 destinations where clothing, hairstyles, and atmosphere change, but the face remains the same. Different cultures, eras, and worlds reimagined with AI.",
+      bg: "Пътешествие през 16 дестинации, в които облеклото, прическите и атмосферата се променят, но лицето остава същото. Различни култури, епохи и светове, пресъздадени с AI.",
+      en: "A journey across 16 destinations where clothing, hairstyles, and atmosphere change, but the face remains the same. Different cultures, eras, and worlds reimagined with AI.",
     });
   });
 
-  it("has exactly the twelve owner-selected destinations in the requested order", () => {
-    expect(destinations).toHaveLength(12);
+  it("keeps the twelve owner-selected destinations and appends the four new travel works", () => {
+    expect(destinations).toHaveLength(16);
     expect(getDestinations().map((d) => d.order)).toEqual(
-      Array.from({ length: 12 }, (_, i) => i + 1),
+      Array.from({ length: 16 }, (_, i) => i + 1),
     );
-    expect(getDestinations().map((d) => [d.slug, d.country.en])).toEqual(FINAL_DESTINATIONS);
-    const keys = destinations.map((d) => `${d.country.en}|${d.place?.en ?? ""}`);
-    expect(new Set(keys).size).toBe(12);
-    expect(new Set(destinations.map((d) => d.slug)).size).toBe(12);
+    expect(getDestinations().map((d) => [d.slug, d.country?.en ?? d.place?.en])).toEqual(
+      FINAL_DESTINATIONS,
+    );
+    const keys = destinations.map((d) => `${d.country?.en ?? ""}|${d.place?.en ?? ""}`);
+    expect(new Set(keys).size).toBe(16);
+    expect(new Set(destinations.map((d) => d.slug)).size).toBe(16);
   });
 
   it("uses the approved editorial titles for every published destination", () => {
@@ -97,9 +105,23 @@ describe("Around the World data", () => {
       ["Между традиция и съвременност", "Between Tradition and Modernity"],
       ["Египетски хоризонти", "Egyptian Horizons"],
       ["Съвременен Дубай", "Modern Dubai"],
+      ["Ню Йорк след дъжда", "New York After the Rain"],
+      ["Залез над Сидни", "Sydney at Sunset"],
+      ["Последните лъчи", "The Last Light"],
+      ["Утро сред оризовите тераси", "Morning Among the Rice Terraces"],
     ];
     expect(destinations.map((d) => [d.title.bg, d.title.en])).toEqual(titles);
-    expect(destinations.map((d) => [getAiWork(d.slug)?.title, getAiWork(d.slug)?.en?.title])).toEqual(titles);
+    // The Bosphorus artwork carries its Home card title; the destination keeps the earlier
+    // editorial headline until the owner decides where it belongs.
+    expect(
+      destinations.map((d) => [getAiWork(d.slug)?.title, getAiWork(d.slug)?.en?.title]),
+    ).toEqual(
+      titles.map((pair) =>
+        pair[0] === "Между традиция и съвременност"
+          ? ["Вечер край Босфора", "Evening on the Bosphorus"]
+          : pair,
+      ),
+    );
   });
 
   it("removes the four unused examples without deleting a published artwork", () => {
@@ -111,11 +133,11 @@ describe("Around the World data", () => {
 
   it("only names places that were specified", () => {
     const withPlace = destinations.filter((d) => d.place).map((d) => d.place!.en);
-    expect(withPlace).toEqual(["Dubai"]);
+    expect(withPlace).toEqual(["Dubai", "New York", "Sydney", "Tropical coast", "Rice terraces"]);
   });
 
   it("describes Greenland as a territory within the Kingdom of Denmark", () => {
-    const greenland = destinations.find((d) => d.country.en === "Greenland")!;
+    const greenland = destinations.find((d) => d.country?.en === "Greenland")!;
     expect(greenland.context?.en).toContain("Kingdom of Denmark");
     expect(greenland.context?.bg).toContain("Кралство Дания");
   });
@@ -123,7 +145,6 @@ describe("Around the World data", () => {
   it("has every brief field in both languages", () => {
     for (const d of destinations) {
       for (const field of [
-        d.country,
         d.title,
         d.description,
         d.clothing,
@@ -134,12 +155,18 @@ describe("Around the World data", () => {
         expect(field.bg.trim()).not.toBe("");
         expect(field.en.trim()).not.toBe("");
       }
+      expect(d.country ?? d.place).toBeDefined();
+      if (d.country) {
+        expect(d.country.bg.trim()).not.toBe("");
+        expect(d.country.en.trim()).not.toBe("");
+      }
       expect(d.styles.length).toBeGreaterThan(0);
-      expect(d.promptDraft).toMatch(/keep my facial features/);
+      if (d.order <= 12) expect(d.promptDraft).toMatch(/keep my facial features/);
+      else expect(d.promptDraft).toBe("Original generation prompt not supplied.");
     }
   });
 
-  it("publishes the twelve supplied portraits with reconstruction prompts and no invented tool or date", () => {
+  it("publishes all sixteen supplied portraits with reconstruction prompts and only owner-supplied tools", () => {
     const portraits = [
       ["chefo-saudi-arabia.png", 1122, 1402],
       ["chefo-greece.png", 1122, 1402],
@@ -153,6 +180,10 @@ describe("Around the World data", () => {
       ["chefo-turkey.png", 1024, 1536],
       ["chefo-egypt.png", 1122, 1402],
       ["chefo-dubai.png", 1122, 1402],
+      ["chefo-rainy-new-york.webp", 1122, 1402],
+      ["chefo-sydney-harbour-sunset.webp", 1122, 1402],
+      ["chefo-coastal-adventure.webp", 1122, 1402],
+      ["chefo-rice-terraces-morning.webp", 1122, 1402],
     ] as const;
     for (const [index, d] of destinations.entries()) {
       const work = getAiWork(d.slug);
@@ -161,14 +192,42 @@ describe("Around the World data", () => {
       expect(work?.image).toContain(portraits[index]![0]);
       expect(work?.width).toBe(portraits[index]![1]);
       expect(work?.height).toBe(portraits[index]![2]);
-      expect(work?.en?.title).toBe(d.title.en);
+      expect(work?.en?.title).toBe(
+        d.slug === "chefo-v-turtsiya" ? "Evening on the Bosphorus" : d.title.en,
+      );
       expect(work?.en?.alt).toBeTruthy();
       expect(work?.en?.description).toBeTruthy();
       expect(work?.portraitDetails?.clothing.en).toBeTruthy();
       expect(work?.prompt.length).toBeGreaterThan(300);
       expect(work?.promptKind).toBe("illustrative");
-      expect(work?.tool).toBeUndefined();
-      expect(work?.date).toBeUndefined();
+      // Only the Bosphorus tool has been confirmed by the owner; the others stay unset.
+      expect(work?.tool).toBe(
+        d.slug === "chefo-v-turtsiya" ? "ChatGPT Image Generation" : undefined,
+      );
+      // Only the Bosphorus portrait has a creation date (owner decision 6d).
+      expect(work?.date).toBe(d.slug === "chefo-v-turtsiya" ? "2026-10-12" : undefined);
+    }
+  });
+
+  it("shows only the Bosphorus destination on the shared artwork template", () => {
+    expect(destinations.filter((d) => d.artworkTemplate).map((d) => d.slug)).toEqual([
+      "chefo-v-turtsiya",
+    ]);
+    for (const route of [BgDetailRoute, EnDetailRoute]) {
+      const load = route.options.loader as (ctx: { params: { slug: string } }) => {
+        work?: { slug: string };
+        destination?: { slug: string };
+      };
+      for (const d of destinations) {
+        const data = load({ params: { slug: d.slug } });
+        if (d.slug === "chefo-v-turtsiya") {
+          expect(data.destination).toBeUndefined();
+          expect(data.work?.slug).toBe(d.slug);
+        } else {
+          expect(data.destination?.slug).toBe(d.slug);
+          expect(data.work).toBeUndefined();
+        }
+      }
     }
   });
 
@@ -198,42 +257,102 @@ describe("Around the World data", () => {
 });
 
 describe("Around the World pages", () => {
-  it("lists the twelve published destinations on the collection page", () => {
+  it.each(["bg", "en"] as const)(
+    "shows the Bosphorus artwork template with its full brief in %s",
+    (locale) => {
+      activeLocale = locale;
+      const work = getAiWork("chefo-v-turtsiya")!;
+      const m = messages[locale].ai;
+      const collection = getAiCollection("chefo-around-the-world")!.title[locale];
+      render(<AiDetailView work={work} />);
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+        locale === "bg" ? "Вечер край Босфора" : "Evening on the Bosphorus",
+      );
+      expect(screen.getAllByRole("link", { name: collection })).toHaveLength(2); // breadcrumb + chip
+      expect(screen.getByText(messages[locale].common.aiBadge)).toBeInTheDocument();
+      const facts = Array.from(document.querySelectorAll("dt")).map((dt) => [
+        dt.textContent,
+        dt.nextElementSibling?.textContent,
+      ]);
+      expect(facts).toEqual([
+        [m.tool, "ChatGPT Image Generation"],
+        [m.created, locale === "bg" ? "12 октомври 2026 г." : "12 October 2026"],
+        [m.theme, locale === "bg" ? "Култури по света" : "World cultures"],
+        [messages[locale].photos.place, locale === "bg" ? "Турция" : "Turkey"],
+        [m.clothing, work.portraitDetails!.clothing[locale]],
+        [m.grooming, work.portraitDetails!.grooming[locale]],
+        [m.settingLabel, work.portraitDetails!.setting[locale]],
+        [m.status, m.statusPublished],
+      ]);
+      expect(screen.getByRole("navigation", { name: m.others })).toBeInTheDocument();
+    },
+  );
+
+  it("lists the sixteen published destinations on the collection page", () => {
     activeLocale = "bg";
-    render(<AiCollectionView collection={getAiCollection("chefo-around-the-world")!} />);
-    expect(screen.getByText("Едно лице. Много култури.")).toBeInTheDocument();
-    const index = screen.getByRole("region", { name: messages.bg.ai.allDestinations });
-    const links = within(index).getAllByRole("link");
-    expect(links).toHaveLength(12);
-    expect(links.map((a) => a.textContent)).toContain("Гръцки следобед");
-    expect(links.map((a) => a.textContent)).toContain("Под слънцето на Арабия");
-    expect(screen.getByText("12 направления · 12 завършени портрета")).toBeInTheDocument();
-    expect(screen.getByText(getAiCollection("chefo-around-the-world")!.intro.bg)).toBeInTheDocument();
-    expect(within(index).queryByText("01 / 12")).not.toBeInTheDocument();
-    expect(within(index).queryByText("12 / 12")).not.toBeInTheDocument();
-    for (const title of ["Под слънцето на Арабия", "Гръцки следобед"]) {
-      expect(within(index).getByRole("heading", { name: title }).previousElementSibling).toBeNull();
+    const collection = getAiCollection("chefo-around-the-world")!;
+    const galleryWorks = getCollectionWorks(collection, "bg");
+    render(<AiCollectionView collection={collection} />);
+    expect(screen.queryByText("Едно лице. Много култури.")).toBeNull();
+    expect(galleryWorks).toHaveLength(16);
+    for (const work of galleryWorks) {
+      expect(screen.getByRole("heading", { name: work.title })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("region", { name: messages.bg.ai.allDestinations })).toBeNull();
+    expect(screen.getByText(messages.bg.ai.count(16))).toBeInTheDocument();
+    expect(
+      screen.getByText(getAiCollection("chefo-around-the-world")!.intro.bg),
+    ).toBeInTheDocument();
+    const collectionNav = screen.getByRole("navigation", { name: messages.bg.ai.collections });
+    expect(within(collectionNav).getAllByRole("link")).toHaveLength(2);
     for (const removed of ["Киото", "Единбург", "Фес", "Тексас"]) {
-      expect(index.textContent).not.toContain(removed);
+      expect(document.body.textContent).not.toContain(removed);
     }
-    expect(index.textContent).not.toMatch(/оригиналното видео|ново направление/i);
+    expect(document.body.textContent).not.toMatch(/оригиналното видео|ново направление/i);
   });
+
+  it.each(["bg", "en"] as const)(
+    "keeps a clean Dubai detail ending with only adjacent-destination navigation in %s",
+    (locale) => {
+      activeLocale = locale;
+      render(<DestinationView destination={getDestination("chefo-v-dubai")!} />);
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: locale === "bg" ? "Съвременен Дубай" : "Modern Dubai",
+        }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: messages[locale].ai.allDestinations }),
+      ).toBeNull();
+      expect(
+        screen.getByRole("link", { name: messages[locale].ai.backToCollection }),
+      ).toHaveAttribute("href", "/ai-worlds/collections/chefo-around-the-world");
+      const navigation = screen.getByRole("navigation", {
+        name: messages[locale].ai.allDestinations,
+      });
+      expect(within(navigation).getAllByRole("link")).toHaveLength(2);
+      expect(document.querySelectorAll("img")).toHaveLength(3); // main artwork + two nav thumbnails
+    },
+  );
 
   it("shows the approved English collection copy without origin labels", () => {
     render(<AiCollectionView collection={getAiCollection("chefo-around-the-world")!} />);
-    expect(screen.getByText(getAiCollection("chefo-around-the-world")!.intro.en)).toBeInTheDocument();
-    expect(screen.getByText("One Face. Many Cultures.")).toBeInTheDocument();
+    expect(
+      screen.getByText(getAiCollection("chefo-around-the-world")!.intro.en),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("One Face. Many Cultures.")).toBeNull();
+    expect(screen.getByText(messages.en.ai.count(16))).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/original video|new destination/i);
   });
 
   it("keeps the planned fallback distinct from finished art when a portrait is missing", () => {
     const planned = { ...getDestination("chefo-v-gartsiya")!, status: "planned" as const };
-    const { container } = render(
-      <DestinationView destination={planned} />,
-    );
-    expect(screen.getByRole("heading", { level: 1, name: "A Greek Afternoon" })).toBeInTheDocument();
-    expect(screen.getByText("Destination 02 / 12")).toBeInTheDocument();
+    const { container } = render(<DestinationView destination={planned} />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "A Greek Afternoon" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Destination 02 / 16")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/original video|new destination/i);
     expect(screen.getByText(messages.en.ai.portraitPlanned)).toBeInTheDocument();
     expect(container.querySelector("main img, article > div img")).toBeNull();
@@ -253,6 +372,7 @@ describe("Around the World pages", () => {
     expect(screen.queryByText(messages.en.ai.portraitPlanned)).toBeNull();
     const portrait = screen.getByAltText(work.en!.alt!);
     expect(portrait).toBeInTheDocument();
+    expect(portrait.closest("figure")).toHaveClass("ai-frame-portal");
     expect(portrait).toHaveAttribute("width", String(work.width));
     expect(portrait).toHaveAttribute("height", String(work.height));
     expect(portrait).toHaveAttribute("loading", "eager");
@@ -263,27 +383,35 @@ describe("Around the World pages", () => {
     expect(screen.getByText(work.en!.description!)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: messages.en.ai.prompt })).toBeInTheDocument();
     expect(screen.getByText(work.prompt)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: messages.en.ai.copyPromptButton })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: messages.en.ai.copyPromptButton }),
+    ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: `Open “${work.en!.title}” in full screen` }),
     );
     expect(screen.getByRole("dialog", { name: work.en!.title! })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog").querySelector(".ai-frame-portal, .ai-frame-compact"),
+    ).toBeNull();
   });
 
   it("shows the new Saudi portrait in Bulgarian and wraps destination navigation", () => {
     activeLocale = "bg";
     const destination = getDestination("chefo-v-sauditska-arabiya")!;
     render(<DestinationView destination={destination} />);
-    expect(screen.getByRole("heading", { level: 1, name: "Под слънцето на Арабия" })).toBeInTheDocument();
-    expect(screen.getByText("Направление 01 / 12")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Под слънцето на Арабия" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Направление 01 / 16")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: messages.bg.ai.prompt })).toBeInTheDocument();
     expect(screen.getByText(getAiWork(destination.slug)!.prompt)).toBeInTheDocument();
     expect(screen.getByText("Пясъчни дюни, палми и камили в далечината.")).toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: messages.bg.ai.allDestinations });
-    expect(within(nav).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
-      "/ai-worlds/chefo-v-dubai",
-      "/ai-worlds/chefo-v-gartsiya",
-    ]);
+    expect(
+      within(nav)
+        .getAllByRole("link")
+        .map((a) => a.getAttribute("href")),
+    ).toEqual(["/ai-worlds/chefo-rice-terraces-morning", "/ai-worlds/chefo-v-gartsiya"]);
   });
 
   it("shows a neutral heading and expands a long artwork prompt", () => {
@@ -299,8 +427,13 @@ describe("Around the World pages", () => {
     const button = screen.getByRole("button", { name: messages.en.ai.showFullPrompt });
     expect(button).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(button);
-    expect(screen.getByRole("button", { name: messages.en.ai.showLessPrompt })).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("button", { name: messages.en.ai.copyPromptButton })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: messages.en.ai.showLessPrompt })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: messages.en.ai.copyPromptButton }),
+    ).toBeInTheDocument();
   });
 
   it("copies the full English prompt and returns to the default state after two seconds", async () => {
@@ -326,7 +459,10 @@ describe("Around the World pages", () => {
       expect(work.prompt).toContain("uploaded reference photograph");
       expect(screen.getByRole("status")).toHaveTextContent(messages.en.ai.copiedPromptButton);
       act(() => vi.advanceTimersByTime(2000));
-      expect(screen.getByRole("button", { name: messages.en.ai.copyPromptButton })).toHaveClass("bg-navy", "text-gold");
+      expect(screen.getByRole("button", { name: messages.en.ai.copyPromptButton })).toHaveClass(
+        "bg-navy",
+        "text-gold",
+      );
     } finally {
       vi.useRealTimers();
       if (oldClipboard) Object.defineProperty(navigator, "clipboard", oldClipboard);

@@ -20,10 +20,12 @@ const expected = [
   ["chefo-auto-mechanic", "Квартален автомонтьор", "Neighborhood Auto Mechanic"],
   ["chefo-coffee-break", "Боклукджия на сутрешна смяна", "Sanitation Worker on an Early Shift"],
   ["chefo-baker", "Сутрин в пекарната", "Morning at the Bakery"],
+  ["chefo-beach-corn-vendor", "Майсторът на царевицата", "The Corn Vendor"],
+  ["chefo-painter-at-work", "Бояджия с характер", "The Painter's Touch"],
 ] as const;
 
 describe("Professions & Roles portraits", () => {
-  it("registers exactly the owner's fourteen portraits once, in both languages", () => {
+  it("registers exactly the owner's sixteen portraits once, in both languages", () => {
     const collection = getAiCollection("professions-roles")!;
     expect(collection.works).toEqual(expected.map(([slug]) => slug));
     expect(getCollectionWorks(collection, "bg").map(({ title }) => title)).toEqual(

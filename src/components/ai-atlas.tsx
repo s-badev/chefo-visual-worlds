@@ -15,6 +15,7 @@ import { getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
+import { AiBackLink } from "@/components/ai-back-link";
 import { ArtEdge, ArtImage, PromptNote, pad2, toLightboxItem } from "@/components/ai-exhibition";
 import { reveal } from "@/hooks/use-reveal";
 import { toolLabel } from "@/content/ai-works";
@@ -22,14 +23,17 @@ import { cn } from "@/lib/utils";
 
 export const ATLAS_SLUG = "chefo-around-the-world";
 
-/** Short name for indexes: the place where one is given, otherwise the country. */
-const shortName = (d: Destination, locale: Locale) => destinationText(d.place ?? d.country, locale);
+/** Short name for indexes: use only location detail that is actually known. */
+const shortName = (d: Destination, locale: Locale) =>
+  destinationText(d.place ?? d.country ?? d.title, locale);
 
-/** The place name where one is specified, otherwise the country. */
-const whereLine = (d: Destination, locale: Locale) =>
-  d.place
-    ? `${destinationText(d.place, locale)}, ${destinationText(d.country, locale)}`
-    : destinationText(d.country, locale);
+/** City and country when both are known; otherwise the most specific verified location. */
+const whereLine = (d: Destination, locale: Locale) => {
+  if (d.place && d.country) {
+    return `${destinationText(d.place, locale)}, ${destinationText(d.country, locale)}`;
+  }
+  return destinationText(d.place ?? d.country ?? d.title, locale);
+};
 
 /** Typographic cover for the atlas hall: the destinations as an editorial list. */
 export function AtlasCover({ className }: { className?: string }) {
@@ -116,7 +120,12 @@ export function DestinationIndex() {
           return (
             <li key={d.slug} className="border-t border-border" {...reveal(i % 2)}>
               <article className="group relative flex gap-5 py-6 sm:gap-6">
-                <div className="relative w-20 shrink-0 overflow-hidden rounded-sm sm:w-24">
+                <div
+                  className={cn(
+                    "relative w-20 shrink-0 overflow-hidden rounded-sm sm:w-24",
+                    work && "ai-frame-compact",
+                  )}
+                >
                   {work ? (
                     <>
                       <ArtImage work={work} />
@@ -211,7 +220,12 @@ export function DestinationView({ destination: d }: { destination: Destination }
   return (
     <Surface tone="dark" as="article">
       <nav aria-label={m.title} className="container-page pt-10 text-sm md:pt-14">
-        <ol className="flex flex-wrap items-center gap-2 text-muted-foreground">
+        <AiBackLink
+          to="/ai-worlds/collections/$slug"
+          slug={ATLAS_SLUG}
+          label={m.backToCollection}
+        />
+        <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
           <li>
             <LocaleLink to="/ai-worlds" className="transition-colors hover:text-gold">
               {m.title}
@@ -238,7 +252,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
       >
         <div className={cn("space-y-8", work ? "mx-auto w-full max-w-[68rem]" : "lg:col-span-6")}>
           {work ? (
-            <figure className="group relative overflow-hidden rounded-sm">
+            <figure className="ai-frame-portal group relative overflow-hidden rounded-sm">
               <button
                 type="button"
                 onClick={() => setLightbox(0)}
@@ -316,7 +330,14 @@ export function DestinationView({ destination: d }: { destination: Destination }
         </div>
       </div>
 
-      {work && <Lightbox items={[toLightboxItem(work)]} index={lightbox} onIndex={setLightbox} />}
+      {work && (
+        <Lightbox
+          items={[toLightboxItem(work)]}
+          index={lightbox}
+          onIndex={setLightbox}
+          variant="artwork"
+        />
+      )}
 
       <nav
         aria-label={m.allDestinations}

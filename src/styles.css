@@ -90,6 +90,13 @@
   --dur-fast: 180ms;
   --dur-base: 320ms;
   --dur-slow: 700ms;
+
+  /* Stage F · Photography frames — paint-only derivatives of existing tokens. */
+  --photo-frame-mat: var(--card);
+  --photo-frame-gold: color-mix(in oklch, var(--gold) 65%, transparent);
+  --photo-frame-ink: color-mix(in oklch, var(--navy) 16%, transparent);
+  --photo-frame-shadow-near: color-mix(in oklch, var(--navy) 10%, transparent);
+  --photo-frame-shadow-far: color-mix(in oklch, var(--navy) 24%, transparent);
 }
 
 /* Dark world: components inside read navy/gold values from the same semantic tokens. */
@@ -152,8 +159,14 @@
     letter-spacing: -0.01em;
   }
   :focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--foreground);
     outline-offset: 3px;
+  }
+  .surface-dark :focus-visible,
+  [data-header-theme="dark"] :focus-visible,
+  header[data-theme="dark"] :focus-visible,
+  [role="dialog"] :focus-visible {
+    outline-color: var(--gold);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -200,7 +213,1264 @@
   }
 }
 
+/* Stage F · Wave 2: photographic frames outside published album galleries. */
+/* Home Hero: localized copy treatment; the approved photography remains untouched. */
+.home-hero-copy {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  max-width: calc(100vw - 2.5rem);
+  margin-inline: auto;
+}
+.home-hero-title {
+  isolation: isolate;
+  font-size: 3rem;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.home-hero-eyebrow {
+  z-index: 1;
+  width: fit-content;
+  margin-inline: auto;
+  isolation: isolate;
+}
+.home-hero-eyebrow-scrim,
+.home-hero-phrase-scrim {
+  display: none;
+}
+@media (min-width: 48rem) {
+  .home-hero-copy {
+    max-width: calc(100vw - 6rem);
+    padding: 0.75rem 1.25rem;
+  }
+  .home-hero-eyebrow-scrim,
+  .home-hero-phrase-scrim {
+    position: absolute;
+    z-index: -1;
+    display: block;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--navy) 86%, transparent);
+    filter: blur(0.5rem);
+    pointer-events: none;
+  }
+  .home-hero-eyebrow-scrim {
+    inset: -0.2rem -0.5rem;
+    filter: blur(0.35rem);
+  }
+  .home-hero-phrase {
+    position: relative;
+    display: inline-block;
+  }
+  .home-hero-phrase + .home-hero-phrase {
+    margin-inline-start: 0.14em;
+  }
+  .home-hero-phrase-scrim {
+    inset: -0.08em -0.16em;
+  }
+  .home-hero-title {
+    font-size: clamp(4rem, 8vw, 4.5rem);
+  }
+}
+@media (min-width: 64rem) {
+  .home-hero-title {
+    font-size: clamp(4.5rem, 5.56vw, 6rem);
+  }
+}
+
+/* Home Hero CTAs: Cream Print (photography) and Gold Glow (AI worlds). Decorative motion runs
+   only on fine hover pointers and without reduced motion; geometry never changes. */
+.hero-cta {
+  --hero-cta-focus: color-mix(in oklch, var(--gold) 45%, var(--navy-foreground));
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 2.75rem;
+  overflow: hidden;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-cta:focus-visible {
+  outline: 2px solid var(--hero-cta-focus);
+  outline-offset: 3px;
+}
+/* Both label layers share this box model, so their glyphs land on the same pixels. */
+.hero-cta-face {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+}
+.hero-cta-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  transform-origin: 50% 50%;
+}
+
+.hero-cta--print {
+  background-color: var(--navy-foreground);
+  color: var(--navy);
+  box-shadow:
+    0 1px 2px var(--photo-frame-shadow-near),
+    0 10px 22px -14px var(--photo-frame-shadow-far);
+  transition:
+    transform 220ms ease-out,
+    background-color 220ms ease-out,
+    box-shadow 220ms ease-out;
+}
+.hero-cta--glow {
+  --hero-cta-sweep: 350ms cubic-bezier(0.45, 0, 0.25, 1);
+  background-color: color-mix(in oklch, var(--navy) 80%, transparent);
+  color: var(--gold);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 200ms ease-out,
+    box-shadow var(--hero-cta-sweep);
+}
+/* The sweep and the navy label cover the same button box and reveal with one clip-path transition. */
+.hero-cta--glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--gold);
+  pointer-events: none;
+}
+.hero-cta-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  color: var(--navy);
+  pointer-events: none;
+  user-select: none;
+}
+.hero-cta--glow::before,
+.hero-cta-overlay {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--hero-cta-sweep);
+}
+
+@keyframes hero-cta-spark-pulse {
+  0%,
+  42% {
+    transform: scale(1);
+  }
+  58% {
+    transform: scale(1.12);
+  }
+  78%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-cta--print:hover {
+    background-color: color-mix(in oklch, var(--tint-sand) 80%, var(--gold));
+    box-shadow:
+      0 0 0 3px color-mix(in oklch, var(--gold) 28%, transparent),
+      0 0 18px 2px color-mix(in oklch, var(--gold) 35%, transparent),
+      0 10px 22px -14px var(--photo-frame-shadow-far);
+  }
+  .hero-cta--glow:hover {
+    box-shadow:
+      0 0 0 1px color-mix(in oklch, var(--gold) 40%, transparent),
+      0 0 22px 2px color-mix(in oklch, var(--gold) 45%, transparent);
+  }
+  .hero-cta--glow:hover::before,
+  .hero-cta--glow:hover .hero-cta-overlay {
+    clip-path: inset(0 0 0 0);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-cta--print:hover {
+      transform: translateY(-2px);
+    }
+    .hero-cta--glow:hover .hero-cta-icon {
+      animation: hero-cta-spark-pulse var(--hero-cta-sweep) both;
+    }
+  }
+}
+
+/* Pressed: sand / gold fill appears at once; the scale is motion and respects the preference. */
+.hero-cta--print:active {
+  background-color: color-mix(in oklch, var(--tint-sand) 80%, var(--gold));
+}
+@media (hover: none), (pointer: coarse) {
+  .hero-cta--glow:active::before,
+  .hero-cta--glow:active .hero-cta-overlay {
+    clip-path: inset(0 0 0 0);
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-cta:active {
+    transform: scale(0.98);
+  }
+}
+
+.photo-frame-print {
+  --photo-frame-mat-width: 3px;
+  --photo-frame-base-shadow: 0 14px 28px calc(var(--photo-frame-mat-width) - 14px)
+    var(--photo-frame-shadow-far);
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px var(--photo-frame-gold),
+    0 0 0 var(--photo-frame-mat-width) var(--photo-frame-mat),
+    0 0 0 calc(var(--photo-frame-mat-width) + 1px) var(--photo-frame-ink),
+    0 1px 2px calc(var(--photo-frame-mat-width) + 1px) var(--photo-frame-shadow-near),
+    var(--photo-frame-base-shadow);
+}
+.photo-frame-print--portrait,
+.photo-frame-print--detail {
+  --photo-frame-mat-width: 7px;
+}
+.photo-frame-print--detail.shadow-soft {
+  --photo-frame-base-shadow: var(--shadow-soft);
+}
+.photo-frame-keyline {
+  box-shadow:
+    0 0 0 1px var(--photo-frame-gold),
+    0 0 0 2px var(--photo-frame-ink),
+    var(--photo-frame-base-shadow, 0 0 #0000);
+}
+.photo-frame-keyline.shadow-soft {
+  --photo-frame-base-shadow: var(--shadow-soft);
+}
+
+/* Photography P1: editorial overview only. Album and All Photos layouts remain separate. */
+@media (max-width: 375px) {
+  .photography-all-photos-header h1 {
+    font-size: min(3.75rem, 16.4vw);
+  }
+}
+
+.photography-editorial {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.photography-editorial-opening-photo {
+  height: min(64svh, 56vw);
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-opening-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-mast {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 1.75rem 3rem;
+}
+.photography-editorial-heading h1 {
+  margin-top: 0.65rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.1rem, 11vw, 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+}
+.photography-editorial-heading h1 em {
+  color: var(--gold-ink);
+  font-weight: 400;
+}
+.photography-editorial-lead {
+  display: grid;
+  align-content: end;
+  gap: 0.9rem;
+}
+.photography-editorial-lead p {
+  max-width: 30ch;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+.photography-editorial-lead span {
+  color: var(--foreground);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+@media (min-width: 900px) {
+  .photography-editorial-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+    align-items: end;
+    column-gap: 4rem;
+    padding-bottom: 4rem;
+  }
+}
+@media (min-width: 1200px) {
+  .photography-editorial-heading h1 {
+    font-size: clamp(5rem, 6.4vw, 8rem);
+  }
+}
+
+.photography-editorial-index {
+  padding-block: 4rem 5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Stage F Wave 1: paint-only Portal frames for production AI artwork surfaces. */
+.surface-dark .ai-frame-portal {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--gold) 42%, transparent),
+    0 12px 26px -22px color-mix(in oklch, var(--gold) 18%, transparent);
+}
+.surface-dark .ai-frame-portal::after {
+  --portal-corner-size: 16px;
+  --portal-corner-thickness: 2px;
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    conic-gradient(
+        from 90deg at var(--portal-corner-thickness) var(--portal-corner-thickness),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      0 0 / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 180deg at calc(100% - var(--portal-corner-thickness)) var(--portal-corner-thickness),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      100% 0 / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 0deg at var(--portal-corner-thickness) calc(100% - var(--portal-corner-thickness)),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      0 100% / var(--portal-corner-size) var(--portal-corner-size),
+    conic-gradient(
+        from 270deg at calc(100% - var(--portal-corner-thickness))
+          calc(100% - var(--portal-corner-thickness)),
+        transparent 90deg,
+        color-mix(in oklch, var(--gold) 78%, transparent) 0
+      )
+      100% 100% / var(--portal-corner-size) var(--portal-corner-size);
+  background-repeat: no-repeat;
+}
+.surface-dark .ai-frame-portal > button:focus-visible,
+.surface-dark .ai-frame-compact:focus-visible {
+  outline-offset: -3px;
+}
+.surface-dark .ai-frame-portal > button > .eyebrow {
+  z-index: 2;
+}
+.surface-dark .ai-frame-compact {
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--gold) 30%, transparent);
+}
+@media (forced-colors: active) {
+  .surface-dark .ai-frame-portal > button:focus-visible,
+  .surface-dark .ai-frame-compact:focus-visible {
+    outline-color: Highlight;
+  }
+}
+.photography-editorial-index-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: 2rem;
+}
+.photography-editorial-index-heading h2,
+.photography-editorial-reportage-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1;
+}
+.photography-editorial-all-photos,
+.photography-editorial-reportage-link,
+.photography-editorial-panorama figcaption a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.photography-editorial-all-photos:hover,
+.photography-editorial-reportage-link:hover,
+.photography-editorial-panorama figcaption a:hover {
+  color: var(--gold-ink);
+}
+.photography-editorial-index-grid {
+  display: grid;
+  gap: 2.5rem;
+  min-width: 0;
+}
+.photography-editorial-destination-list {
+  min-width: 0;
+}
+.photography-editorial-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto auto;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  text-decoration: none;
+}
+.photography-editorial-thumb {
+  display: block;
+  width: 4.5rem;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-destination-name {
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4.4vw, 2.6rem);
+  line-height: 1;
+}
+.photography-editorial-count {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.photography-editorial-row-arrow {
+  color: var(--gold-ink);
+  transition: transform var(--dur-base) var(--motion-ease);
+}
+.photography-editorial-row:hover .photography-editorial-destination-name,
+.photography-editorial-row:focus-visible .photography-editorial-destination-name {
+  color: var(--gold-ink);
+}
+.photography-editorial-row:hover .photography-editorial-row-arrow,
+.photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+  transform: translateX(4px);
+}
+.photography-editorial-preview {
+  display: none;
+  min-width: 0;
+}
+.photography-editorial-preview-frame {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-preview figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.photography-editorial-preview figcaption span:first-child {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--foreground);
+}
+.photography-editorial-preview p {
+  max-width: 46ch;
+  margin-top: 0.2rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+@media (min-width: 1024px) {
+  .photography-editorial-index-grid {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 7fr);
+    column-gap: 4rem;
+    align-items: start;
+  }
+  .photography-editorial-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 3.6rem;
+    padding-block: 0.35rem;
+  }
+  .photography-editorial-thumb {
+    display: none;
+  }
+  .photography-editorial-destination-name {
+    font-size: clamp(2rem, 2.6vw, 2.75rem);
+  }
+  .photography-editorial-preview {
+    display: block;
+    position: sticky;
+    top: 5.5rem;
+  }
+  .photography-editorial-row.is-selected .photography-editorial-destination-name {
+    color: var(--gold-ink);
+  }
+}
+
+.photography-editorial-reportage {
+  padding-block: 5rem;
+  background: var(--tint-sand);
+}
+.photography-editorial-reportage-head {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 2.25rem;
+}
+.photography-editorial-reportage-head p {
+  max-width: 44ch;
+  color: var(--muted-foreground);
+}
+.photography-editorial-reportage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  align-items: start;
+}
+.photography-editorial-reportage-image {
+  min-width: 0;
+}
+.photography-editorial-reportage-image-1 {
+  grid-column: 1 / -1;
+}
+.photography-editorial-reportage-frame {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: var(--secondary);
+}
+.photography-editorial-reportage-image-1 .photography-editorial-reportage-frame {
+  aspect-ratio: 3 / 2;
+}
+.photography-editorial-reportage-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-reportage-image figcaption {
+  margin-top: 0.55rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.45;
+}
+.photography-editorial-reportage-link {
+  justify-self: start;
+}
+@media (min-width: 900px) {
+  .photography-editorial-reportage-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 3rem;
+  }
+  .photography-editorial-reportage-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0 2rem;
+  }
+  .photography-editorial-reportage-image-1 {
+    grid-column: 1 / 9;
+    grid-row: 1 / 3;
+  }
+  .photography-editorial-reportage-image-2 {
+    grid-column: 9 / 13;
+    grid-row: 1;
+    margin-top: 6rem;
+  }
+  .photography-editorial-reportage-image-3 {
+    grid-column: 6 / 9;
+    grid-row: 3;
+    margin-top: -9rem;
+    position: relative;
+    z-index: 1;
+  }
+  .photography-editorial-reportage-image-3 .photography-editorial-reportage-frame {
+    box-shadow: 0 0 0 0.75rem var(--tint-sand);
+  }
+  .photography-editorial-reportage-link {
+    grid-column: 9 / 13;
+    grid-row: 3;
+    align-self: end;
+  }
+}
+.photography-editorial-panorama-frame {
+  display: block;
+  height: min(70svh, 44vw);
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.photography-editorial-panorama-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photography-editorial-panorama figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-block: 0.85rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.photography-editorial-panorama figcaption strong {
+  font-family: var(--font-serif);
+  color: var(--foreground);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+.photography-editorial a:focus-visible,
+.photography-editorial button:focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 4px;
+}
+@media (max-width: 420px) {
+  .photography-editorial-row {
+    grid-template-columns: 3.75rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+  }
+  .photography-editorial-thumb {
+    width: 3.75rem;
+  }
+  .photography-editorial-count {
+    grid-column: 2;
+    font-size: 0.7rem;
+  }
+  .photography-editorial-row-arrow {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photography-editorial-row-arrow {
+    transition: none;
+  }
+  .photography-editorial-row:hover .photography-editorial-row-arrow,
+  .photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+    transform: none;
+  }
+}
+
 /* Type scale: collection pages, detail pages, sections, cards. */
+/* Phase 2C: Paris and Istanbul album pages only. The complete gallery keeps natural ratios. */
+.editorial-album {
+  background: var(--background);
+  color: var(--foreground);
+}
+.editorial-album-cover {
+  height: min(72svh, 56vw);
+  min-height: 18rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.editorial-album-cover button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+}
+.editorial-album-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.editorial-album-mast {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 2rem 4rem;
+}
+.editorial-album-breadcrumb {
+  grid-column: 1 / -1;
+}
+.editorial-album-back,
+.editorial-album-jump {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.editorial-album-mast h1 {
+  margin-top: 0.65rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.2rem, 13vw, 10rem);
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+}
+.editorial-album-intro {
+  display: grid;
+  align-content: end;
+  gap: 1rem;
+}
+.editorial-album-intro > p {
+  max-width: 34ch;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+.editorial-album-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.editorial-album-meta strong {
+  color: var(--foreground);
+}
+.editorial-album-jump {
+  justify-self: start;
+}
+@media (min-width: 900px) {
+  .editorial-album-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
+    column-gap: 4rem;
+  }
+}
+.editorial-album-chapter {
+  padding-block: 4.5rem 1rem;
+  border-top: 1px solid var(--border);
+}
+.editorial-album-spread {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  align-items: start;
+}
+.editorial-album-figure {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+.editorial-album-figure.is-half {
+  grid-column: auto;
+}
+.editorial-album-figure button,
+.editorial-album-all-grid button {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: zoom-in;
+}
+.editorial-album-image-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--album-ratio);
+  overflow: hidden;
+  background: var(--secondary);
+}
+.editorial-album-image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.editorial-album-figure.is-wide .editorial-album-image-frame {
+  aspect-ratio: auto;
+  height: min(78svh, 50vw);
+  min-height: 15rem;
+}
+.editorial-album-figure figcaption {
+  margin-top: 0.6rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+@media (min-width: 900px) {
+  .editorial-album-spread {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 2.5rem 2rem;
+  }
+  .editorial-album-figure,
+  .editorial-album-figure.is-half {
+    grid-column: var(--album-column);
+    margin-top: var(--album-offset);
+  }
+}
+/* Justified chapters: rows of equal image height; each frame keeps its ratio (no extra crop).
+   flex-grow and flex-basis scale with the ratio, so a line that wraps on narrow screens stays even.
+   Grow is ×10 so a lone item (grow sum below 1 would leave space unfilled) still spans the line. */
+.editorial-album-spread.is-justified {
+  grid-template-columns: minmax(0, 1fr);
+}
+.editorial-album-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem 1rem;
+}
+.editorial-album-row > .editorial-album-figure {
+  flex: calc(var(--album-grow) * 10) 1 calc(var(--album-grow) * 8rem);
+  margin-top: 0;
+}
+.editorial-album-row > .editorial-album-figure.is-wide {
+  flex-basis: 100%;
+}
+@media (min-width: 900px) {
+  /* Cap a row at 40rem image height (e.g. two portraits); --row-ratio is unset on wide rows. */
+  .editorial-album-row {
+    gap: 2.5rem 2rem;
+    width: 100%;
+    max-width: calc(var(--row-ratio) * 40rem + (var(--row-count) - 1) * 2rem);
+    margin-inline: auto;
+  }
+}
+.editorial-album-all {
+  padding-block: 4.5rem 4rem;
+}
+.editorial-album-all-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-bottom: 1.75rem;
+}
+.editorial-album-all-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1;
+}
+.editorial-album-all-head p {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.editorial-album-all-grid {
+  columns: 2;
+  column-gap: 0.6rem;
+}
+.editorial-album-all-grid li {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+.editorial-album-all-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--secondary);
+}
+.editorial-album-all-grid button {
+  overflow: hidden;
+}
+.editorial-album-zoom-cue {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .editorial-album-cover img,
+  .editorial-album-image-frame img,
+  .editorial-album-all-grid button img {
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .editorial-album-cover button:hover img {
+    transform: scale(1.015);
+  }
+  .editorial-album-figure button:hover img {
+    transform: scale(1.025);
+  }
+  .editorial-album-all-grid button:hover img {
+    transform: scale(1.035);
+  }
+  .editorial-album button:hover .editorial-album-zoom-cue {
+    opacity: 1;
+  }
+  .editorial-album button:hover + figcaption {
+    color: var(--gold-ink);
+  }
+}
+.editorial-album button:focus-visible .editorial-album-zoom-cue {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial-album-cover img,
+  .editorial-album-image-frame img,
+  .editorial-album-all-grid button img {
+    transition: none;
+    transform: none !important;
+  }
+  .editorial-album-zoom-cue {
+    transition: none;
+  }
+}
+.editorial-album-all-grid figcaption {
+  margin-top: 0.4rem;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+@media (min-width: 768px) {
+  .editorial-album-all-grid {
+    columns: 3;
+    column-gap: 1rem;
+  }
+}
+@media (min-width: 1200px) {
+  .editorial-album-all-grid {
+    columns: 4;
+  }
+}
+.editorial-album-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding-block: 2rem 4rem;
+}
+.editorial-album-navigation a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 4vw, 2.25rem);
+  line-height: 1;
+}
+.editorial-album-navigation a + a {
+  justify-content: flex-end;
+  text-align: right;
+}
+.editorial-album a:hover {
+  color: var(--gold-ink);
+}
+.editorial-album a:focus-visible,
+.editorial-album button:focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 4px;
+}
+
+/* Phase 2D pilot albums. Natural image ratios and row-major gallery order are intentional. */
+.unified-album {
+  background: var(--background);
+  color: var(--foreground);
+}
+.unified-album-cover {
+  height: min(58svh, 48vw);
+  min-height: 17rem;
+  overflow: hidden;
+  background: var(--secondary);
+}
+.unified-album-cover button,
+.unified-album-highlight button,
+.unified-album-grid button {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: zoom-in;
+}
+.unified-album-cover button {
+  height: 100%;
+}
+.unified-album-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.unified-album-mast {
+  display: grid;
+  gap: 1.25rem;
+  padding-block: 1.5rem 1.75rem;
+}
+.unified-album-mast nav {
+  grid-column: 1 / -1;
+}
+.unified-album-back,
+.unified-album-gallery-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.unified-album-heading h1 {
+  margin-top: 0.45rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.25rem, 11vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+}
+.unified-album-intro {
+  display: grid;
+  align-content: end;
+  gap: 0.6rem;
+}
+.unified-album-intro p {
+  max-width: 40ch;
+  font-family: var(--font-serif);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  line-height: 1.3;
+}
+.unified-album-intro strong {
+  font-size: 0.9rem;
+}
+@media (min-width: 900px) {
+  .unified-album-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 26rem);
+    column-gap: 4rem;
+  }
+}
+.unified-album-view-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  border-block: 1px solid var(--border);
+}
+.unified-album-view-nav a {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.unified-album-view-nav a[aria-current="page"] {
+  border-bottom-color: var(--gold-ink);
+  color: var(--foreground);
+}
+.unified-album-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  padding-block: 2rem 4rem;
+}
+.unified-album-highlight {
+  min-width: 0;
+  flex: 0 0 100%;
+}
+.unified-album-highlight img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--secondary);
+}
+.unified-album-highlight figcaption {
+  margin-top: 0.55rem;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 768px) {
+  .unified-album-highlights {
+    align-items: flex-start;
+    gap: 3.5rem 1rem;
+  }
+  .unified-album-highlight:not(.unified-album-highlight--wide) {
+    flex: var(--mosaic-grow) 0 var(--highlight-tablet-basis);
+  }
+}
+@media (min-width: 1200px) {
+  .unified-album-highlight:not(.unified-album-highlight--wide) {
+    flex-basis: var(--highlight-desktop-basis);
+  }
+}
+.unified-album-gallery-link {
+  flex: 0 0 100%;
+}
+.unified-album-gallery {
+  padding-block: 2rem 4rem;
+  container-type: inline-size;
+}
+.unified-album-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.unified-album-section-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1;
+}
+.unified-album-section-head p {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.unified-album-grid {
+  position: relative;
+  width: 100%;
+  height: var(--mosaic-mobile-height);
+}
+.unified-album-grid li {
+  position: absolute;
+  left: var(--mosaic-mobile-x);
+  top: var(--mosaic-mobile-y);
+  width: var(--mosaic-mobile-width);
+  height: var(--mosaic-mobile-height);
+}
+.unified-album-grid figure,
+.unified-album-grid button,
+.unified-album-grid img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.unified-album-grid img {
+  object-fit: contain;
+  background: var(--secondary);
+}
+@media (min-width: 481px) {
+  .unified-album-grid { height: var(--mosaic-smallTablet-height); }
+  .unified-album-grid li {
+    left: var(--mosaic-smallTablet-x);
+    top: var(--mosaic-smallTablet-y);
+    width: var(--mosaic-smallTablet-width);
+    height: var(--mosaic-smallTablet-height);
+  }
+}
+@media (min-width: 560px) {
+  .unified-album-grid { height: var(--mosaic-mediumTablet-height); }
+  .unified-album-grid li {
+    left: var(--mosaic-mediumTablet-x);
+    top: var(--mosaic-mediumTablet-y);
+    width: var(--mosaic-mediumTablet-width);
+    height: var(--mosaic-mediumTablet-height);
+  }
+}
+@media (min-width: 768px) {
+  .unified-album-grid { height: var(--mosaic-tablet-height); }
+  .unified-album-grid li {
+    left: var(--mosaic-tablet-x);
+    top: var(--mosaic-tablet-y);
+    width: var(--mosaic-tablet-width);
+    height: var(--mosaic-tablet-height);
+  }
+}
+@media (min-width: 1024px) {
+  .unified-album-grid { height: var(--mosaic-desktop-height); }
+  .unified-album-grid li {
+    left: var(--mosaic-desktop-x);
+    top: var(--mosaic-desktop-y);
+    width: var(--mosaic-desktop-width);
+    height: var(--mosaic-desktop-height);
+  }
+}
+.unified-album-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+.unified-album-progress output {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.unified-album-show-more {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--gold-ink);
+  font-weight: 600;
+}
+.unified-album-next {
+  border-top: 1px solid var(--border);
+  padding-block: 2rem 4rem;
+}
+.unified-album-next a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 4vw, 2rem);
+}
+.unified-album-zoom-cue {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .unified-album-cover img,
+  .unified-album-highlight img,
+  .unified-album-grid img {
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .unified-album-cover button:hover img,
+  .unified-album-highlight button:hover img,
+  .unified-album-grid button:hover img {
+    transform: scale(1.02);
+  }
+  .unified-album button:hover .unified-album-zoom-cue {
+    opacity: 1;
+  }
+}
+.unified-album button:focus-visible .unified-album-zoom-cue {
+  opacity: 1;
+}
+.unified-album a:focus-visible,
+.unified-album button:focus-visible {
+  outline: 3px solid var(--foreground);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unified-album-cover img,
+  .unified-album-highlight img,
+  .unified-album-grid img,
+  .unified-album-zoom-cue {
+    transition: none;
+  }
+  .unified-album img {
+    transform: none !important;
+  }
+}
+
 @utility title-page {
   font-size: 3.75rem;
   line-height: 1;

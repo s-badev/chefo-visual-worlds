@@ -8,7 +8,7 @@ export const Route = createFileRoute("/en/ai-worlds/$slug")({
   // See ai-worlds.$slug.tsx: destinations resolve first, then finished artworks.
   loader: ({ params }) => {
     const destination = getDestination(params.slug);
-    if (destination) return { destination, work: undefined };
+    if (destination && !destination.artworkTemplate) return { destination, work: undefined };
     const work = getAiWork(params.slug);
     if (!work) throw notFound();
     return { work, destination: undefined };

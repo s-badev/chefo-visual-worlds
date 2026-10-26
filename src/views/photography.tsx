@@ -20,12 +20,15 @@ import {
   getAlbumCover,
   getAlbumForPhoto,
   getAlbumPhotos,
-  getAlbums,
   getNextAlbum,
   type Album,
 } from "@/content/albums";
 import { Chip, ChipGroup, EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
 import { Surface } from "@/components/surface";
+import { PhotographyEditorial } from "@/components/photography-editorial";
+import { EditorialAlbumView } from "@/components/editorial-album";
+import { UnifiedAlbumView } from "@/components/unified-album";
+import { getPilotEditorialAlbum } from "@/content/editorial";
 import { reveal } from "@/hooks/use-reveal";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -81,33 +84,36 @@ export function PhotographyView() {
       replace: true,
     });
   };
-  const ordered = getAlbums();
   const items = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme, location }).map(
     ({ photo }) => photo,
   );
-  const layout = [
-    "lg:col-span-7 lg:min-h-[34rem]",
-    "lg:col-span-5 lg:min-h-[34rem]",
-    "lg:col-span-4 lg:min-h-[27rem]",
-    "lg:col-span-8 lg:min-h-[27rem]",
-    "lg:col-span-6 lg:min-h-[31rem]",
-    "lg:col-span-6 lg:min-h-[31rem]",
-    "lg:col-span-8 lg:min-h-[27rem]",
-    "lg:col-span-4 lg:min-h-[27rem]",
-    "lg:col-span-5 lg:min-h-[31rem]",
-    "lg:col-span-7 lg:min-h-[31rem]",
-  ];
+
+  if (view !== "photos") {
+    return (
+      <PhotographyEditorial
+        onAllPhotos={() => {
+          set({ view: "photos" });
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }}
+      />
+    );
+  }
 
   return (
     <Surface tone="light" as="div" className="container-page section-y">
-      <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
+      <PageHeader
+        eyebrow={m.eyebrow}
+        title={m.title}
+        intro={m.intro}
+        className="photography-all-photos-header"
+      />
 
       <div role="group" aria-label={m.view} className="mt-10 flex gap-8 border-b">
         <button
           type="button"
           aria-pressed={view !== "photos"}
           onClick={() => set({ view: undefined })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.albums}
         </button>
@@ -115,122 +121,69 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view === "photos"}
           onClick={() => set({ view: "photos" })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.allPhotos}
         </button>
       </div>
 
-      {view === "photos" ? (
-        <section aria-label={m.allPhotos}>
-          <div className="mt-8 space-y-4 border-b pb-8">
-            <ChipGroup label={m.theme}>
-              <Chip active={!theme} onClick={() => set({ theme: undefined })}>
-                {t.common.all}
-              </Chip>
-              {PHOTO_THEMES.map((value) => (
-                <Chip
-                  key={value}
-                  active={theme === value}
-                  onClick={() => set({ theme: theme === value ? undefined : value })}
-                >
-                  {photoThemeLabel(value, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-            <ChipGroup label={m.place}>
-              <Chip active={!location} onClick={() => set({ location: undefined })}>
-                {t.common.all}
-              </Chip>
-              {getPhotoLocations().map((album) => (
-                <Chip
-                  key={album.id}
-                  active={location === album.slug}
-                  onClick={() =>
-                    set({ location: location === album.slug ? undefined : album.slug })
-                  }
-                >
-                  {albumText(album.title, locale)}
-                </Chip>
-              ))}
-            </ChipGroup>
-          </div>
-          <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
-            {m.count(items.length)}
-          </p>
-          {items.length ? (
-            <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((photo, index) => (
-                <div key={photo.slug} {...reveal(index)}>
-                  <PhotoCard
-                    photo={photo}
-                    themeLabel={photo.themes
-                      .map((value) => photoThemeLabel(value, locale))
-                      .join(" · ")}
-                    onOpen={() => setLightbox(index)}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              text={m.empty}
-              onClear={() => set({ theme: undefined, location: undefined })}
-            />
-          )}
-          <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
-        </section>
-      ) : (
-        <section
-          aria-label={m.title}
-          className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-12 lg:gap-7"
-        >
-          {ordered.map((album, index) => {
-            const rawCover = getAlbumCover(album);
-            const cover = rawCover ? localizePhoto(rawCover, locale) : undefined;
-            const name = albumText(album.title, locale);
-            const populated = Boolean(cover && album.photos.length);
-            return (
-              <LocaleLink
-                key={album.id}
-                to="/photography/albums/$slug"
-                slug={album.slug}
-                className={`group relative isolate flex min-h-[23rem] flex-col justify-end overflow-hidden rounded-md p-7 shadow-soft outline-none transition-[transform,box-shadow] duration-(--dur-base) ease-cinematic hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-[27rem] md:p-9 ${populated ? "bg-navy text-navy-foreground" : "bg-secondary text-foreground"} ${layout[index % layout.length]}`}
+      <section aria-label={m.allPhotos}>
+        <div className="mt-8 space-y-4 border-b pb-8">
+          <ChipGroup label={m.theme}>
+            <Chip active={!theme} onClick={() => set({ theme: undefined })}>
+              {t.common.all}
+            </Chip>
+            {PHOTO_THEMES.map((value) => (
+              <Chip
+                key={value}
+                active={theme === value}
+                onClick={() => set({ theme: theme === value ? undefined : value })}
               >
-                {populated ? (
-                  <>
-                    <img
-                      src={cover!.image}
-                      alt={cover!.alt}
-                      width={cover!.width}
-                      height={cover!.height}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/25 to-navy/10 transition-colors duration-300 group-hover:from-navy/95"
-                    />
-                  </>
-                ) : (
-                  <PassePartout />
-                )}
-                <span className="relative block">
-                  <span className="block font-serif text-4xl leading-tight md:text-5xl">
-                    {name}
-                  </span>
-                  <span
-                    className={`mt-3 block text-sm font-medium ${populated ? "text-navy-foreground/85" : "text-muted-foreground"}`}
-                  >
-                    {populated ? m.count(album.photos.length) : m.albumEmpty}
-                  </span>
-                </span>
-              </LocaleLink>
-            );
-          })}
-        </section>
-      )}
+                {photoThemeLabel(value, locale)}
+              </Chip>
+            ))}
+          </ChipGroup>
+          <ChipGroup label={m.place}>
+            <Chip active={!location} onClick={() => set({ location: undefined })}>
+              {t.common.all}
+            </Chip>
+            {getPhotoLocations().map((album) => (
+              <Chip
+                key={album.id}
+                active={location === album.slug}
+                onClick={() => set({ location: location === album.slug ? undefined : album.slug })}
+              >
+                {albumText(album.title, locale)}
+              </Chip>
+            ))}
+          </ChipGroup>
+        </div>
+        <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
+          {m.count(items.length)}
+        </p>
+        {items.length ? (
+          <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((photo, index) => (
+              <div key={photo.slug} {...reveal(index)}>
+                <PhotoCard
+                  photo={photo}
+                  frame="keyline"
+                  themeLabel={photo.themes
+                    .map((value) => photoThemeLabel(value, locale))
+                    .join(" · ")}
+                  onOpen={() => setLightbox(index)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            text={m.empty}
+            onClear={() => set({ theme: undefined, location: undefined })}
+          />
+        )}
+        <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
+      </section>
     </Surface>
   );
 }
@@ -257,7 +210,17 @@ export function AlbumNotFoundView() {
   );
 }
 
-export function AlbumView({ album }: { album: Album }) {
+export function AlbumView({ album, view }: { album: Album; view?: "all" | undefined }) {
+  if (album.slug === "paris" || album.slug === "istanbul") {
+    return <EditorialAlbumView album={album} />;
+  }
+  if (getPilotEditorialAlbum(album.slug)) {
+    return <UnifiedAlbumView album={album} view={view === "all" ? "all" : "highlights"} />;
+  }
+  return <StandardAlbumView album={album} />;
+}
+
+function StandardAlbumView({ album }: { album: Album }) {
   const { t, locale } = useT();
   const m = t.photos;
   const items = getAlbumPhotos(album, locale);
@@ -269,7 +232,7 @@ export function AlbumView({ album }: { album: Album }) {
       <nav aria-label={m.backToAlbums} className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
-            <LocaleLink to="/photography" className="hover:text-terracotta">
+            <LocaleLink to="/photography" className="hover:text-terracotta-ink">
               {m.title}
             </LocaleLink>
           </li>
@@ -281,7 +244,7 @@ export function AlbumView({ album }: { album: Album }) {
       </nav>
       <LocaleLink
         to="/photography"
-        className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+        className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
       >
         <ArrowLeft className="size-4" /> {m.backToAlbums}
       </LocaleLink>
@@ -317,7 +280,7 @@ export function AlbumView({ album }: { album: Album }) {
               <LocaleLink
                 to="/photography/$slug"
                 slug={items[0]!.slug}
-                className="text-sm text-muted-foreground hover:text-terracotta"
+                className="text-sm text-muted-foreground hover:text-terracotta-ink"
               >
                 {items[0]!.location} <ArrowRight className="inline size-3.5" />
               </LocaleLink>
@@ -347,7 +310,7 @@ export function AlbumView({ album }: { album: Album }) {
                     <LocaleLink
                       to="/photography/$slug"
                       slug={photo.slug}
-                      className="font-serif text-xl hover:text-terracotta"
+                      className="font-serif text-xl hover:text-terracotta-ink"
                     >
                       {photo.caption ?? photo.title}
                     </LocaleLink>
@@ -373,7 +336,7 @@ export function AlbumView({ album }: { album: Album }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={next.slug}
-            className="group inline-flex items-center gap-5 hover:text-terracotta"
+            className="group inline-flex items-center gap-5 hover:text-terracotta-ink"
           >
             <span>
               <span className="eyebrow block text-muted-foreground">{m.nextAlbum}</span>
@@ -439,7 +402,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           width={photo.width}
           height={photo.height}
           fetchPriority="high"
-          className="mx-auto max-h-[78vh] w-auto max-w-full rounded-sm object-contain shadow-soft"
+          className="photo-frame-print photo-frame-print--detail mx-auto max-h-[78vh] w-auto max-w-full rounded-sm object-contain shadow-soft"
         />
       </div>
       <div className="mx-auto max-w-6xl px-5 pt-8 md:px-8">
@@ -447,14 +410,14 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={album.slug}
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbum}: {albumText(album.title, locale)}
           </LocaleLink>
         ) : (
           <LocaleLink
             to="/photography"
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta"
+            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbums}
           </LocaleLink>
@@ -493,7 +456,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={prev.slug}
-          className="group flex items-center gap-3 hover:text-terracotta"
+          className="group flex items-center gap-3 hover:text-terracotta-ink"
         >
           <ArrowLeft className="size-4" />{" "}
           <span>
@@ -504,7 +467,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={next.slug}
-          className="group flex items-center gap-3 text-right hover:text-terracotta"
+          className="group flex items-center gap-3 text-right hover:text-terracotta-ink"
         >
           <span>
             <span className="eyebrow block text-muted-foreground">{m.next}</span>
@@ -519,7 +482,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           <div className="mt-8 grid gap-8 sm:grid-cols-3">
             {related.map((item, i) => (
               <div key={item.slug} {...reveal(i)}>
-                <PhotoCard photo={item} ratio="aspect-[4/5]" />
+                <PhotoCard photo={item} ratio="aspect-[4/5]" frame="keyline" />
               </div>
             ))}
           </div>
