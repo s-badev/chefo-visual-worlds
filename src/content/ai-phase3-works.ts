@@ -73,8 +73,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Ню Йорк след дъжда", "New York After the Rain"],
     description: [
-      "Сред мокрите улици и отраженията на градските светлини Ню Йорк разкрива различното си лице — по-тихо, загадъчно и изпълнено с истории.",
-      "Among wet streets and reflections of city lights, New York reveals a different side—quieter, more mysterious and full of stories.",
+      "След дъжда Ню Йорк забавя крачка, поне за един квартал. Тъкмо тогава разбираш, че градът има и други истории освен бързането.",
+      "After the rain, New York slows down for a block or two. That’s when you notice the city has stories beyond the rush.",
     ],
     alt: [
       "Мъж с тъмно палто и чаша кафе на дъждовна улица в Ню Йорк",
@@ -98,8 +98,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Залез над Сидни", "Sydney at Sunset"],
     description: [
-      "Последните слънчеви лъчи огряват пристанището на Сидни. Един спокоен момент, в който шумът на града отстъпва пред красотата на вечерта.",
-      "The last rays of sunlight warm Sydney Harbour. A quiet moment when the city's noise gives way to the beauty of the evening.",
+      "В Сидни вечерта идва без особена церемония. Оказва се, че някои гледки са по-хубави, когато не се опитваш да ги запомниш.",
+      "In Sydney, evening arrives without much ceremony. Some views are better when you stop trying so hard to remember them.",
     ],
     alt: [
       "Мъж със светлосиня ленена риза край пристанището на Сидни по залез",
@@ -126,8 +126,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Последните лъчи", "The Last Light"],
     description: [
-      "Край морето денят бавно отстъпва на вечерта. Топлият залез и свободният дух на пътешествието превръщат обикновения миг в спомен.",
-      "By the sea, the day slowly gives way to evening. The warm sunset and the free spirit of travel turn an ordinary moment into a memory.",
+      "Тръгваш да продължиш пътя, но оставаш още минута. Понякога най-доброто решение за днес е да оставиш следващото за утре.",
+      "You mean to keep going, then stay another minute. Sometimes the best decision today is to leave the next one for tomorrow.",
     ],
     alt: [
       "Пътешественик с раница на скалист тропически бряг по залез",
@@ -154,8 +154,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Утро сред оризовите тераси", "Morning Among the Rice Terraces"],
     description: [
-      "Първото кафе за деня има различен вкус сред зелените тераси и спокойствието на тропическата природа. Пътешествието започва без бързане.",
-      "The first coffee of the day tastes different among green terraces and the calm of tropical nature. The journey begins without haste.",
+      "Първата ти мисъл не е накъде да тръгнеш. Някои утрини те учат да останеш, преди да продължиш.",
+      "Your first thought isn’t where to go next. Some mornings teach you to stay before you set off.",
     ],
     alt: [
       "Мъж с чаша кафе пред зелени оризови тераси и тропически планини",
