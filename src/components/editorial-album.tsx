@@ -4,6 +4,7 @@ import { albumText, getAlbumCover, getAlbumPhotos, getAlbums, type Album } from 
 import { getChapterRows, getEditorialAlbum, type EditorialImage } from "@/content/editorial";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
+import { NextAlbumCard } from "@/components/next-album-card";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
@@ -173,7 +174,10 @@ export function EditorialAlbumView({ album }: { album: Album }) {
         </div>
         <ul className="editorial-album-all-grid">
           {items.map((photo, index) => (
-            <li key={photo.slug}>
+            <li
+              key={photo.slug}
+              style={{ "--gallery-ratio": String(photo.width / photo.height) } as CSSProperties}
+            >
               <figure>
                 <button
                   type="button"
@@ -217,16 +221,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
             <span>{albumText(previousAlbum.title, locale)}</span>
           </LocaleLink>
         )}
-        {nextAlbum && (
-          <LocaleLink
-            to="/photography/albums/$slug"
-            slug={nextAlbum.slug}
-            aria-label={`${t.photos.nextAlbum}: ${albumText(nextAlbum.title, locale)}`}
-          >
-            <span>{albumText(nextAlbum.title, locale)}</span>
-            <ArrowRight size={17} aria-hidden="true" />
-          </LocaleLink>
-        )}
+        {nextAlbum && <NextAlbumCard album={nextAlbum} />}
       </nav>
       <Lightbox items={items} index={lightbox} onIndex={setLightbox} returnFocusTo={origin} />
     </Surface>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { ArrowLeft, ArrowRight, ZoomIn } from "lucide-react";
+import { ArrowLeft, ZoomIn } from "lucide-react";
 import { albumText, getAlbumCover, getAlbumPhotos, getAlbums, type Album } from "@/content/albums";
 import { getPilotEditorialAlbum } from "@/content/editorial";
 import {
@@ -14,27 +14,7 @@ import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-
-const nextAlbumCovers: Record<string, { image: string; width: number; height: number }> = {
-  sofia: { image: "/photos/sofia/sofia-cover-card.webp", width: 720, height: 405 },
-  "sunny-beach": {
-    image: "/photos/sunny-beach/sunny-beach-cover-card.webp",
-    width: 720,
-    height: 405,
-  },
-  "sveti-vlas": {
-    image: "/photos/sveti-vlas/sveti-vlas-cover-card.webp",
-    width: 720,
-    height: 405,
-  },
-  nessebar: { image: "/photos/nessebar/nessebar-cover-card.webp", width: 720, height: 405 },
-  plovdiv: { image: "/photos/plovdiv/plovdiv-cover-card.webp", width: 720, height: 480 },
-  rila: { image: "/photos/rila/rila-cover-card.webp", width: 720, height: 405 },
-  tunisia: { image: "/photos/tunisia/tunisia-cover-card.webp", width: 720, height: 405 },
-  paris: { image: "/photos/paris/paris-cover-card.webp", width: 720, height: 405 },
-  istanbul: { image: "/photos/istanbul/istanbul-cover-card.webp", width: 720, height: 405 },
-  bodrum: { image: "/photos/bodrum/bodrum-cover-card.webp", width: 720, height: 405 },
-};
+import { NextAlbumCard } from "@/components/next-album-card";
 
 function FullGallery({
   items,
@@ -154,10 +134,6 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
   const ordered = getAlbums();
   const position = ordered.findIndex((item) => item.slug === album.slug);
   const nextAlbum = ordered[(position + 1) % ordered.length];
-  const nextCover = nextAlbum ? nextAlbumCovers[nextAlbum.slug] : undefined;
-  const nextCoverPosition = nextAlbum
-    ? getPilotEditorialAlbum(nextAlbum.slug)?.coverObjectPosition
-    : undefined;
   const open = (slug: string, trigger: HTMLElement) => {
     const index = indexBySlug.get(slug);
     if (index === undefined) return;
@@ -278,34 +254,7 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
       <FullGallery key={album.slug} items={items} open={open} sectionRef={allPhotos} />
       {nextAlbum && (
         <nav className="container-page unified-album-next" aria-label={t.photos.nextAlbum}>
-          <LocaleLink
-            to="/photography/albums/$slug"
-            slug={nextAlbum.slug}
-            className={`next-album-card ${nextCover ? "next-album-card--image" : "next-album-card--fallback"}`}
-            aria-label={`${t.photos.nextAlbum}: ${albumText(nextAlbum.title, locale)}`}
-          >
-            {nextCover && (
-              <img
-                className="next-album-card-cover"
-                src={nextCover.image}
-                alt=""
-                width={nextCover.width}
-                height={nextCover.height}
-                loading="lazy"
-                decoding="async"
-                aria-hidden="true"
-                style={nextCoverPosition ? { objectPosition: nextCoverPosition } : undefined}
-              />
-            )}
-            <span className="next-album-card-shade" aria-hidden="true" />
-            <span className="next-album-card-text">
-              <span className="next-album-card-eyebrow">{t.photos.nextAlbum}</span>
-              <span className="next-album-card-name">{albumText(nextAlbum.title, locale)}</span>
-            </span>
-            <span className="next-album-card-arrow" aria-hidden="true">
-              <ArrowRight size={18} />
-            </span>
-          </LocaleLink>
+          <NextAlbumCard album={nextAlbum} />
         </nav>
       )}
       <Lightbox items={items} index={lightbox} onIndex={setLightbox} returnFocusTo={origin} />

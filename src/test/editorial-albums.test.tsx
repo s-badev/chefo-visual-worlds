@@ -111,6 +111,43 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
     },
   );
 
+  it.each(["bg", "en"] as const)(
+    "uses the shared %s next-album card without replacing the previous action",
+    (language) => {
+      locale = language;
+      const expected =
+        slug === "paris"
+          ? { previous: "tunisia", next: "lyon", cover: "/photos/lyon/lyon-cover-card.webp" }
+          : { previous: "lyon", next: "edirne", cover: "/photos/edirne/edirne-cover-card.webp" };
+      const nextAlbum = getAlbum(expected.next)!;
+      const { container } = render(<AlbumView album={getAlbum(slug)!} />);
+      const navigation = container.querySelector(".editorial-album-navigation")!;
+      const card = navigation.querySelector<HTMLAnchorElement>(".next-album-card")!;
+      const previous = navigation.querySelector<HTMLAnchorElement>(
+        "a:not(.next-album-card)",
+      )!;
+
+      expect(previous).toHaveAttribute("href", `/photography/albums/${expected.previous}`);
+      expect(card).toHaveAttribute("href", `/photography/albums/${expected.next}`);
+      expect(card).toHaveAccessibleName(
+        `${messages[language].photos.nextAlbum}: ${
+          nextAlbum.title[language] ?? nextAlbum.title.bg
+        }`,
+      );
+      expect(card.querySelector(".next-album-card-cover")).toHaveAttribute(
+        "src",
+        expected.cover,
+      );
+      expect(
+        navigation.querySelectorAll(`a[href='/photography/albums/${expected.next}']`),
+      ).toHaveLength(1);
+      expect(container.querySelector(".editorial-album-jump")).toHaveAttribute(
+        "href",
+        "#editorial-album-all",
+      );
+    },
+  );
+
   it("opens curated and full-gallery images at their authoritative indices", () => {
     const album = getAlbum(slug)!;
     const canonical = getAlbumPhotos(album, locale);
@@ -147,6 +184,12 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
     expect(
       [...container.querySelectorAll(".editorial-album h2")].map((heading) => heading.textContent),
     ).toEqual([messages.bg.photos.allPhotos]);
+    const galleryItems = [
+      ...container.querySelectorAll<HTMLElement>(".editorial-album-all-grid > li"),
+    ];
+    expect(galleryItems.map((item) => item.style.getPropertyValue("--gallery-ratio"))).toEqual(
+      canonical.map((photo) => String(photo.width / photo.height)),
+    );
   });
 });
 
