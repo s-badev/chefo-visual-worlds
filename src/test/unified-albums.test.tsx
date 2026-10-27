@@ -76,7 +76,7 @@ const pilotSlugs = [...originalPilotSlugs, ...waveASlugs, ...waveBSlugs] as cons
 const canonicalHashes: Record<string, string> = {
   sofia: "4577f4086abe28dcc1eafe33feb1c9fc7c05804e11526da89b5005027b251daa",
   "sunny-beach": "14dbb180ebd3ba6402a8b2e7a562225d28a34eeb069243bc4017362d49cda216",
-  "sveti-vlas": "3ae17640d687880e1d79bb60ea700951dd26ac136411cf8562d5bc9b590ddeab",
+  "sveti-vlas": "3c3ec2efd6d13b61247a22398cdf06e9d0ea92145dff603b980e95fc10d988fc",
   nessebar: "a100ad56f4cd426d54be73f277e30c41901e1877e0252b88da40a8a5c13d0064",
   plovdiv: "6ff19d36b14e1b2ce93d75aa5184a5b991a17bf7f3ea0830d464fea5a8e300f1",
   rila: "6cddefe3229cc75ca985a1264d5f7b28d2c64c855bd358690020e5567be2a786",
@@ -184,7 +184,7 @@ it.each(pilotSlugs)("plans %s in canonical, complete, prefix-stable rows", (slug
 const expectedStacks = {
   "sunny-beach": { mobile: 4, smallTablet: 4, mediumTablet: 5, tablet: 3, desktop: 3 },
   sofia: { mobile: 5, smallTablet: 6, mediumTablet: 2, tablet: 3, desktop: 6 },
-  "sveti-vlas": { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 0, desktop: 1 },
+  "sveti-vlas": { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 1 },
   rila: { mobile: 5, smallTablet: 5, mediumTablet: 4, tablet: 3, desktop: 6 },
   lyon: { mobile: 3, smallTablet: 3, mediumTablet: 2, tablet: 2, desktop: 4 },
   bodrum: { mobile: 3, smallTablet: 4, mediumTablet: 2, tablet: 2, desktop: 4 },

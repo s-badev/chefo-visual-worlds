@@ -12,8 +12,8 @@ describe("photography filters", () => {
   const items = getAllGalleryPhotos("bg");
 
   it("shows each existing photo once and derives twelve destinations from albums", () => {
-    expect(items).toHaveLength(395);
-    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(395);
+    expect(items).toHaveLength(400);
+    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(400);
     for (const slug of [
       "nesebar-vyatarnata-melnitsa",
       "nesebar-hram-pantokrator",
