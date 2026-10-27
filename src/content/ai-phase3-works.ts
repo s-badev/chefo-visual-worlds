@@ -39,8 +39,8 @@ const rows: Phase3Row[] = [
     category: "Професии и роли",
     title: ["Майсторът на царевицата", "The Corn Vendor"],
     description: [
-      "По крайбрежната алея ароматът на топла царевица събира летовниците край малкия щанд. За този продавач лятото е сезон на работа, срещи и весели истории.",
-      "Along the seaside promenade, the aroma of warm corn draws holidaymakers to the small stand. For this vendor, summer is a season of work, encounters and cheerful stories.",
+      "За другите лятото е почивка. За него е сезонът на нови лица и поръчки, които вече знае наизуст.",
+      "For everyone else, summer is a holiday. For him, it brings new faces and orders he already knows by heart.",
     ],
     alt: [
       "Продавач подправя топла варена царевица на щанд край морето",
@@ -56,8 +56,8 @@ const rows: Phase3Row[] = [
     category: "Професии и роли",
     title: ["Бояджия с характер", "The Painter's Touch"],
     description: [
-      "Един обикновен ремонт се превръща в цветно приключение. Майсторът запазва доброто си настроение дори когато боята решава да тръгне в неочаквана посока.",
-      "An ordinary renovation turns into a colourful adventure. The painter keeps his good humour even when the paint decides to travel in an unexpected direction.",
+      "Всяка стена крие изненада, която не е била в плана. Той обикновено я посреща с чувство за хумор.",
+      "Every wall holds a surprise that was never in the plan. He usually meets it with a sense of humour.",
     ],
     alt: [
       "Бояджия с изцапано работно облекло държи валяк с капеща бяла боя",
@@ -73,8 +73,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Ню Йорк след дъжда", "New York After the Rain"],
     description: [
-      "След дъжда Ню Йорк забавя крачка, поне за един квартал. Тъкмо тогава разбираш, че градът има и други истории освен бързането.",
-      "After the rain, New York slows down for a block or two. That’s when you notice the city has stories beyond the rush.",
+      "След дъжд Ню Йорк забавя крачка за секунда. Той я улавя, преди градът отново да се сети да бърза.",
+      "After the rain, New York slows down for a second. He catches it before the city remembers to rush.",
     ],
     alt: [
       "Мъж с тъмно палто и чаша кафе на дъждовна улица в Ню Йорк",
@@ -98,8 +98,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Залез над Сидни", "Sydney at Sunset"],
     description: [
-      "В Сидни вечерта идва без особена церемония. Оказва се, че някои гледки са по-хубави, когато не се опитваш да ги запомниш.",
-      "In Sydney, evening arrives without much ceremony. Some views are better when you stop trying so hard to remember them.",
+      "В Сидни денят приключва без голям финал. Понякога точно това е най-хубавото, което пътуването може да предложи.",
+      "In Sydney, the day ends without a grand finale. Sometimes that is the best thing a journey can offer.",
     ],
     alt: [
       "Мъж със светлосиня ленена риза край пристанището на Сидни по залез",
@@ -126,8 +126,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Последните лъчи", "The Last Light"],
     description: [
-      "Тръгваш да продължиш пътя, но оставаш още минута. Понякога най-доброто решение за днес е да оставиш следващото за утре.",
-      "You mean to keep going, then stay another minute. Sometimes the best decision today is to leave the next one for tomorrow.",
+      "Не всеки залез иска да се превърне в история. Понякога стига да си бил там, когато денят е свършил.",
+      "Not every sunset needs to become a story. Sometimes it is enough to have been there when the day ended.",
     ],
     alt: [
       "Пътешественик с раница на скалист тропически бряг по залез",
@@ -154,8 +154,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Утро сред оризовите тераси", "Morning Among the Rice Terraces"],
     description: [
-      "Първата ти мисъл не е накъде да тръгнеш. Някои утрини те учат да останеш, преди да продължиш.",
-      "Your first thought isn’t where to go next. Some mornings teach you to stay before you set off.",
+      "Сутринта започва без списък със задачи. Тук бездействието не се усеща като пропуснато време.",
+      "The morning begins without a list of things to do. Here, doing nothing does not feel like time wasted.",
     ],
     alt: [
       "Мъж с чаша кафе пред зелени оризови тераси и тропически планини",
