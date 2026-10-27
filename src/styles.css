@@ -900,7 +900,6 @@
 .editorial-album-breadcrumb {
   grid-column: 1 / -1;
 }
-.editorial-album-back,
 .editorial-album-jump {
   display: inline-flex;
   min-height: 44px;
@@ -1210,16 +1209,6 @@
 .unified-album-mast nav {
   grid-column: 1 / -1;
 }
-.unified-album-back,
-.unified-album-gallery-link {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--gold-ink);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
 .unified-album-heading h1 {
   margin-top: 0.45rem;
   font-family: var(--font-serif);
@@ -1303,7 +1292,8 @@
     flex-basis: var(--highlight-desktop-basis);
   }
 }
-.unified-album-gallery-link {
+.unified-album-gallery-action {
+  display: flex;
   flex: 0 0 100%;
 }
 .unified-album-gallery {
@@ -1397,28 +1387,12 @@
   padding-top: 1rem;
 }
 .unified-album-progress output {
-  color: var(--muted-foreground);
+  color: var(--foreground);
   font-size: 0.9rem;
-}
-.unified-album-show-more {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--gold-ink);
-  font-weight: 600;
 }
 .unified-album-next {
   border-top: 1px solid var(--border);
   padding-block: 2rem 4rem;
-}
-.unified-album-next a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-serif);
-  font-size: clamp(1.25rem, 4vw, 2rem);
 }
 .unified-album-zoom-cue {
   position: absolute;
@@ -1468,6 +1442,155 @@
   }
   .unified-album img {
     transform: none !important;
+  }
+}
+
+/* Link affordances: back pill (tier 1), section action pill (tier 2), next-album card (tier 3).
+   Light values by default; .surface-dark switches the back pill to the gold-on-navy variant.
+   Outline mixes are the lowest values that keep >= 3:1 against the page background. */
+.back-pill,
+.action-pill,
+.next-album-card {
+  color: var(--foreground);
+  transition-property: color, border-color, background-color, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--motion-ease);
+}
+.back-pill {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0 1rem 0 0.375rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 50%, transparent);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.back-pill-badge {
+  display: grid;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--gold-ink);
+  transition: background-color var(--dur-fast) var(--motion-ease);
+}
+.surface-dark .back-pill {
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  color: var(--navy-foreground);
+}
+.action-pill {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  border-radius: 999px;
+  background-color: transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.action-pill:active {
+  background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+/* Mobile: full-width buttons, the counter on its own line above Show More. */
+.unified-album-gallery-action .action-pill,
+.unified-album-show-more {
+  width: 100%;
+}
+.unified-album-progress {
+  flex-direction: column;
+  align-items: stretch;
+}
+@media (min-width: 768px) {
+  .unified-album-gallery-action {
+    justify-content: flex-end;
+  }
+  .unified-album-gallery-action .action-pill,
+  .unified-album-show-more {
+    width: auto;
+  }
+  .unified-album-progress {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+.next-album-card {
+  display: flex;
+  width: 100%;
+  min-height: 88px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-block: 0.75rem;
+}
+.next-album-card-text {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+}
+.next-album-card-name {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.next-album-card-arrow {
+  display: grid;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  border-radius: 50%;
+  transition-property: border-color, background-color, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--motion-ease);
+}
+a.back-pill:focus-visible,
+:is(a, button).action-pill:focus-visible,
+a.next-album-card:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+.surface-dark a.back-pill:focus-visible {
+  outline-color: var(--gold);
+}
+@media (hover: hover) {
+  a.back-pill:hover {
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+  a.back-pill:hover .back-pill-badge {
+    background-color: color-mix(in srgb, var(--gold) 30%, transparent);
+  }
+  .surface-dark a.back-pill:hover {
+    border-color: var(--gold);
+    color: var(--navy-foreground);
+  }
+  :is(a, button).action-pill:hover {
+    border-color: var(--foreground);
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+  :is(a, button).action-pill:hover:active {
+    background-color: color-mix(in srgb, var(--foreground) 85%, var(--background));
+  }
+  a.next-album-card:hover .next-album-card-arrow {
+    border-color: var(--foreground);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a.next-album-card:hover .next-album-card-arrow {
+    transform: translateX(4px);
   }
 }
 

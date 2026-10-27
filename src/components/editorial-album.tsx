@@ -123,8 +123,11 @@ export function EditorialAlbumView({ album }: { album: Album }) {
       </div>
       <div className="container-page editorial-album-mast">
         <nav className="editorial-album-breadcrumb" aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="editorial-album-back">
-            <ArrowLeft size={16} aria-hidden="true" /> {t.photos.backToAlbums}
+          <LocaleLink to="/photography" className="back-pill editorial-album-back">
+            <span className="back-pill-badge" aria-hidden="true">
+              <ArrowLeft size={18} />
+            </span>
+            {t.photos.backToAlbums}
           </LocaleLink>
         </nav>
         <div>

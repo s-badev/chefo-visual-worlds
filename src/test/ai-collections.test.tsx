@@ -150,7 +150,7 @@ describe("AI collection page", () => {
         const { unmount } = render(<AiCollectionView collection={collection} />);
         const link = screen.getByRole("link", { name: messages[locale].ai.backToAiWorlds });
         expect(link).toHaveAttribute("href", "/ai-worlds");
-        expect(link).toHaveClass("min-h-11", "focus-visible:outline-gold");
+        expect(link).toHaveClass("back-pill");
         unmount();
       }
     },
