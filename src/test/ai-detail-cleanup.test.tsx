@@ -67,7 +67,7 @@ const expectCleanDetail = (slug: string) => {
     name: messages[activeLocale].ai.backToCollection,
   });
   expect(parentLink).toHaveAttribute("href", `/ai-worlds/collections/${collection.slug}`);
-  expect(parentLink).toHaveClass("min-h-11", "focus-visible:outline-gold");
+  expect(parentLink).toHaveClass("back-pill");
   expect(screen.getAllByRole("link", { name: collection.title[activeLocale] })).toHaveLength(2);
 
   for (const unwanted of [

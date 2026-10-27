@@ -129,8 +129,8 @@ function FullGallery({
           {t.photos.shownCount(shown, items.length)}
         </output>
         {shown < items.length && (
-          <button type="button" className="unified-album-show-more" onClick={showMore}>
-            {t.photos.showMore} <ArrowRight size={17} aria-hidden="true" />
+          <button type="button" className="action-pill unified-album-show-more" onClick={showMore}>
+            {t.photos.showMore} <ArrowRight size={18} aria-hidden="true" />
           </button>
         )}
       </div>
@@ -228,8 +228,11 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
       </div>
       <div className="container-page unified-album-mast">
         <nav aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="unified-album-back">
-            <ArrowLeft size={16} aria-hidden="true" /> {t.photos.backToAlbums}
+          <LocaleLink to="/photography" className="back-pill unified-album-back">
+            <span className="back-pill-badge" aria-hidden="true">
+              <ArrowLeft size={18} />
+            </span>
+            {t.photos.backToAlbums}
           </LocaleLink>
         </nav>
         <div className="unified-album-heading">
@@ -306,24 +309,34 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
               </figure>
             );
           })}
-          <Link
-            to={route}
-            params={{ slug: album.slug }}
-            search={(previous) => ({ ...previous, view: "all" })}
-            resetScroll={false}
-            className="unified-album-gallery-link"
-          >
-            {t.photos.fullGallery} <ArrowRight size={18} aria-hidden="true" />
-          </Link>
+          <div className="unified-album-gallery-action">
+            <Link
+              to={route}
+              params={{ slug: album.slug }}
+              search={(previous) => ({ ...previous, view: "all" })}
+              resetScroll={false}
+              className="action-pill unified-album-gallery-link"
+            >
+              {t.photos.fullGallery} <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
         </section>
       )}
       {nextAlbum && (
         <nav className="container-page unified-album-next" aria-label={t.photos.nextAlbum}>
-          <LocaleLink to="/photography/albums/$slug" slug={nextAlbum.slug}>
-            <span>
-              {t.photos.nextAlbum}: {albumText(nextAlbum.title, locale)}
+          <LocaleLink
+            to="/photography/albums/$slug"
+            slug={nextAlbum.slug}
+            className="next-album-card"
+            aria-label={`${t.photos.nextAlbum}: ${albumText(nextAlbum.title, locale)}`}
+          >
+            <span className="next-album-card-text">
+              <span className="eyebrow text-eyebrow">{t.photos.nextAlbum}</span>
+              <span className="next-album-card-name">{albumText(nextAlbum.title, locale)}</span>
             </span>
-            <ArrowRight size={18} aria-hidden="true" />
+            <span className="next-album-card-arrow" aria-hidden="true">
+              <ArrowRight size={18} />
+            </span>
           </LocaleLink>
         </nav>
       )}
