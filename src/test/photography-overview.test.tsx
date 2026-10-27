@@ -302,7 +302,7 @@ describe("Photography album overview", () => {
     const view = render(<PhotographyView />);
     fireEvent.click(screen.getByRole("button", { name: "Всички снимки" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("395 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("400 кадъра")).toBeInTheDocument();
     expect(view.container.querySelectorAll('a[href^="/photography/albums/"]')).toHaveLength(0);
 
     fireEvent.click(
@@ -348,6 +348,6 @@ describe("Photography album overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Изчисти филтрите" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("395 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("400 кадъра")).toBeInTheDocument();
   });
 });

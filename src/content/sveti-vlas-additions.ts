@@ -1,6 +1,6 @@
 import type { Photo } from "./photos";
 
-/** Two original Sveti Vlas photographs, kept in their natural portrait proportions. */
+/** Original Sveti Vlas photographs, kept in their natural proportions and source resolution. */
 export const svetiVlasAdditions: Photo[] = [
   {
     slug: "sveti-vlas-009",
@@ -30,6 +30,81 @@ export const svetiVlasAdditions: Photo[] = [
     en: {
       title: "Swing Overlooking the Sea",
       alt: "Wooden swing on a hillside overlooking the sea and coastline",
+    },
+  },
+  {
+    slug: "sveti-vlas-beach-below-resort",
+    image: "/photos/sveti-vlas/sveti-vlas-beach-below-resort.webp",
+    width: 788,
+    height: 496,
+    title: "Плаж под сградите на хълма",
+    alt: "Пясъчен плаж със сламени чадъри и сгради с червени покриви на хълма над морето",
+    location: "Свети Влас",
+    category: "Море",
+    themes: ["sea", "travel"],
+    en: {
+      title: "Beach Below the Hillside Buildings",
+      alt: "Sandy beach with thatched umbrellas and red-roofed buildings on the hill above the sea",
+    },
+  },
+  {
+    slug: "sveti-vlas-rocky-shore-and-hotel",
+    image: "/photos/sveti-vlas/sveti-vlas-rocky-shore-and-hotel.webp",
+    width: 788,
+    height: 489,
+    title: "Каменист бряг към плажа",
+    alt: "Камъни край водата, плаж с чадъри и голяма сграда с червени покриви под ясно небе",
+    location: "Свети Влас",
+    category: "Море",
+    themes: ["sea", "travel"],
+    en: {
+      title: "Rocky Shore Toward the Beach",
+      alt: "Rocks by the water, a beach with umbrellas and a large red-roofed building beneath a clear sky",
+    },
+  },
+  {
+    slug: "sveti-vlas-beach-with-boat",
+    image: "/photos/sveti-vlas/sveti-vlas-beach-with-boat.webp",
+    width: 788,
+    height: 438,
+    title: "Бяла лодка на плажа",
+    alt: "Бяло-синя лодка на пясъка, хора във водата и залесен хълм над залива",
+    location: "Свети Влас",
+    category: "Море",
+    themes: ["sea", "travel"],
+    en: {
+      title: "White Boat on the Beach",
+      alt: "A white and blue boat on the sand, people in the water and a wooded hill above the bay",
+    },
+  },
+  {
+    slug: "sveti-vlas-coast-from-the-water",
+    image: "/photos/sveti-vlas/sveti-vlas-coast-from-the-water.webp",
+    width: 984,
+    height: 613,
+    title: "Брегът откъм водата",
+    alt: "Спокойна прозрачна вода и зелен каменист склон, който се спуска към морето",
+    location: "Свети Влас",
+    category: "Море",
+    themes: ["sea", "nature"],
+    en: {
+      title: "The Coast from the Water",
+      alt: "Calm clear water and a green rocky slope descending to the sea",
+    },
+  },
+  {
+    slug: "sveti-vlas-marina-boats",
+    image: "/photos/sveti-vlas/sveti-vlas-marina-boats.webp",
+    width: 1183,
+    height: 602,
+    title: "Моторни лодки в марината",
+    alt: "Моторни лодки на кея, уличен фенер и палма пред спокойната вода на марината",
+    location: "Свети Влас",
+    category: "Море",
+    themes: ["sea", "travel"],
+    en: {
+      title: "Motorboats in the Marina",
+      alt: "Motorboats at the pier, a street lamp and a palm before the calm water of the marina",
     },
   },
 ];

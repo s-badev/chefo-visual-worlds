@@ -48,7 +48,7 @@ describe("photography albums", () => {
       "bodrum",
     ]);
     expect(new Set(albums.map((album) => album.id)).size).toBe(albums.length);
-    expect(photos).toHaveLength(395);
+    expect(photos).toHaveLength(400);
     expect(
       albums.every((album) =>
         existsSync(join(process.cwd(), "public", "photos", album.slug, ".gitkeep")),
@@ -167,7 +167,7 @@ describe("photography albums", () => {
           (["sofia", "plovdiv"].includes(slug) ? 1 : 0) +
           (slug === "sunny-beach" ? 32 : 0) +
           (slug === "sofia" || slug === "sveti-vlas" ? 1 : 0) +
-          (slug === "sveti-vlas" ? 2 : 0),
+          (slug === "sveti-vlas" ? 7 : 0),
       );
       for (const photo of added) {
         const path = join(process.cwd(), "public", photo.image.slice(1));
@@ -216,7 +216,7 @@ describe("photography albums", () => {
   it("integrates the four archived batches without changing album covers", () => {
     const expected = [
       { slug: "sunny-beach", count: 58, added: 5, cover: "sunny-beach-010" },
-      { slug: "sveti-vlas", count: 11, added: 1, cover: "sveti-vlas-005" },
+      { slug: "sveti-vlas", count: 16, added: 1, cover: "sveti-vlas-005" },
       { slug: "sofia", count: 45, added: 1, cover: "sofia-001" },
       { slug: "nessebar", count: 33, added: 8, cover: "nessebar-015" },
     ];
@@ -250,13 +250,18 @@ describe("photography albums", () => {
   it("adds both Sveti Vlas originals once and preserves its cover", () => {
     const album = getPublishedAlbum("sveti-vlas")!;
     expect(album.coverPhotoSlug).toBe("sveti-vlas-005");
-    expect(getAlbumPhotos(album, "bg")).toHaveLength(11);
-    expect(getAlbumPhotos(album, "en")).toHaveLength(11);
+    expect(getAlbumPhotos(album, "bg")).toHaveLength(16);
+    expect(getAlbumPhotos(album, "en")).toHaveLength(16);
     expect(svetiVlasAdditions.map(({ slug }) => slug)).toEqual([
       "sveti-vlas-009",
       "sveti-vlas-010",
+      "sveti-vlas-beach-below-resort",
+      "sveti-vlas-rocky-shore-and-hotel",
+      "sveti-vlas-beach-with-boat",
+      "sveti-vlas-coast-from-the-water",
+      "sveti-vlas-marina-boats",
     ]);
-    expect(getAlbumPhotos(album, "en").slice(-2).map(({ title }) => title)).toEqual([
+    expect(getAlbumPhotos(album, "en").slice(9, 11).map(({ title }) => title)).toEqual([
       "Panoramic Sea View",
       "Swing Overlooking the Sea",
     ]);
