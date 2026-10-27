@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
-import { getAlbum } from "@/content/albums";
+import { getAlbum, getAlbumPhotos } from "@/content/albums";
 import { photos } from "@/content/photos";
 import { filterGalleryPhotos, getAllGalleryPhotos } from "@/content/photo-gallery";
 import { PortraitSwitch } from "@/components/portrait";
@@ -276,7 +276,9 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/lyon/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-grid img")).toHaveLength(
+      getAlbumPhotos(getAlbum("lyon")!, locale).length,
+    );
     expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 
@@ -294,7 +296,9 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/edirne/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-grid img")).toHaveLength(
+      getAlbumPhotos(getAlbum("edirne")!, locale).length,
+    );
     expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 

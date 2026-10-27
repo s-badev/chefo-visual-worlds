@@ -1,17 +1,15 @@
 import { createHash } from "node:crypto";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAlbum, getAlbumPhotos, getAlbums } from "@/content/albums";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { albumText, getAlbum, getAlbumPhotos, getAlbums } from "@/content/albums";
 import { validateAlbumSearch } from "@/content/album-view-search";
 import { editorial, getPilotEditorialAlbum } from "@/content/editorial";
 import {
   createMosaicPlan,
-  mosaicBatchEnds,
   mosaicBreakpoints,
   mosaicPixels,
 } from "@/content/album-mosaic";
-import { ALBUM_BATCH_SIZE } from "@/components/unified-album";
 import { messages } from "@/i18n/messages";
 import { AlbumView } from "@/views/photography";
 
@@ -25,48 +23,28 @@ vi.mock("@/i18n/link", () => ({
     to,
     slug,
     children,
-    className,
+    ...props
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
-    className?: string;
-  }) => (
-    <a href={slug ? to.replace("$slug", slug) : to} className={className}>
+  } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={slug ? to.replace("$slug", slug) : to} {...props}>
       {children}
     </a>
   ),
 }));
-vi.mock("@tanstack/react-router", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@tanstack/react-router")>();
-  return {
-    ...actual,
-    Link: ({
-      to,
-      params,
-      children,
-      className,
-      "aria-current": current,
-    }: {
-      to: string;
-      params?: { slug: string };
-      children: ReactNode;
-      className?: string;
-      "aria-current"?: "page";
-    }) => (
-      <a
-        href={params ? to.replace("$slug", params.slug) : to}
-        className={className}
-        aria-current={current}
-      >
-        {children}
-      </a>
-    ),
-  };
+beforeEach(() => {
+  vi.stubGlobal("scrollTo", vi.fn());
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+  );
 });
 afterEach(() => {
   cleanup();
   locale = "bg";
+  vi.unstubAllGlobals();
 });
 
 const originalPilotSlugs = ["sunny-beach", "sofia", "sveti-vlas", "rila"] as const;
@@ -111,23 +89,19 @@ it("configures exactly ten unified albums with published cover-first, unique hig
     expect(new Set(slugs).size).toBe(slugs.length);
     expect(slugs.every((item) => all.has(item))).toBe(true);
   }
-  expect(ALBUM_BATCH_SIZE).toBe(12);
-  expect(mosaicBatchEnds(38)).toEqual([12, 24, 38]);
 });
 
-it.each(pilotSlugs)("plans %s in canonical, complete, prefix-stable rows", (slug) => {
+it.each(pilotSlugs)("plans %s in canonical, complete, deterministic rows", (slug) => {
   const photos = getAlbumPhotos(getAlbum(slug)!, "bg");
   const plan = createMosaicPlan(photos);
   expect(createMosaicPlan(photos)).toEqual(plan);
-  expect(plan.batchEnds[0]).toBe(Math.min(ALBUM_BATCH_SIZE, photos.length));
-  expect(plan.batchEnds.at(-1)).toBe(photos.length);
   for (const mode of Object.keys(mosaicBreakpoints) as (keyof typeof mosaicBreakpoints)[]) {
     const config = mosaicBreakpoints[mode];
     const rows = plan.rows[mode];
     expect(rows[0]?.start).toBe(0);
     expect(rows.at(-1)?.end).toBe(photos.length);
     expect(plan.cells[mode]).toHaveLength(photos.length);
-    expect(plan.revealHeights[mode]).toHaveLength(plan.batchEnds.length);
+    expect(mosaicPixels(plan.height[mode], config.width)).toBeGreaterThan(0);
     const narrowest = Math.min(
       ...plan.cells[mode].map((cell) => mosaicPixels(cell.width, config.width)),
     );
@@ -175,23 +149,20 @@ it.each(pilotSlugs)("plans %s in canonical, complete, prefix-stable rows", (slug
       } else expect(row.end).toBe(photos.length);
     }
     expect(order).toEqual(photos.map((_, index) => index));
-    for (const end of plan.batchEnds) {
-      expect(rows.some((row) => row.end === end)).toBe(true);
-    }
   }
 });
 
 const expectedStacks = {
-  "sunny-beach": { mobile: 4, smallTablet: 4, mediumTablet: 5, tablet: 3, desktop: 3 },
-  sofia: { mobile: 5, smallTablet: 6, mediumTablet: 2, tablet: 3, desktop: 6 },
-  "sveti-vlas": { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 1 },
-  rila: { mobile: 5, smallTablet: 5, mediumTablet: 4, tablet: 3, desktop: 6 },
+  "sunny-beach": { mobile: 6, smallTablet: 6, mediumTablet: 5, tablet: 3, desktop: 6 },
+  sofia: { mobile: 5, smallTablet: 6, mediumTablet: 5, tablet: 4, desktop: 7 },
+  "sveti-vlas": { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 2 },
+  rila: { mobile: 5, smallTablet: 5, mediumTablet: 4, tablet: 5, desktop: 6 },
   lyon: { mobile: 3, smallTablet: 3, mediumTablet: 2, tablet: 2, desktop: 4 },
   bodrum: { mobile: 3, smallTablet: 4, mediumTablet: 2, tablet: 2, desktop: 4 },
-  nessebar: { mobile: 5, smallTablet: 6, mediumTablet: 5, tablet: 1, desktop: 4 },
+  nessebar: { mobile: 6, smallTablet: 7, mediumTablet: 4, tablet: 1, desktop: 6 },
   tunisia: { mobile: 3, smallTablet: 2, mediumTablet: 1, tablet: 1, desktop: 2 },
-  edirne: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 0 },
-  plovdiv: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 1 },
+  edirne: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 0, desktop: 0 },
+  plovdiv: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 0 },
 } as const;
 
 it.each(pilotSlugs)("keeps the explicit per-breakpoint stack contract for %s", (slug) => {
@@ -211,7 +182,9 @@ it.each([...waveASlugs, ...waveBSlugs] as const)(
     const { container } = render(<AlbumView album={getAlbum(slug)!} view="all" />);
     expect(container.querySelector(".unified-album")).toBeInTheDocument();
     expect(container.querySelector(".editorial-album")).toBeNull();
-    expect(container.querySelector(".unified-album-view-nav")).toBeInTheDocument();
+    expect(container.querySelector(".unified-album-view-nav")).toBeNull();
+    expect(container.querySelector(".unified-album-highlights")).toBeInTheDocument();
+    expect(container.querySelector(".unified-album-grid")).toBeInTheDocument();
   },
 );
 
@@ -245,10 +218,10 @@ it("applies an optional cover position only to Plovdiv", () => {
   expect(lyon.container.querySelector(".unified-album-cover img")).not.toHaveAttribute("style");
 });
 
-it.each(pilotSlugs)("renders %s as concise Highlights and canonical batched gallery", (slug) => {
+it.each(pilotSlugs)("renders %s Highlights followed by its complete canonical gallery", (slug) => {
   const album = getAlbum(slug)!;
   const selection = getPilotEditorialAlbum(slug)!;
-  const { container, rerender } = render(<AlbumView album={album} />);
+  const { container } = render(<AlbumView album={album} />);
   expect(container.querySelector("[data-opening-photo-slug]")).toHaveAttribute(
     "data-opening-photo-slug",
     album.coverPhotoSlug,
@@ -258,54 +231,131 @@ it.each(pilotSlugs)("renders %s as concise Highlights and canonical batched gall
       item.getAttribute("data-highlight-photo-slug"),
     ),
   ).toEqual(selection.highlights.slice(1).map((item) => item.photoSlug));
-  expect(container.querySelector(".unified-album-grid")).toBeNull();
   expect(container.querySelectorAll(".unified-album-highlights figcaption")).toHaveLength(
     selection.highlights.length - 1,
   );
-  expect(container.querySelectorAll(".unified-album-view-nav a")).toHaveLength(2);
-  expect(container.querySelector(".unified-album-view-nav a[aria-current=page]")?.textContent).toBe(
-    messages.bg.photos.highlights,
-  );
-  rerender(<AlbumView album={album} view="all" />);
+  expect(container.querySelector(".unified-album-view-nav")).toBeNull();
+  expect(container.querySelector(".unified-album-gallery-action")).toBeNull();
+  expect(container.querySelector(".unified-album-show-more")).toBeNull();
+  expect(container.querySelector(".unified-album-progress")).toBeNull();
   const canonical = getAlbumPhotos(album, "bg").map((photo) => photo.slug);
-  const buttons = () => [
+  const buttons = [
     ...container.querySelectorAll<HTMLButtonElement>(".unified-album-grid button"),
   ];
-  expect(buttons().map((button) => button.dataset["albumPhotoSlug"])).toEqual(
-    canonical.slice(0, 12),
+  expect(buttons.map((button) => button.dataset["albumPhotoSlug"])).toEqual(canonical);
+  expect(container.querySelector("#unified-gallery-title")).toHaveTextContent(
+    messages.bg.photos.allPhotos,
   );
-  expect(container.querySelector(".unified-album-view-nav a[aria-current=page]")?.textContent).toBe(
-    messages.bg.photos.fullGallery,
+  expect(container.querySelector(".unified-album-section-head p")).toHaveTextContent(
+    messages.bg.photos.count(canonical.length),
   );
-  while (container.querySelector(".unified-album-show-more")) {
-    const more = container.querySelector<HTMLButtonElement>(".unified-album-show-more")!;
-    const before = buttons().length;
-    more.focus();
-    fireEvent.click(more);
-    const after = buttons().length;
-    expect(after).toBe(
-      createMosaicPlan(getAlbumPhotos(album, "bg")).batchEnds.find((end) => end > before),
-    );
-    expect(after - before).toBeLessThanOrEqual(ALBUM_BATCH_SIZE + 2);
-    if (after < canonical.length) expect(document.activeElement).toBe(more);
-    else if (before < canonical.length) expect(document.activeElement).toBe(buttons()[before]);
-    expect(container.querySelector("output")?.textContent).toBe(
-      messages.bg.photos.shownCount(after, canonical.length),
-    );
-  }
-  expect(buttons().map((button) => button.dataset["albumPhotoSlug"])).toEqual(canonical);
   // Owner-approved Mosaic-C: no caption bar, while every trigger retains a published name.
   expect(container.querySelectorAll(".unified-album-grid figcaption")).toHaveLength(0);
   expect(container.querySelectorAll(".unified-album-grid button[aria-label]")).toHaveLength(
     canonical.length,
   );
   expect(
-    buttons().every(
+    buttons.every(
       (button, index) =>
         button.getAttribute("aria-label") ===
         messages.bg.common.openFullscreen(getAlbumPhotos(album, "bg")[index]!.title),
     ),
   ).toBe(true);
+});
+
+it("keeps the legacy view=all URL and scrolls to All Photos after mount", () => {
+  let queued: FrameRequestCallback | undefined;
+  vi.stubGlobal(
+    "requestAnimationFrame",
+    vi.fn((callback: FrameRequestCallback) => {
+      queued = callback;
+      return 7;
+    }),
+  );
+  vi.stubGlobal("cancelAnimationFrame", vi.fn());
+  const scrollTo = vi.mocked(window.scrollTo);
+  const { container, unmount } = render(<AlbumView album={getAlbum("sofia")!} view="all" />);
+  const target = container.querySelector<HTMLElement>("#all-photos")!;
+  vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
+    top: 840,
+    bottom: 940,
+    left: 0,
+    right: 100,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 840,
+    toJSON: () => ({}),
+  });
+  queued?.(0);
+  expect(scrollTo).toHaveBeenCalledWith({ top: 760, behavior: "smooth" });
+  unmount();
+  expect(window.cancelAnimationFrame).toHaveBeenCalledWith(7);
+});
+
+it("starts at the top for plain URLs and uses instant legacy scrolling with reduced motion", () => {
+  let queued: FrameRequestCallback | undefined;
+  vi.stubGlobal(
+    "requestAnimationFrame",
+    vi.fn((callback: FrameRequestCallback) => {
+      queued = callback;
+      return 8;
+    }),
+  );
+  const scrollTo = vi.mocked(window.scrollTo);
+  const plain = render(<AlbumView album={getAlbum("sofia")!} />);
+  expect(queued).toBeUndefined();
+  expect(scrollTo).not.toHaveBeenCalled();
+  plain.unmount();
+
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+  );
+  const legacy = render(<AlbumView album={getAlbum("sofia")!} view="all" />);
+  const target = legacy.container.querySelector<HTMLElement>("#all-photos")!;
+  vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
+    top: 340,
+    bottom: 440,
+    left: 0,
+    right: 100,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 340,
+    toJSON: () => ({}),
+  });
+  queued?.(0);
+  expect(scrollTo).toHaveBeenLastCalledWith({ top: 260, behavior: "instant" });
+});
+
+const nextAlbums = {
+  "sunny-beach": "sveti-vlas",
+  sofia: "sunny-beach",
+  "sveti-vlas": "nessebar",
+  rila: "tunisia",
+  lyon: "istanbul",
+  bodrum: "sofia",
+  nessebar: "plovdiv",
+  tunisia: "paris",
+  edirne: "bodrum",
+  plovdiv: "rila",
+} as const;
+
+it.each(pilotSlugs)("uses the real next-album cover and accessible whole-card link for %s", (slug) => {
+  const nextSlug = nextAlbums[slug];
+  const nextAlbum = getAlbum(nextSlug)!;
+  const { container } = render(<AlbumView album={getAlbum(slug)!} />);
+  const card = container.querySelector<HTMLAnchorElement>(".next-album-card")!;
+  expect(card).toHaveAttribute("href", `/photography/albums/${nextSlug}`);
+  expect(card).toHaveAccessibleName(
+    `${messages.bg.photos.nextAlbum}: ${albumText(nextAlbum.title, "bg")}`,
+  );
+  const cover = card.querySelector<HTMLImageElement>(".next-album-card-cover")!;
+  expect(cover).toHaveAttribute("src", expect.stringContaining(`${nextSlug}-cover-card.webp`));
+  expect(cover).toHaveAttribute("alt", "");
+  expect(cover).toHaveAttribute("aria-hidden", "true");
+  expect(card.querySelector(".next-album-card-arrow")).toHaveAttribute("aria-hidden", "true");
 });
 
 it("gives Sveti Vlas portraits room in two proportional Highlights pairs", () => {
@@ -342,26 +392,33 @@ it("validates album URL view state without losing other string search values", (
 });
 
 describe.each(["bg", "en"] as const)("%s pilot Lightbox", (language) => {
-  it("uses the full canonical album and returns focus to the exact duplicate trigger", async () => {
+  it("navigates from first, middle and last photos and restores the exact trigger", async () => {
     locale = language;
     const album = getAlbum("sveti-vlas")!;
     const items = getAlbumPhotos(album, locale);
     const { container } = render(<AlbumView album={album} view="all" />);
-    const trigger = container.querySelector<HTMLButtonElement>(
-      ".unified-album-grid button[data-full-index='0']",
-    )!;
     const cover = container.querySelector<HTMLButtonElement>("[data-opening-photo-slug]")!;
-    expect(trigger).not.toBe(cover);
-    trigger.focus();
-    fireEvent.click(trigger);
-    await screen.findByRole("dialog");
-    expect(screen.getByRole("dialog")).toHaveTextContent(items[0]!.title);
-    if (items[0]!.caption) expect(screen.getByRole("dialog")).toHaveTextContent(items[0]!.caption);
-    expect(screen.getByText(new RegExp(`1 / ${items.length}$`))).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: "ArrowRight" });
-    expect(screen.getByText(new RegExp(`2 / ${items.length}$`))).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: "Escape" });
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(document.activeElement).toBe(trigger);
+    for (const index of [0, Math.floor(items.length / 2), items.length - 1]) {
+      const trigger = container.querySelector<HTMLButtonElement>(
+        `.unified-album-grid button[data-full-index='${index}']`,
+      )!;
+      expect(trigger).not.toBe(cover);
+      trigger.focus();
+      fireEvent.click(trigger);
+      await screen.findByRole("dialog");
+      expect(screen.getByRole("dialog")).toHaveTextContent(items[index]!.title);
+      if (items[index]!.caption)
+        expect(screen.getByRole("dialog")).toHaveTextContent(items[index]!.caption);
+      expect(screen.getByText(new RegExp(`${index + 1} / ${items.length}$`))).toBeInTheDocument();
+      const direction = index === items.length - 1 ? "ArrowLeft" : "ArrowRight";
+      const adjacent = index === items.length - 1 ? index - 1 : index + 1;
+      fireEvent.keyDown(window, { key: direction });
+      expect(screen.getByText(new RegExp(`${adjacent + 1} / ${items.length}$`))).toBeInTheDocument();
+      fireEvent.keyDown(window, { key: direction === "ArrowLeft" ? "ArrowRight" : "ArrowLeft" });
+      expect(screen.getByText(new RegExp(`${index + 1} / ${items.length}$`))).toBeInTheDocument();
+      fireEvent.keyDown(document, { key: "Escape" });
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(document.activeElement).toBe(trigger);
+    }
   });
 });
