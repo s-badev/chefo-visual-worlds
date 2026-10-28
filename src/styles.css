@@ -576,6 +576,71 @@
     outline-color: Highlight;
   }
 }
+
+/* Primary pill CTA: muted gold, navy label and a navy arrow badge. Full width below md.
+   Hover only on hover-capable pointers; reduced motion keeps the colour change only.
+   Focus uses the global gold :focus-visible ring of dark surfaces. */
+.cta-pill {
+  --cta-pill-gold: #c9a46b;
+  --cta-pill-ink: #0c1729;
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background-color: var(--cta-pill-gold);
+  color: var(--cta-pill-ink);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition:
+    background-color 180ms var(--motion-ease),
+    transform 180ms var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (width >= 48rem) {
+  .cta-pill {
+    display: inline-flex;
+    width: auto;
+  }
+}
+.cta-pill-badge {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  place-items: center;
+  border-radius: 9999px;
+  background-color: var(--cta-pill-ink);
+  color: var(--cta-pill-gold);
+}
+.cta-pill-arrow {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 180ms var(--motion-ease);
+}
+@media (hover: hover) {
+  .cta-pill:hover {
+    background-color: color-mix(in oklch, var(--cta-pill-gold) 85%, #f8f1e4);
+  }
+  .cta-pill:hover .cta-pill-arrow {
+    transform: translateX(4px);
+  }
+}
+.cta-pill:active {
+  background-color: color-mix(in oklch, var(--cta-pill-gold) 92%, var(--cta-pill-ink));
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-pill:active,
+  .cta-pill:hover .cta-pill-arrow {
+    transform: none;
+  }
+}
 .photography-editorial-index-heading {
   display: flex;
   flex-wrap: wrap;

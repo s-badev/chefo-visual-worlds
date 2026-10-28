@@ -16,6 +16,9 @@ type Props = {
   onClick?: (() => void) | undefined;
   search?: Record<string, string | undefined>;
   "aria-label"?: string;
+  "aria-describedby"?: string;
+  "aria-hidden"?: "true";
+  tabIndex?: number;
   /** Classes applied when the link matches the current page. */
   activeClassName?: string;
 } & ({ to: StaticPath; slug?: never } | { to: SlugPath; slug: string });

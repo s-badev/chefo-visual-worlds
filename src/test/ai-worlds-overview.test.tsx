@@ -36,14 +36,17 @@ vi.mock("@/i18n/link", () => ({
     to,
     slug,
     children,
-    className,
+    ...rest
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
     className?: string;
+    "aria-hidden"?: "true";
+    "aria-describedby"?: string;
+    tabIndex?: number;
   }) => (
-    <a href={slug ? to.replace("$slug", slug) : to} className={className}>
+    <a href={slug ? to.replace("$slug", slug) : to} {...rest}>
       {children}
     </a>
   ),
@@ -73,14 +76,15 @@ describe("AI Worlds overview", () => {
   it.each(["bg", "en"] as const)("opens on the four curated collections in %s", (locale) => {
     activeLocale = locale;
     const { container } = render(<AiWorldsView />);
-    const links = Array.from(container.querySelectorAll('a[href^="/ai-worlds/collections/"]'));
+    const links = Array.from(
+      container.querySelectorAll('a[href^="/ai-worlds/collections/"]:not([aria-hidden="true"])'),
+    );
     expect(links.map((a) => a.getAttribute("href"))).toEqual([
       "/ai-worlds/collections/historical-eras-rulers",
       "/ai-worlds/collections/professions-roles",
       "/ai-worlds/collections/cinema-archetypes",
       "/ai-worlds/collections/chefo-around-the-world",
     ]);
-    expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;
     expect(professions.querySelector("img")?.getAttribute("src")).toContain(
@@ -103,6 +107,44 @@ describe("AI Worlds overview", () => {
     expect(screen.queryByRole("group", { name: messages[locale].ai.role })).toBeNull();
     expectNoPrivateIdeas(container, locale);
   });
+
+  it.each(["bg", "en"] as const)(
+    "gives every collection hall the same structure and one focusable link in %s",
+    (locale) => {
+      activeLocale = locale;
+      const { container } = render(<AiWorldsView />);
+      const halls = Array.from(container.querySelectorAll("ol > li > article"));
+      expect(halls).toHaveLength(4);
+      const slugs = [
+        "historical-eras-rulers",
+        "professions-roles",
+        "cinema-archetypes",
+        "chefo-around-the-world",
+      ];
+      halls.forEach((hall, i) => {
+        const href = `/ai-worlds/collections/${slugs[i]}`;
+        expect(hall.querySelector(".eyebrow")).toHaveTextContent(
+          `${locale === "bg" ? "Колекция" : "Collection"} 0${i + 1} / 04`,
+        );
+        const focusable = hall.querySelectorAll('a:not([tabindex="-1"]), button');
+        expect(focusable).toHaveLength(1);
+        const button = within(hall as HTMLElement).getByRole("link", {
+          name: messages[locale].ai.exploreCollection,
+        });
+        expect(button).toBe(focusable[0]);
+        expect(button).toHaveAttribute("href", href);
+        expect(button).toHaveClass("cta-pill");
+        const title = hall.querySelector("h2")!;
+        expect(button).toHaveAttribute("aria-describedby", title.id);
+        expect(title).not.toHaveClass("text-gold");
+        const imageLink = hall.querySelector('a[aria-hidden="true"]')!;
+        expect(imageLink).toHaveAttribute("href", href);
+        expect(imageLink).toHaveAttribute("tabindex", "-1");
+        expect(imageLink.querySelector("img")).toHaveClass("aspect-[4/5]", "object-cover");
+        expect(imageLink).toHaveClass("ai-frame-portal");
+      });
+    },
+  );
 
   it.each(["bg", "en"] as const)(
     "shows only completed works in %s",

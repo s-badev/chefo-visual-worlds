@@ -83,50 +83,63 @@ function EmptyCollectionCover({ className }: { className?: string }) {
   );
 }
 
-/** One collection on the AI Worlds landing page: cover and curatorial label, mirrored per row. */
-function CollectionHall({ collection, index }: { collection: AiCollection; index: number }) {
+/**
+ * One collection on the AI Worlds landing page: 4:5 cover and curatorial label, mirrored per row
+ * from md up; on mobile the cover always comes first. The button is the hall's only focusable link;
+ * the cover repeats it for pointer users and is hidden from assistive tech and the tab order.
+ */
+function CollectionHall({
+  collection,
+  index,
+  total,
+}: {
+  collection: AiCollection;
+  index: number;
+  total: number;
+}) {
   const { t, locale } = useT();
   const m = t.ai;
   const cover = getCollectionCover(collection, locale);
   const finished = getCollectionWorkSlugs(collection).length;
   const isAtlas = collection.kind === "destinations";
   const mirrored = index % 2 === 1;
+  const titleId = `ai-collection-${collection.slug}-title`;
   return (
     <li {...reveal(0)}>
-      <article className="group relative grid items-center gap-8 md:grid-cols-12 md:gap-0">
-        <div
+      <article className="grid items-center gap-8 md:grid-cols-12 md:gap-0">
+        <LocaleLink
+          to="/ai-worlds/collections/$slug"
+          slug={collection.slug}
+          aria-hidden="true"
+          tabIndex={-1}
           className={cn(
-            "relative overflow-hidden rounded-sm md:col-span-6",
+            "group relative block overflow-hidden rounded-sm md:col-span-5 md:row-start-1",
             cover && "ai-frame-portal",
-            mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
+            mirrored ? "md:col-start-8" : "md:col-start-1",
           )}
         >
           {cover ? (
             <>
-              <ArtImage work={cover} eager={index === 0} />
+              <ArtImage work={cover} eager={index === 0} className="aspect-[4/5] object-cover" />
               <ArtEdge />
             </>
           ) : isAtlas ? (
             <AtlasCover className="aspect-[4/5]" />
           ) : (
-            <EmptyCollectionCover className="aspect-[4/3] md:aspect-[4/5]" />
+            <EmptyCollectionCover className="aspect-[4/5]" />
           )}
-        </div>
+        </LocaleLink>
         <div
           className={cn(
-            "md:col-span-5 md:row-start-1",
-            mirrored ? "md:col-start-1" : "md:col-start-8",
+            "md:col-span-6 md:row-start-1",
+            mirrored ? "md:col-start-1" : "md:col-start-7",
           )}
         >
-          <h2 className="title-section break-words">
-            {/* The stretched link makes the whole hall one target with one accessible name. */}
-            <LocaleLink
-              to="/ai-worlds/collections/$slug"
-              slug={collection.slug}
-              className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
-            >
-              {collectionText(collection.title, locale)}
-            </LocaleLink>
+          <p className="eyebrow text-eyebrow">
+            {m.collectionNumber(pad2(index + 1), pad2(total))}
+          </p>
+          <h2 id={titleId} className="title-section mt-4 break-words text-foreground">
+            {collectionText(collection.title, locale)}
           </h2>
           {collection.tagline && (
             <p className="mt-3 font-serif text-xl italic text-gold">
@@ -137,15 +150,19 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
             {collectionText(collection.intro, locale)}
           </p>
           {finished > 0 && (
-            <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
+            <p className="mt-4 text-sm text-muted-foreground">{m.count(finished)}</p>
           )}
-          <span
-            aria-hidden="true"
-            className="mt-8 inline-flex items-center gap-2 border-b border-gold/50 pb-1 text-sm font-semibold transition-colors duration-(--dur-base) group-hover:border-gold group-hover:text-gold"
+          <LocaleLink
+            to="/ai-worlds/collections/$slug"
+            slug={collection.slug}
+            aria-describedby={titleId}
+            className="cta-pill mt-8"
           >
             {m.exploreCollection}
-            <ArrowRight className="size-4 transition-transform duration-(--dur-base) ease-cinematic motion-safe:group-hover:translate-x-1" />
-          </span>
+            <span aria-hidden="true" className="cta-pill-badge">
+              <ArrowRight className="cta-pill-arrow" />
+            </span>
+          </LocaleLink>
         </div>
       </article>
     </li>
@@ -155,12 +172,13 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
 export function CollectionHalls() {
   const collections = getAiCollections();
   return (
-    <ol className="mt-14 space-y-24 md:mt-20 md:space-y-32">
+    <ol className="mt-14 space-y-20 md:mt-20 md:space-y-24">
       {collections.map((collection, index) => (
         <CollectionHall
           key={collection.slug}
           collection={collection}
           index={index}
+          total={collections.length}
         />
       ))}
     </ol>
