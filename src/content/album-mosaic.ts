@@ -1,7 +1,6 @@
 import type { Photo } from "@/content/photos";
 
-/** A fixed canonical sequence is planned for all CSS breakpoints during SSR. */
-export const ALBUM_BATCH_SIZE = 12;
+/** The complete canonical sequence is planned for all CSS breakpoints during SSR. */
 export type MosaicPhoto = Pick<Photo, "slug" | "width" | "height">;
 export type MosaicBreakpoint = "mobile" | "smallTablet" | "mediumTablet" | "tablet" | "desktop";
 
@@ -80,10 +79,9 @@ export interface MosaicCell {
   height: LinearSize;
 }
 export interface MosaicPlan {
-  batchEnds: number[];
   rows: Record<MosaicBreakpoint, MosaicRow[]>;
   cells: Record<MosaicBreakpoint, MosaicCell[]>;
-  revealHeights: Record<MosaicBreakpoint, LinearSize[]>;
+  height: Record<MosaicBreakpoint, LinearSize>;
 }
 
 const ratio = (photo: MosaicPhoto) => photo.width / photo.height;
@@ -102,19 +100,16 @@ const scale = (size: LinearSize, factor: number): LinearSize => ({
 const pixels = (value: number): LinearSize => ({ a: 0, b: value });
 export const mosaicPixels = (size: LinearSize, width: number) => size.a * width + size.b;
 export const mosaicCss = (size: LinearSize) =>
-  `calc(${(size.a * 100).toFixed(9)}cqw ${size.b < 0 ? "-" : "+"} ${Math.abs(size.b).toFixed(6)}px)`;
-
-/** Full, immutable twelve-photo batches; only the final batch may be shorter. */
-export function mosaicBatchEnds(length: number): number[] {
-  const ends: number[] = [];
-  let shown = 0;
-  while (shown < length) {
-    const remaining = length - shown;
-    shown += remaining <= ALBUM_BATCH_SIZE + 2 ? remaining : ALBUM_BATCH_SIZE;
-    ends.push(shown);
-  }
-  return ends;
-}
+  `calc(${(size.a * 100).toFixed(6)}cqw ${size.b < 0 ? "-" : "+"} ${Math.abs(size.b).toFixed(4)}px)`;
+export const mosaicInsetCss = (containerHeight: LinearSize, cell: MosaicCell) =>
+  [
+    cell.y,
+    subtract({ a: 1, b: 0 }, add(cell.x, cell.width)),
+    subtract(containerHeight, add(cell.y, cell.height)),
+    cell.x,
+  ]
+    .map(mosaicCss)
+    .join(" ");
 
 type Mode = (typeof mosaicBreakpoints)[MosaicBreakpoint];
 type Candidate = { end: number; row: MosaicRow; cost: number };
@@ -228,9 +223,8 @@ function planBatch(
   return best[from]?.rows ?? [];
 }
 
-function placeRows(photos: readonly MosaicPhoto[], rows: MosaicRow[], ends: number[], mode: Mode) {
+function placeRows(photos: readonly MosaicPhoto[], rows: MosaicRow[], mode: Mode) {
   const cells: MosaicCell[] = Array(photos.length);
-  const revealHeights: LinearSize[] = [];
   let y = pixels(0);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     const row = rows[rowIndex]!;
@@ -262,34 +256,22 @@ function placeRows(photos: readonly MosaicPhoto[], rows: MosaicRow[], ends: numb
       x = add(x, add(block.width, pixels(mode.gap)));
     });
     y = add(y, row.height);
-    if (ends.includes(row.end)) revealHeights.push(y);
     if (rowIndex < rows.length - 1) y = add(y, pixels(mode.gap));
   }
-  return { cells, revealHeights };
+  return { cells, height: y };
 }
 
 export function createMosaicPlan(photos: readonly MosaicPhoto[]): MosaicPlan {
-  const batchEnds = mosaicBatchEnds(photos.length);
   const rows = {} as MosaicPlan["rows"];
   const cells = {} as MosaicPlan["cells"];
-  const revealHeights = {} as MosaicPlan["revealHeights"];
+  const height = {} as MosaicPlan["height"];
   for (const key of Object.keys(mosaicBreakpoints) as MosaicBreakpoint[]) {
     const mode = mosaicBreakpoints[key];
-    const planned: MosaicRow[] = [];
-    let from = 0;
-    for (const end of batchEnds) {
-      planned.push(...planBatch(photos, from, end, mode));
-      from = end;
-    }
+    const planned = planBatch(photos, 0, photos.length, mode);
     rows[key] = planned;
-    ({ cells: cells[key], revealHeights: revealHeights[key] } = placeRows(
-      photos,
-      planned,
-      batchEnds,
-      mode,
-    ));
+    ({ cells: cells[key], height: height[key] } = placeRows(photos, planned, mode));
   }
-  return { batchEnds, rows, cells, revealHeights };
+  return { rows, cells, height };
 }
 
 /** Keep the previously approved proportional Highlights composition unchanged. */

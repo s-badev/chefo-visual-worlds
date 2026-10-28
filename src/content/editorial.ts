@@ -78,11 +78,6 @@ export interface EditorialConfig {
       readonly photoSlug: PhotoSlug;
       readonly objectPosition: string;
     };
-    readonly reportage: {
-      readonly albumSlug: AlbumSlug;
-      readonly photoSlugs: readonly PhotoSlug[];
-    };
-    readonly panoramaPhotoSlug: PhotoSlug;
   };
   readonly albums: readonly EditorialAlbum[];
   readonly pilotAlbums: readonly PilotEditorialAlbum[];
@@ -99,11 +94,6 @@ export interface EditorialConfig {
 export const editorial = {
   photography: {
     opening: { photoSlug: "paris-005", objectPosition: "50% 50%" },
-    reportage: {
-      albumSlug: "istanbul",
-      photoSlugs: ["istanbul-038", "istanbul-031", "istanbul-037"],
-    },
-    panoramaPhotoSlug: "rila-008",
   },
   albums: [
     {
