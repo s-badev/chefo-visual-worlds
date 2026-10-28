@@ -226,6 +226,9 @@ it.each(pilotSlugs)("renders %s Highlights followed by its complete canonical ga
     "data-opening-photo-slug",
     album.coverPhotoSlug,
   );
+  expect(container.querySelector("[data-opening-photo-slug]")?.tagName).toBe("IMG");
+  expect(container.querySelector(".unified-album-cover button")).toBeNull();
+  expect(container.querySelector(".unified-album-cover .unified-album-zoom-cue")).toBeNull();
   expect(
     [...container.querySelectorAll("[data-highlight-photo-slug]")].map((item) =>
       item.getAttribute("data-highlight-photo-slug"),
@@ -329,33 +332,41 @@ it("starts at the top for plain URLs and uses instant legacy scrolling with redu
   expect(scrollTo).toHaveBeenLastCalledWith({ top: 260, behavior: "instant" });
 });
 
-const nextAlbums = {
-  "sunny-beach": "sveti-vlas",
-  sofia: "sunny-beach",
-  "sveti-vlas": "nessebar",
-  rila: "tunisia",
-  lyon: "istanbul",
-  bodrum: "sofia",
-  nessebar: "plovdiv",
-  tunisia: "paris",
-  edirne: "bodrum",
-  plovdiv: "rila",
-} as const;
-
-it.each(pilotSlugs)("uses the real next-album cover and accessible whole-card link for %s", (slug) => {
-  const nextSlug = nextAlbums[slug];
-  const nextAlbum = getAlbum(nextSlug)!;
+it.each(pilotSlugs)("uses static cover and non-wrapping photographic navigation for %s", (slug) => {
+  const ordered = getAlbums();
+  const position = ordered.findIndex((album) => album.slug === slug);
+  const previousAlbum = position > 0 ? ordered[position - 1] : undefined;
+  const nextAlbum = position < ordered.length - 1 ? ordered[position + 1] : undefined;
   const { container } = render(<AlbumView album={getAlbum(slug)!} />);
-  const card = container.querySelector<HTMLAnchorElement>(".next-album-card")!;
-  expect(card).toHaveAttribute("href", `/photography/albums/${nextSlug}`);
-  expect(card).toHaveAccessibleName(
-    `${messages.bg.photos.nextAlbum}: ${albumText(nextAlbum.title, "bg")}`,
+  const navigation = container.querySelector(".album-navigation")!;
+  const previous = navigation.querySelector<HTMLAnchorElement>(".next-album-card--previous");
+  const next = navigation.querySelector<HTMLAnchorElement>(".next-album-card--next");
+
+  expect(previous ? previous.getAttribute("href") : undefined).toBe(
+    previousAlbum ? `/photography/albums/${previousAlbum.slug}` : undefined,
   );
-  const cover = card.querySelector<HTMLImageElement>(".next-album-card-cover")!;
-  expect(cover).toHaveAttribute("src", expect.stringContaining(`${nextSlug}-cover-card.webp`));
-  expect(cover).toHaveAttribute("alt", "");
-  expect(cover).toHaveAttribute("aria-hidden", "true");
-  expect(card.querySelector(".next-album-card-arrow")).toHaveAttribute("aria-hidden", "true");
+  expect(next ? next.getAttribute("href") : undefined).toBe(
+    nextAlbum ? `/photography/albums/${nextAlbum.slug}` : undefined,
+  );
+  if (previousAlbum && previous) {
+    expect(previous).toHaveAccessibleName(
+      `${messages.bg.photos.previousAlbum}: ${albumText(previousAlbum.title, "bg")}`,
+    );
+  }
+  if (nextAlbum && next) {
+    expect(next).toHaveAccessibleName(
+      `${messages.bg.photos.nextAlbum}: ${albumText(nextAlbum.title, "bg")}`,
+    );
+  }
+  const cards = [...navigation.querySelectorAll<HTMLAnchorElement>(".next-album-card")];
+  expect(cards).toHaveLength(previousAlbum && nextAlbum ? 2 : 1);
+  for (const card of cards) {
+    const cover = card.querySelector<HTMLImageElement>(".next-album-card-cover")!;
+    expect(cover).toHaveAttribute("src", expect.stringContaining("-cover-card.webp"));
+    expect(cover).toHaveAttribute("alt", "");
+    expect(cover).toHaveAttribute("aria-hidden", "true");
+    expect(card.querySelector(".next-album-card-arrow")).toHaveAttribute("aria-hidden", "true");
+  }
 });
 
 it("gives Sveti Vlas portraits room in two proportional Highlights pairs", () => {

@@ -45,8 +45,8 @@ export function EditorialAlbumView({ album }: { album: Album }) {
   const coverPhoto = items.find((photo) => photo.slug === cover?.slug);
   const ordered = getAlbums();
   const position = ordered.findIndex((item) => item.slug === album.slug);
-  const previousAlbum = ordered[(position - 1 + ordered.length) % ordered.length];
-  const nextAlbum = ordered[(position + 1) % ordered.length];
+  const previousAlbum = position > 0 ? ordered[position - 1] : undefined;
+  const nextAlbum = position >= 0 && position < ordered.length - 1 ? ordered[position + 1] : undefined;
   const indexBySlug = new Map(items.map((photo, index) => [photo.slug, index]));
   const [lightbox, setLightbox] = useState<number | null>(null);
   const origin = useRef<HTMLElement | null>(null);
@@ -101,25 +101,16 @@ export function EditorialAlbumView({ album }: { album: Album }) {
     >
       <div className="editorial-album-cover">
         {cover && (
-          <button
-            type="button"
+          <img
             data-opening-photo-slug={cover.slug}
-            aria-label={t.common.openFullscreen(coverPhoto?.title ?? cover.title)}
-            onClick={(event) => open(cover.slug, event.currentTarget)}
-          >
-            <img
-              src={cover.image}
-              alt={coverPhoto?.alt ?? cover.alt}
-              width={cover.width}
-              height={cover.height}
-              fetchPriority="high"
-              decoding="async"
-              sizes="100vw"
-            />
-            <span className="editorial-album-zoom-cue" aria-hidden="true">
-              <ZoomIn size={18} />
-            </span>
-          </button>
+            src={cover.image}
+            alt={coverPhoto?.alt ?? cover.alt}
+            width={cover.width}
+            height={cover.height}
+            fetchPriority="high"
+            decoding="async"
+            sizes="100vw"
+          />
         )}
       </div>
       <div className="container-page editorial-album-mast">
@@ -210,16 +201,12 @@ export function EditorialAlbumView({ album }: { album: Album }) {
         </ul>
       </section>
 
-      <nav className="container-page editorial-album-navigation" aria-label={t.photos.albums}>
+      <nav
+        className={`container-page album-navigation editorial-album-navigation${previousAlbum && nextAlbum ? "" : " album-navigation--single"}`}
+        aria-label={t.photos.albums}
+      >
         {previousAlbum && (
-          <LocaleLink
-            to="/photography/albums/$slug"
-            slug={previousAlbum.slug}
-            aria-label={albumText(previousAlbum.title, locale)}
-          >
-            <ArrowLeft size={17} aria-hidden="true" />
-            <span>{albumText(previousAlbum.title, locale)}</span>
-          </LocaleLink>
+          <NextAlbumCard album={previousAlbum} direction="previous" />
         )}
         {nextAlbum && <NextAlbumCard album={nextAlbum} />}
       </nav>

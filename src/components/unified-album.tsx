@@ -133,7 +133,8 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
   const allPhotos = useRef<HTMLElement | null>(null);
   const ordered = getAlbums();
   const position = ordered.findIndex((item) => item.slug === album.slug);
-  const nextAlbum = ordered[(position + 1) % ordered.length];
+  const previousAlbum = position > 0 ? ordered[position - 1] : undefined;
+  const nextAlbum = position >= 0 && position < ordered.length - 1 ? ordered[position + 1] : undefined;
   const open = (slug: string, trigger: HTMLElement) => {
     const index = indexBySlug.get(slug);
     if (index === undefined) return;
@@ -171,30 +172,21 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
     >
       <div className="unified-album-cover">
         {cover && (
-          <button
-            type="button"
+          <img
             data-opening-photo-slug={cover.slug}
-            aria-label={t.common.openFullscreen(coverPhoto?.title ?? cover.title)}
-            onClick={(event) => open(cover.slug, event.currentTarget)}
-          >
-            <img
-              src={cover.image}
-              alt={coverPhoto?.alt ?? cover.alt}
-              width={cover.width}
-              height={cover.height}
-              style={
-                selection.coverObjectPosition
-                  ? { objectPosition: selection.coverObjectPosition }
-                  : undefined
-              }
-              fetchPriority="high"
-              decoding="async"
-              sizes="100vw"
-            />
-            <span className="unified-album-zoom-cue" aria-hidden="true">
-              <ZoomIn size={18} />
-            </span>
-          </button>
+            src={cover.image}
+            alt={coverPhoto?.alt ?? cover.alt}
+            width={cover.width}
+            height={cover.height}
+            style={
+              selection.coverObjectPosition
+                ? { objectPosition: selection.coverObjectPosition }
+                : undefined
+            }
+            fetchPriority="high"
+            decoding="async"
+            sizes="100vw"
+          />
         )}
       </div>
       <div className="container-page unified-album-mast">
@@ -252,9 +244,13 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
         })}
       </section>
       <FullGallery key={album.slug} items={items} open={open} sectionRef={allPhotos} />
-      {nextAlbum && (
-        <nav className="container-page unified-album-next" aria-label={t.photos.nextAlbum}>
-          <NextAlbumCard album={nextAlbum} />
+      {(previousAlbum || nextAlbum) && (
+        <nav
+          className={`container-page album-navigation unified-album-next${previousAlbum && nextAlbum ? "" : " album-navigation--single"}`}
+          aria-label={t.photos.albums}
+        >
+          {previousAlbum && <NextAlbumCard album={previousAlbum} direction="previous" />}
+          {nextAlbum && <NextAlbumCard album={nextAlbum} />}
         </nav>
       )}
       <Lightbox items={items} index={lightbox} onIndex={setLightbox} returnFocusTo={origin} />

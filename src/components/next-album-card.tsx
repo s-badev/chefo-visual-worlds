@@ -1,10 +1,10 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { albumText, type Album } from "@/content/albums";
 import { getPilotEditorialAlbum } from "@/content/editorial";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
-const nextAlbumCovers: Record<string, { image: string; width: number; height: number }> = {
+const albumCardCovers: Record<string, { image: string; width: number; height: number }> = {
   sofia: { image: "/photos/sofia/sofia-cover-card.webp", width: 720, height: 405 },
   "sunny-beach": {
     image: "/photos/sunny-beach/sunny-beach-cover-card.webp",
@@ -27,17 +27,30 @@ const nextAlbumCovers: Record<string, { image: string; width: number; height: nu
   bodrum: { image: "/photos/bodrum/bodrum-cover-card.webp", width: 720, height: 405 },
 };
 
-export function NextAlbumCard({ album }: { album: Album }) {
+export function NextAlbumCard({
+  album,
+  direction = "next",
+}: {
+  album: Album;
+  direction?: "previous" | "next";
+}) {
   const { t, locale } = useT();
-  const cover = nextAlbumCovers[album.slug];
+  const cover = albumCardCovers[album.slug];
   const coverPosition = getPilotEditorialAlbum(album.slug)?.coverObjectPosition;
+  const label = direction === "previous" ? t.photos.previousAlbum : t.photos.nextAlbum;
+  const Arrow = direction === "previous" ? ArrowLeft : ArrowRight;
+  const arrow = (
+    <span className="next-album-card-arrow" aria-hidden="true">
+      <Arrow size={18} />
+    </span>
+  );
 
   return (
     <LocaleLink
       to="/photography/albums/$slug"
       slug={album.slug}
-      className={`next-album-card ${cover ? "next-album-card--image" : "next-album-card--fallback"}`}
-      aria-label={`${t.photos.nextAlbum}: ${albumText(album.title, locale)}`}
+      className={`next-album-card next-album-card--${direction} ${cover ? "next-album-card--image" : "next-album-card--fallback"}`}
+      aria-label={`${label}: ${albumText(album.title, locale)}`}
     >
       {cover && (
         <img
@@ -53,13 +66,12 @@ export function NextAlbumCard({ album }: { album: Album }) {
         />
       )}
       <span className="next-album-card-shade" aria-hidden="true" />
+      {direction === "previous" && arrow}
       <span className="next-album-card-text">
-        <span className="next-album-card-eyebrow">{t.photos.nextAlbum}</span>
+        <span className="next-album-card-eyebrow">{label}</span>
         <span className="next-album-card-name">{albumText(album.title, locale)}</span>
       </span>
-      <span className="next-album-card-arrow" aria-hidden="true">
-        <ArrowRight size={18} />
-      </span>
+      {direction === "next" && arrow}
     </LocaleLink>
   );
 }
