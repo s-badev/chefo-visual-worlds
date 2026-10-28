@@ -10,16 +10,10 @@ import {
   type AiCollection,
 } from "@/content/ai-collections";
 import { AtlasCover } from "@/components/ai-atlas";
-import {
-  aiEraLabel,
-  aiRoleLabel,
-  aiSettingLabel,
-  toolLabel,
-  type AiWork,
-} from "@/content/ai-works";
+import { toolLabel, type AiWork } from "@/content/ai-works";
 import type { LightboxItem } from "@/components/site";
 import { reveal } from "@/hooks/use-reveal";
-import { formatDate, useT } from "@/i18n";
+import { useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
@@ -141,7 +135,7 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
           )}
           <span
             aria-hidden="true"
-            className="mt-8 inline-flex items-center gap-2 border-b border-gold/50 pb-1 text-sm font-semibold transition-colors duration-(--dur-base) group-hover:border-gold group-hover:text-gold"
+            className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-gold/60 bg-gold/5 px-4 py-2.5 text-sm font-semibold text-gold transition-[background-color,border-color,color] duration-(--dur-base) group-hover:border-gold group-hover:bg-gold/10 group-focus-within:outline-2 group-focus-within:outline-offset-4 group-focus-within:outline-gold"
           >
             {m.exploreCollection}
             <ArrowRight className="size-4 transition-transform duration-(--dur-base) ease-cinematic motion-safe:group-hover:translate-x-1" />
@@ -214,15 +208,20 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
   );
 }
 
-/** Small metadata line for a work: tool · date · era/setting/role where known. */
-export function workFacts(work: AiWork, locale: "bg" | "en") {
-  return [
-    work.tool ? toolLabel(work.tool, locale) : null,
-    work.date ? formatDate(work.date, locale) : null,
-    work.era ? aiEraLabel(work.era, locale) : null,
-    work.setting ? aiSettingLabel(work.setting, locale) : null,
-    work.role ? aiRoleLabel(work.role, locale) : null,
-  ].filter(Boolean) as string[];
+const VERIFIED_TOOL_CREDIT_SLUGS = new Set([
+  "chefo-srednovekoven-ritsar",
+  "chefo-v-badeshteto",
+  "chefo-v-turtsiya",
+  "nubian-king-and-returning-army",
+  "rainy-neon-noir",
+  "captain-against-the-storm",
+]);
+
+/** A quiet credit: name the tool only when the final displayed image has supporting evidence. */
+export function artworkCredit(work: AiWork, locale: Locale, genericLabel: string) {
+  return work.tool && VERIFIED_TOOL_CREDIT_SLUGS.has(work.slug)
+    ? toolLabel(work.tool, locale)
+    : genericLabel;
 }
 
 export const toLightboxItem = (work: AiWork): LightboxItem => ({
@@ -249,7 +248,6 @@ export function ExhibitionWall({
     <ol className="container-page space-y-24 py-16 lg:space-y-36 lg:py-24">
       {works.map((work, index) => {
         const mirrored = index % 2 === 1;
-        const facts = workFacts(work, locale);
         return (
           <li key={work.slug} {...reveal()}>
             <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
@@ -286,16 +284,11 @@ export function ExhibitionWall({
                     </LocaleLink>
                   </h2>
                   <p className="mt-5 font-serif text-xl leading-snug">{work.description}</p>
-                  {facts.length > 0 && (
-                    <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-                      {facts.join(" · ")}
-                    </p>
-                  )}
-                  <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold">
+                  <div className="mt-7 flex flex-wrap items-center gap-3 text-sm font-semibold">
                     <LocaleLink
                       to="/ai-worlds/$slug"
                       slug={work.slug}
-                      className="group/link inline-flex items-center gap-2 border-b border-gold/50 pb-1 transition-colors hover:border-gold hover:text-gold"
+                      className="group/link inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-gold bg-gold/10 px-4 py-2.5 text-gold transition-[background-color,border-color,color] hover:bg-gold/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                       aria-label={`${m.viewWork}: ${work.title}`}
                     >
                       {m.viewWork}
@@ -304,7 +297,7 @@ export function ExhibitionWall({
                     <button
                       type="button"
                       onClick={() => onOpen(index)}
-                      className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-gold"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-border bg-surface-raised/40 px-4 py-2.5 text-foreground transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                     >
                       <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
                     </button>

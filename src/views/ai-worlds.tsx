@@ -3,14 +3,9 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import {
   aiWorks,
-  aiCategoryLabel,
-  aiEraLabel,
-  aiRoleLabel,
-  aiSettingLabel,
   filterAiWorks,
   getAiFilterOptions,
   localizeAiWork,
-  toolLabel,
   type AiWork,
 } from "@/content/ai-works";
 import {
@@ -27,6 +22,7 @@ import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/componen
 import {
   ArtEdge,
   ArtImage,
+  artworkCredit,
   CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
@@ -34,9 +30,8 @@ import {
   toLightboxItem,
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
-import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
-import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
+import { getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
 export type AiSearch = AiFilterValues & { view?: "works" | undefined };
@@ -215,9 +210,9 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
         className="seam-top container-page grid grid-cols-2 gap-6 py-10 md:py-14"
       >
         {[
-          { c: prev, label: m.prevCollection, align: "start" as const },
-          { c: next, label: m.nextCollection, align: "end" as const },
-        ].map(({ c, label, align }) => {
+          { c: prev, label: m.prevCollection, align: "start" as const, Icon: ArrowLeft },
+          { c: next, label: m.nextCollection, align: "end" as const, Icon: ArrowRight },
+        ].map(({ c, label, align, Icon }) => {
           const cover = getCollectionCover(c, locale);
           return (
             <LocaleLink
@@ -225,11 +220,11 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
               to="/ai-worlds/collections/$slug"
               slug={c.slug}
               className={cn(
-                "group flex items-center gap-4 transition-colors hover:text-gold",
+                "group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised/60 hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:min-h-28 sm:p-5",
                 align === "end" && "flex-row-reverse text-right",
               )}
             >
-              <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
+              <span className="relative hidden w-16 shrink-0 overflow-hidden rounded-sm sm:block">
                 {cover ? (
                   <ArtImage work={cover} />
                 ) : (
@@ -238,6 +233,13 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
                   </span>
                 )}
               </span>
+              <Icon
+                aria-hidden="true"
+                className={cn(
+                  "size-5 shrink-0 text-gold transition-transform duration-(--dur-base) ease-cinematic",
+                  align === "end" ? "group-hover:translate-x-1" : "group-hover:-translate-x-1",
+                )}
+              />
               <span className="min-w-0">
                 <span className="eyebrow block text-muted-foreground">{label}</span>
                 <span className="mt-1 block font-serif text-lg leading-snug sm:text-xl">
@@ -281,41 +283,13 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   const m = t.ai;
   const work = localizeAiWork(raw, locale);
   const collection = getCollectionForWork(raw.slug);
-  // A destination shown on this template keeps its brief (see Destination.artworkTemplate).
-  const destination = getDestination(raw.slug);
-  const details = work.portraitDetails;
   const idx = aiWorks.findIndex((w) => w.slug === raw.slug);
   const prev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
   const next = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   const viewerItems = [toLightboxItem(work)];
-  const facts: [string, string][] = [
-    ...(work.tool ? [[m.tool, toolLabel(work.tool, locale)] as [string, string]] : []),
-    ...(work.date ? [[m.created, formatDate(work.date, locale)] as [string, string]] : []),
-    [m.theme, aiCategoryLabel(work.category, locale)],
-    ...(work.era ? [[m.era, aiEraLabel(work.era, locale)] as [string, string]] : []),
-    ...(work.setting
-      ? [[m.setting, aiSettingLabel(work.setting, locale)] as [string, string]]
-      : []),
-    ...(work.role ? [[m.role, aiRoleLabel(work.role, locale)] as [string, string]] : []),
-    ...(destination
-      ? ([
-          [
-            t.photos.place,
-            [destination.place, destination.country]
-              .filter((part) => part !== undefined)
-              .map((part) => destinationText(part, locale))
-              .join(", ") +
-              (destination.context ? ` — ${destinationText(destination.context, locale)}` : ""),
-          ],
-          [m.clothing, destinationText(details?.clothing ?? destination.clothing, locale)],
-          [m.grooming, destinationText(details?.grooming ?? destination.grooming, locale)],
-          [m.settingLabel, destinationText(details?.setting ?? destination.setting, locale)],
-          [m.status, destination.status === "published" ? m.statusPublished : m.statusPlanned],
-        ] as [string, string][])
-      : []),
-  ];
+  const credit = artworkCredit(work, locale, m.aiImageCredit);
 
   return (
     <Surface tone="dark" as="article">
@@ -383,14 +357,9 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           </div>
           <h1 className="title-detail mt-5 break-words">{work.title}</h1>
           <p className="mt-6 font-serif text-2xl leading-snug">{work.description}</p>
-          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
-            {facts.map(([key, value]) => (
-              <div key={key}>
-                <dt className="eyebrow text-muted-foreground">{key}</dt>
-                <dd className="mt-1">{value}</dd>
-              </div>
-            ))}
-          </dl>
+          <p className="mt-8 border-t border-border pt-5 text-sm text-muted-foreground">
+            {credit}
+          </p>
           <PromptNote work={work} prompt={raw.prompt} />
         </div>
       </div>

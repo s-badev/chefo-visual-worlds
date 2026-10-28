@@ -80,6 +80,29 @@ const expectCleanDetail = (slug: string) => {
 };
 
 describe("AI artwork detail cleanup", () => {
+  it.each([
+    ["chefo-srednovekoven-ritsar", "ChatGPT Image Generation"],
+    ["chefo-v-badeshteto", "Grok"],
+    ["chefo-v-turtsiya", "ChatGPT Image Generation"],
+    ["nubian-king-and-returning-army", "Gemini Nano Banana"],
+    ["rainy-neon-noir", "Gemini Nano Banana"],
+    ["captain-against-the-storm", "Gemini Nano Banana"],
+  ])("shows the verified tool credit for %s", (slug, credit) => {
+    render(<AiDetailView work={getAiWork(slug)!} />);
+    expect(screen.getByText(credit)).toBeInTheDocument();
+    expect(document.querySelector("dl")).toBeNull();
+  });
+
+  it.each([
+    ["renesansov-portret", "en", "AI image"],
+    ["chefo-barber", "bg", "AI изображение"],
+  ] as const)("uses a generic localized credit for %s", (slug, locale, credit) => {
+    activeLocale = locale;
+    render(<AiDetailView work={getAiWork(slug)!} />);
+    expect(screen.getByText(credit)).toBeInTheDocument();
+    expect(document.querySelector("dl")).toBeNull();
+  });
+
   it.each(["bg", "en"] as const)(
     "keeps the primary historical artwork and prompt but omits process imagery in %s",
     async (locale) => {

@@ -81,6 +81,11 @@ describe("AI Worlds overview", () => {
       "/ai-worlds/collections/chefo-around-the-world",
     ]);
     expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
+    const collectionActions = screen.getAllByText(messages[locale].ai.exploreCollection);
+    expect(collectionActions).toHaveLength(4);
+    for (const action of collectionActions) {
+      expect(action).toHaveClass("min-h-11", "rounded-sm", "border");
+    }
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;
     expect(professions.querySelector("img")?.getAttribute("src")).toContain(

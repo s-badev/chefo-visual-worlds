@@ -270,20 +270,10 @@ describe("Around the World pages", () => {
       );
       expect(screen.getAllByRole("link", { name: collection })).toHaveLength(2); // breadcrumb + chip
       expect(screen.getByText(messages[locale].common.aiBadge)).toBeInTheDocument();
-      const facts = Array.from(document.querySelectorAll("dt")).map((dt) => [
-        dt.textContent,
-        dt.nextElementSibling?.textContent,
-      ]);
-      expect(facts).toEqual([
-        [m.tool, "ChatGPT Image Generation"],
-        [m.created, locale === "bg" ? "12 октомври 2026 г." : "12 October 2026"],
-        [m.theme, locale === "bg" ? "Култури по света" : "World cultures"],
-        [messages[locale].photos.place, locale === "bg" ? "Турция" : "Turkey"],
-        [m.clothing, work.portraitDetails!.clothing[locale]],
-        [m.grooming, work.portraitDetails!.grooming[locale]],
-        [m.settingLabel, work.portraitDetails!.setting[locale]],
-        [m.status, m.statusPublished],
-      ]);
+      expect(document.querySelector("dl")).toBeNull();
+      expect(screen.getByText("ChatGPT Image Generation")).toBeInTheDocument();
+      expect(screen.queryByText(locale === "bg" ? "12 октомври 2026 г." : "12 October 2026")).toBeNull();
+      expect(screen.queryByText(locale === "bg" ? "Култури по света" : "World cultures")).toBeNull();
       expect(screen.getByRole("navigation", { name: m.others })).toBeInTheDocument();
     },
   );

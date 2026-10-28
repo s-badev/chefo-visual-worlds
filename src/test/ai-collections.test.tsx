@@ -195,10 +195,34 @@ describe("AI collection page", () => {
       "Roman Emperor",
       "Italian Renaissance Nobleman",
     ]);
+    const viewActions = screen.getAllByRole("link", { name: "View artwork" });
+    const fullscreenActions = screen.getAllByRole("button", { name: "Full screen" });
+    expect(viewActions).toHaveLength(16);
+    expect(fullscreenActions).toHaveLength(16);
+    expect(viewActions[0]).toHaveClass("min-h-11", "border-gold");
+    expect(fullscreenActions[0]).toHaveClass("min-h-11", "border-border");
+    expect(container.querySelector("ol.container-page")?.textContent).not.toContain(" · ");
     fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[2]!);
     const viewer = screen.getByRole("dialog", { name: "Italian Renaissance Nobleman" });
     expect(within(viewer).getByText("3 / 16")).toBeInTheDocument();
     expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
+  });
+
+  it("uses two bounded collection cards and preserves the intentional wraparound order", () => {
+    const collection = getAiCollection("historical-eras-rulers")!;
+    render(<AiCollectionView collection={collection} />);
+    const navigation = screen.getByRole("navigation", { name: "Collections" });
+    const links = within(navigation).getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/ai-worlds/collections/chefo-around-the-world",
+    );
+    expect(links[1]).toHaveAttribute("href", "/ai-worlds/collections/professions-roles");
+    for (const link of links) {
+      expect(link).toHaveClass("min-h-24", "rounded-sm", "border");
+      expect(link.querySelector("svg")).toBeInTheDocument();
+    }
   });
 
   it("exhibits all sixteen professions without exposing planned ideas", () => {
