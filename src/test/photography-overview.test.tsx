@@ -156,7 +156,7 @@ describe("Photography album overview", () => {
     expect(screen.queryByText(messages[locale].photos.place)).not.toBeInTheDocument();
   });
 
-  it("uses the approved opening and changes the desktop cover preview on hover and focus", () => {
+  it("preserves the approved opening and album preview without extra featured sections", () => {
     activeLocale = "en";
     const { container } = render(<PhotographyView />);
     const opening = container.querySelector<HTMLImageElement>("[data-photo-opening] img")!;
@@ -185,11 +185,6 @@ describe("Photography album overview", () => {
       "src",
       "/photos/sofia/sofia-001.webp",
     );
-    expect(container.querySelectorAll(".photography-editorial-reportage-image")).toHaveLength(3);
-    expect(container.querySelector(".photography-editorial-panorama-frame img")).toHaveAttribute(
-      "src",
-      "/photos/rila/rila-008.webp",
-    );
     expect(container.querySelector(".photography-editorial-opening-photo")).not.toHaveClass(
       "photo-frame-print",
     );
@@ -200,17 +195,8 @@ describe("Photography album overview", () => {
     expect(
       container.querySelectorAll(".photography-editorial-thumb.photo-frame-keyline"),
     ).toHaveLength(12);
-    expect(
-      container.querySelectorAll(".photography-editorial-reportage-frame.photo-frame-print"),
-    ).toHaveLength(2);
-    expect(
-      container.querySelector(
-        ".photography-editorial-reportage-image-3 .photography-editorial-reportage-frame",
-      ),
-    ).not.toHaveClass("photo-frame-print");
-    expect(container.querySelector(".photography-editorial-panorama-frame")).not.toHaveClass(
-      "photo-frame-print",
-    );
+    expect(container.querySelector(".photography-editorial-reportage")).toBeNull();
+    expect(container.querySelector(".photography-editorial-panorama")).toBeNull();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
