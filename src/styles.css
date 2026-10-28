@@ -587,15 +587,12 @@
   gap: 1rem 2rem;
   margin-bottom: 2rem;
 }
-.photography-editorial-index-heading h2,
-.photography-editorial-reportage-head h2 {
+.photography-editorial-index-heading h2 {
   font-family: var(--font-serif);
   font-size: clamp(2.4rem, 6vw, 4.5rem);
   line-height: 1;
 }
-.photography-editorial-all-photos,
-.photography-editorial-reportage-link,
-.photography-editorial-panorama figcaption a {
+.photography-editorial-all-photos {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -606,9 +603,7 @@
   font-weight: 600;
   text-decoration: none;
 }
-.photography-editorial-all-photos:hover,
-.photography-editorial-reportage-link:hover,
-.photography-editorial-panorama figcaption a:hover {
+.photography-editorial-all-photos:hover {
   color: var(--gold-ink);
 }
 .photography-editorial-index-grid {
@@ -726,118 +721,6 @@
   }
 }
 
-.photography-editorial-reportage {
-  padding-block: 5rem;
-  background: var(--tint-sand);
-}
-.photography-editorial-reportage-head {
-  display: grid;
-  gap: 0.75rem;
-  margin-bottom: 2.25rem;
-}
-.photography-editorial-reportage-head p {
-  max-width: 44ch;
-  color: var(--muted-foreground);
-}
-.photography-editorial-reportage-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem 1rem;
-  align-items: start;
-}
-.photography-editorial-reportage-image {
-  min-width: 0;
-}
-.photography-editorial-reportage-image-1 {
-  grid-column: 1 / -1;
-}
-.photography-editorial-reportage-frame {
-  display: block;
-  overflow: hidden;
-  aspect-ratio: 3 / 4;
-  background: var(--secondary);
-}
-.photography-editorial-reportage-image-1 .photography-editorial-reportage-frame {
-  aspect-ratio: 3 / 2;
-}
-.photography-editorial-reportage-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.photography-editorial-reportage-image figcaption {
-  margin-top: 0.55rem;
-  font-family: var(--font-serif);
-  font-size: 1.15rem;
-  line-height: 1.45;
-}
-.photography-editorial-reportage-link {
-  justify-self: start;
-}
-@media (min-width: 900px) {
-  .photography-editorial-reportage-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    column-gap: 3rem;
-  }
-  .photography-editorial-reportage-grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 0 2rem;
-  }
-  .photography-editorial-reportage-image-1 {
-    grid-column: 1 / 9;
-    grid-row: 1 / 3;
-  }
-  .photography-editorial-reportage-image-2 {
-    grid-column: 9 / 13;
-    grid-row: 1;
-    margin-top: 6rem;
-  }
-  .photography-editorial-reportage-image-3 {
-    grid-column: 6 / 9;
-    grid-row: 3;
-    margin-top: -9rem;
-    position: relative;
-    z-index: 1;
-  }
-  .photography-editorial-reportage-image-3 .photography-editorial-reportage-frame {
-    box-shadow: 0 0 0 0.75rem var(--tint-sand);
-  }
-  .photography-editorial-reportage-link {
-    grid-column: 9 / 13;
-    grid-row: 3;
-    align-self: end;
-  }
-}
-.photography-editorial-panorama-frame {
-  display: block;
-  height: min(70svh, 44vw);
-  min-height: 16rem;
-  overflow: hidden;
-  background: var(--secondary);
-}
-.photography-editorial-panorama-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.photography-editorial-panorama figcaption {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem 1rem;
-  padding-block: 0.85rem;
-  color: var(--foreground);
-  font-size: 1rem;
-  line-height: 1.5;
-}
-.photography-editorial-panorama figcaption strong {
-  font-family: var(--font-serif);
-  color: var(--foreground);
-  font-size: 1.2rem;
-  font-weight: 500;
-}
 .photography-editorial a:focus-visible,
 .photography-editorial button:focus-visible {
   outline: 3px solid var(--foreground);
@@ -881,13 +764,6 @@
   min-height: 18rem;
   overflow: hidden;
   background: var(--secondary);
-}
-.editorial-album-cover button {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  cursor: zoom-in;
 }
 .editorial-album-cover img {
   display: block;
@@ -1061,12 +937,14 @@
   font-size: 0.85rem;
 }
 .editorial-album-all-grid {
-  columns: 2;
-  column-gap: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 0.6rem;
 }
 .editorial-album-all-grid li {
-  break-inside: avoid;
-  margin-bottom: 1rem;
+  min-width: min(100%, 7.5rem);
+  flex: var(--gallery-ratio) 1 calc(var(--gallery-ratio) * 9rem);
 }
 .editorial-album-all-grid img {
   display: block;
@@ -1094,13 +972,9 @@
   transition: opacity 180ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .editorial-album-cover img,
   .editorial-album-image-frame img,
   .editorial-album-all-grid button img {
     transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .editorial-album-cover button:hover img {
-    transform: scale(1.015);
   }
   .editorial-album-figure button:hover img {
     transform: scale(1.025);
@@ -1119,7 +993,6 @@
   opacity: 1;
 }
 @media (prefers-reduced-motion: reduce) {
-  .editorial-album-cover img,
   .editorial-album-image-frame img,
   .editorial-album-all-grid button img {
     transition: none;
@@ -1137,39 +1010,29 @@
 }
 @media (min-width: 768px) {
   .editorial-album-all-grid {
-    columns: 3;
-    column-gap: 1rem;
+    gap: 1rem;
+  }
+  .editorial-album-all-grid li {
+    flex-basis: calc(var(--gallery-ratio) * 12rem);
   }
 }
-@media (min-width: 1200px) {
-  .editorial-album-all-grid {
-    columns: 4;
-  }
-}
-.editorial-album-navigation {
+.album-navigation {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   border-top: 1px solid var(--border);
   padding-block: 2rem 4rem;
 }
-.editorial-album-navigation a {
-  display: flex;
-  min-height: 44px;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-serif);
-  font-size: clamp(1.25rem, 4vw, 2.25rem);
-  line-height: 1;
+@media (min-width: 768px) {
+  .album-navigation:not(.album-navigation--single) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
 }
-.editorial-album-navigation a + a {
-  justify-content: flex-end;
-  text-align: right;
-}
-.editorial-album a:hover {
+.editorial-album a:not(.next-album-card):hover {
   color: var(--gold-ink);
 }
-.editorial-album a:focus-visible,
+.editorial-album a:not(.next-album-card):focus-visible,
 .editorial-album button:focus-visible {
   outline: 3px solid var(--foreground);
   outline-offset: 4px;
@@ -1186,7 +1049,6 @@
   overflow: hidden;
   background: var(--secondary);
 }
-.unified-album-cover button,
 .unified-album-highlight button,
 .unified-album-grid button {
   position: relative;
@@ -1194,9 +1056,6 @@
   width: 100%;
   text-align: left;
   cursor: zoom-in;
-}
-.unified-album-cover button {
-  height: 100%;
 }
 .unified-album-cover img {
   display: block;
@@ -1239,25 +1098,6 @@
     column-gap: 4rem;
   }
 }
-.unified-album-view-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  border-block: 1px solid var(--border);
-}
-.unified-album-view-nav a {
-  display: inline-flex;
-  min-height: 52px;
-  align-items: center;
-  border-bottom: 2px solid transparent;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-}
-.unified-album-view-nav a[aria-current="page"] {
-  border-bottom-color: var(--gold-ink);
-  color: var(--foreground);
-}
 .unified-album-highlights {
   display: flex;
   flex-wrap: wrap;
@@ -1295,12 +1135,10 @@
     flex-basis: var(--highlight-desktop-basis);
   }
 }
-.unified-album-gallery-action {
-  display: flex;
-  flex: 0 0 100%;
-}
 .unified-album-gallery {
+  border-top: 1px solid var(--border);
   padding-block: 2rem 4rem;
+  scroll-margin-top: 5rem;
   container-type: inline-size;
 }
 .unified-album-section-head {
@@ -1324,13 +1162,12 @@
   position: relative;
   width: 100%;
   height: var(--mosaic-mobile-height);
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--mosaic-mobile-height);
 }
 .unified-album-grid li {
   position: absolute;
-  left: var(--mosaic-mobile-x);
-  top: var(--mosaic-mobile-y);
-  width: var(--mosaic-mobile-width);
-  height: var(--mosaic-mobile-height);
+  inset: var(--mosaic-mobile);
 }
 .unified-album-grid figure,
 .unified-album-grid button,
@@ -1346,56 +1183,26 @@
 @media (min-width: 481px) {
   .unified-album-grid { height: var(--mosaic-smallTablet-height); }
   .unified-album-grid li {
-    left: var(--mosaic-smallTablet-x);
-    top: var(--mosaic-smallTablet-y);
-    width: var(--mosaic-smallTablet-width);
-    height: var(--mosaic-smallTablet-height);
+    inset: var(--mosaic-smallTablet);
   }
 }
 @media (min-width: 560px) {
   .unified-album-grid { height: var(--mosaic-mediumTablet-height); }
   .unified-album-grid li {
-    left: var(--mosaic-mediumTablet-x);
-    top: var(--mosaic-mediumTablet-y);
-    width: var(--mosaic-mediumTablet-width);
-    height: var(--mosaic-mediumTablet-height);
+    inset: var(--mosaic-mediumTablet);
   }
 }
 @media (min-width: 768px) {
   .unified-album-grid { height: var(--mosaic-tablet-height); }
   .unified-album-grid li {
-    left: var(--mosaic-tablet-x);
-    top: var(--mosaic-tablet-y);
-    width: var(--mosaic-tablet-width);
-    height: var(--mosaic-tablet-height);
+    inset: var(--mosaic-tablet);
   }
 }
 @media (min-width: 1024px) {
   .unified-album-grid { height: var(--mosaic-desktop-height); }
   .unified-album-grid li {
-    left: var(--mosaic-desktop-x);
-    top: var(--mosaic-desktop-y);
-    width: var(--mosaic-desktop-width);
-    height: var(--mosaic-desktop-height);
+    inset: var(--mosaic-desktop);
   }
-}
-.unified-album-progress {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid var(--border);
-  margin-top: 2rem;
-  padding-top: 1rem;
-}
-.unified-album-progress output {
-  color: var(--foreground);
-  font-size: 0.9rem;
-}
-.unified-album-next {
-  border-top: 1px solid var(--border);
-  padding-block: 2rem 4rem;
 }
 .unified-album-zoom-cue {
   position: absolute;
@@ -1414,12 +1221,10 @@
   transition: opacity 180ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .unified-album-cover img,
   .unified-album-highlight img,
   .unified-album-grid img {
     transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .unified-album-cover button:hover img,
   .unified-album-highlight button:hover img,
   .unified-album-grid button:hover img {
     transform: scale(1.02);
@@ -1437,7 +1242,6 @@
   outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .unified-album-cover img,
   .unified-album-highlight img,
   .unified-album-grid img,
   .unified-album-zoom-cue {
@@ -1448,7 +1252,7 @@
   }
 }
 
-/* Link affordances: back pill (tier 1), section action pill (tier 2), next-album card (tier 3).
+/* Link affordances: back pill (tier 1), section action pill (tier 2), album navigation card (tier 3).
    Light values by default; .surface-dark switches the back pill to the gold-on-navy variant.
    Outline mixes are the lowest values that keep >= 3:1 against the page background. */
 .back-pill,
@@ -1504,45 +1308,69 @@
 .action-pill:active {
   background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
 }
-/* Mobile: full-width buttons, the counter on its own line above Show More. */
-.unified-album-gallery-action .action-pill,
-.unified-album-show-more {
-  width: 100%;
-}
-.unified-album-progress {
-  flex-direction: column;
-  align-items: stretch;
-}
-@media (min-width: 768px) {
-  .unified-album-gallery-action {
-    justify-content: flex-end;
-  }
-  .unified-album-gallery-action .action-pill,
-  .unified-album-show-more {
-    width: auto;
-  }
-  .unified-album-progress {
-    flex-direction: row;
-    align-items: center;
-  }
-}
 .next-album-card {
+  position: relative;
   display: flex;
   width: 100%;
-  min-height: 88px;
-  align-items: center;
+  min-height: 160px;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1.25rem;
-  padding-block: 0.75rem;
+  overflow: hidden;
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  background: var(--secondary);
+  color: var(--navy-foreground);
+  isolation: isolate;
+}
+.next-album-card-cover,
+.next-album-card-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.next-album-card-cover {
+  z-index: -2;
+  object-fit: cover;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.next-album-card-shade {
+  z-index: -1;
+  background: color-mix(in srgb, var(--navy) 75%, transparent);
+}
+a.next-album-card.next-album-card--fallback {
+  border: 1px solid color-mix(in srgb, var(--navy) 24%, transparent);
+  background: var(--tint-sand);
+  color: var(--navy);
+}
+a.next-album-card.next-album-card--fallback .next-album-card-shade {
+  display: none;
 }
 .next-album-card-text {
   display: grid;
   min-width: 0;
   gap: 0.45rem;
 }
+.next-album-card-eyebrow {
+  color: color-mix(in oklch, var(--gold) 40%, var(--navy-foreground));
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+a.next-album-card.next-album-card--fallback .next-album-card-eyebrow {
+  color: var(--navy);
+}
+a.next-album-card.next-album-card--fallback .next-album-card-arrow {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--navy-foreground);
+}
 .next-album-card-name {
   font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
@@ -1552,11 +1380,22 @@
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  border: 1px solid var(--gold);
   border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
   transition-property: border-color, background-color, transform;
   transition-duration: var(--dur-fast);
   transition-timing-function: var(--motion-ease);
+}
+a.next-album-card:active {
+  transform: translateY(1px);
+}
+@media (min-width: 768px) {
+  .next-album-card {
+    min-height: 180px;
+    padding: 1.5rem;
+  }
 }
 a.back-pill:focus-visible,
 :is(a, button).action-pill:focus-visible,
@@ -1587,13 +1426,24 @@ a.next-album-card:focus-visible {
   :is(a, button).action-pill:hover:active {
     background-color: color-mix(in srgb, var(--foreground) 85%, var(--background));
   }
-  a.next-album-card:hover .next-album-card-arrow {
-    border-color: var(--foreground);
+  a.next-album-card:hover .next-album-card-cover {
+    transform: scale(1.02);
   }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   a.next-album-card:hover .next-album-card-arrow {
     transform: translateX(4px);
+  }
+  a.next-album-card--previous:hover .next-album-card-arrow {
+    transform: translateX(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .next-album-card,
+  .next-album-card-cover,
+  .next-album-card-arrow {
+    transition: none;
+    transform: none !important;
   }
 }
 

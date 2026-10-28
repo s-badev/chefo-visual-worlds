@@ -28,16 +28,10 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const openingAlbum = getAlbumForPhoto(opening.slug);
   const selectedAlbum = getAlbum(selectedSlug) ?? albums[0]!;
   const selectedCover = getAlbumCover(selectedAlbum);
-  const reportageAlbum = getAlbum(editorial.photography.reportage.albumSlug);
-  const reportage = editorial.photography.reportage.photoSlugs.map((slug) =>
-    localizePhoto(requiredPhoto(slug), locale),
-  );
-  const panorama = localizePhoto(requiredPhoto(editorial.photography.panoramaPhotoSlug), locale);
-  const rilaAlbum = getAlbumForPhoto(panorama.slug);
   const headingWords = t.home.photoTitle.split(" ");
   const headingLastWord = headingWords.pop();
 
-  if (!openingAlbum || !reportageAlbum || !rilaAlbum) throw new Error("Missing editorial album");
+  if (!openingAlbum) throw new Error("Missing editorial album");
 
   return (
     <div className="photography-editorial">
@@ -161,85 +155,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
             </figure>
           )}
         </div>
-      </Surface>
-
-      <Surface
-        tone="light"
-        className="photography-editorial-reportage"
-        aria-labelledby="photography-istanbul-title"
-      >
-        <div className="container-page">
-          <div className="photography-editorial-reportage-head">
-            <h2 id="photography-istanbul-title">{albumText(reportageAlbum.title, locale)}</h2>
-            <p>{albumText(reportageAlbum.description, locale)}</p>
-          </div>
-          <div className="photography-editorial-reportage-grid">
-            {reportage.map((photo, index) => (
-              <figure
-                key={photo.slug}
-                className={`photography-editorial-reportage-image photography-editorial-reportage-image-${index + 1}`}
-              >
-                <LocaleLink to="/photography/$slug" slug={photo.slug} aria-label={photo.title}>
-                  <span
-                    className={`photography-editorial-reportage-frame${index < 2 ? " photo-frame-print photo-frame-print--thin" : ""}`}
-                  >
-                    <img
-                      src={photo.image}
-                      alt={photo.alt}
-                      width={photo.width}
-                      height={photo.height}
-                      loading="lazy"
-                      decoding="async"
-                      sizes={
-                        index === 0
-                          ? "(min-width: 900px) 62vw, 100vw"
-                          : "(min-width: 900px) 30vw, 50vw"
-                      }
-                    />
-                  </span>
-                </LocaleLink>
-                <figcaption>{photo.title}</figcaption>
-              </figure>
-            ))}
-            <LocaleLink
-              className="photography-editorial-reportage-link"
-              to="/photography/albums/$slug"
-              slug={reportageAlbum.slug}
-            >
-              {albumText(reportageAlbum.title, locale)} <ArrowRight size={18} aria-hidden="true" />
-            </LocaleLink>
-          </div>
-        </div>
-      </Surface>
-
-      <Surface
-        tone="light"
-        className="photography-editorial-panorama"
-        aria-label={albumText(rilaAlbum.title, locale)}
-      >
-        <figure>
-          <LocaleLink to="/photography/$slug" slug={panorama.slug} aria-label={panorama.title}>
-            <span className="photography-editorial-panorama-frame">
-              <img
-                src={panorama.image}
-                alt={panorama.alt}
-                width={panorama.width}
-                height={panorama.height}
-                loading="lazy"
-                decoding="async"
-                sizes="100vw"
-              />
-            </span>
-          </LocaleLink>
-          <figcaption className="container-page">
-            <span>
-              <strong>{panorama.title}</strong> · {albumText(rilaAlbum.title, locale)}
-            </span>
-            <LocaleLink to="/photography/albums/$slug" slug={rilaAlbum.slug}>
-              {albumText(rilaAlbum.title, locale)} <ArrowRight size={18} aria-hidden="true" />
-            </LocaleLink>
-          </figcaption>
-        </figure>
       </Surface>
     </div>
   );

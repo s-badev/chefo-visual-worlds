@@ -18,8 +18,6 @@ describe("optional editorial presentation data", () => {
   it("uses registered photographs for every selection", () => {
     const selected = [
       editorial.photography.opening.photoSlug,
-      ...editorial.photography.reportage.photoSlugs,
-      editorial.photography.panoramaPhotoSlug,
       ...editorial.albums.flatMap((album) =>
         album.chapters.flatMap((chapter) => chapter.images.map((image) => image.photoSlug)),
       ),
@@ -31,19 +29,9 @@ describe("optional editorial presentation data", () => {
         (item) => item.photoSlug === editorial.photography.opening.photoSlug,
       ),
     ).toBe(true);
-    expect(
-      getAlbum("rila")?.photos.some(
-        (item) => item.photoSlug === editorial.photography.panoramaPhotoSlug,
-      ),
-    ).toBe(true);
   });
 
-  it("keeps each album layout and the reportage within its own album", () => {
-    const reportage = getAlbum(editorial.photography.reportage.albumSlug);
-    expect(reportage).toBeDefined();
-    for (const slug of editorial.photography.reportage.photoSlugs) {
-      expect(reportage?.photos.some((item) => item.photoSlug === slug)).toBe(true);
-    }
+  it("keeps each album layout within its own album", () => {
     for (const layout of editorial.albums) {
       const album = getAlbum(layout.albumSlug);
       expect(album).toBeDefined();
@@ -61,7 +49,6 @@ describe("optional editorial presentation data", () => {
       expect(group.every((slug) => getAiWork(slug))).toBe(true);
     }
     expect(unique(editorial.about.photoSlugs)).toBe(true);
-    expect(unique(editorial.photography.reportage.photoSlugs)).toBe(true);
     for (const album of editorial.albums) {
       expect(
         unique(album.chapters.flatMap((chapter) => chapter.images.map((image) => image.photoSlug))),

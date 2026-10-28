@@ -111,6 +111,64 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
     },
   );
 
+  it.each(["bg", "en"] as const)(
+    "uses matching %s photographic cards for both adjacent albums",
+    (language) => {
+      locale = language;
+      const expected =
+        slug === "paris"
+          ? {
+              previous: "tunisia",
+              previousCover: "/photos/tunisia/tunisia-cover-card.webp",
+              next: "lyon",
+              nextCover: "/photos/lyon/lyon-cover-card.webp",
+            }
+          : {
+              previous: "lyon",
+              previousCover: "/photos/lyon/lyon-cover-card.webp",
+              next: "edirne",
+              nextCover: "/photos/edirne/edirne-cover-card.webp",
+            };
+      const previousAlbum = getAlbum(expected.previous)!;
+      const nextAlbum = getAlbum(expected.next)!;
+      const { container } = render(<AlbumView album={getAlbum(slug)!} />);
+      const navigation = container.querySelector(".editorial-album-navigation")!;
+      const previous = navigation.querySelector<HTMLAnchorElement>(
+        ".next-album-card--previous",
+      )!;
+      const next = navigation.querySelector<HTMLAnchorElement>(".next-album-card--next")!;
+
+      expect(previous).toHaveAttribute("href", `/photography/albums/${expected.previous}`);
+      expect(previous).toHaveAccessibleName(
+        `${messages[language].photos.previousAlbum}: ${
+          previousAlbum.title[language] ?? previousAlbum.title.bg
+        }`,
+      );
+      expect(previous.querySelector(".next-album-card-cover")).toHaveAttribute(
+        "src",
+        expected.previousCover,
+      );
+      expect(next).toHaveAttribute("href", `/photography/albums/${expected.next}`);
+      expect(next).toHaveAccessibleName(
+        `${messages[language].photos.nextAlbum}: ${
+          nextAlbum.title[language] ?? nextAlbum.title.bg
+        }`,
+      );
+      expect(next.querySelector(".next-album-card-cover")).toHaveAttribute(
+        "src",
+        expected.nextCover,
+      );
+      expect(navigation.querySelectorAll(".next-album-card")).toHaveLength(2);
+      expect(
+        navigation.querySelectorAll(`a[href='/photography/albums/${expected.next}']`),
+      ).toHaveLength(1);
+      expect(container.querySelector(".editorial-album-jump")).toHaveAttribute(
+        "href",
+        "#editorial-album-all",
+      );
+    },
+  );
+
   it("opens curated and full-gallery images at their authoritative indices", () => {
     const album = getAlbum(slug)!;
     const canonical = getAlbumPhotos(album, locale);
@@ -147,6 +205,12 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
     expect(
       [...container.querySelectorAll(".editorial-album h2")].map((heading) => heading.textContent),
     ).toEqual([messages.bg.photos.allPhotos]);
+    const galleryItems = [
+      ...container.querySelectorAll<HTMLElement>(".editorial-album-all-grid > li"),
+    ];
+    expect(galleryItems.map((item) => item.style.getPropertyValue("--gallery-ratio"))).toEqual(
+      canonical.map((photo) => String(photo.width / photo.height)),
+    );
   });
 });
 
@@ -192,8 +256,11 @@ it("lays out Paris chapters as justified rows with the cover paris-052", () => {
     expect(chapter.rows!.reduce((sum, count) => sum + count, 0)).toBe(chapter.images.length);
   }
   const cover = container.querySelector("[data-opening-photo-slug]")!;
+  expect(cover.tagName).toBe("IMG");
   expect(cover).toHaveAttribute("data-opening-photo-slug", "paris-052");
-  expect(cover.querySelector("img")).toHaveAttribute("src", "/photos/paris/paris-052.webp");
+  expect(cover).toHaveAttribute("src", "/photos/paris/paris-052.webp");
+  expect(container.querySelector(".editorial-album-cover button")).toBeNull();
+  expect(container.querySelector(".editorial-album-cover .editorial-album-zoom-cue")).toBeNull();
 });
 
 it("lays out Istanbul chapters as justified rows without staggered offsets", () => {
