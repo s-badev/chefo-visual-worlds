@@ -97,6 +97,9 @@
   --photo-frame-ink: color-mix(in oklch, var(--navy) 16%, transparent);
   --photo-frame-shadow-near: color-mix(in oklch, var(--navy) 10%, transparent);
   --photo-frame-shadow-far: color-mix(in oklch, var(--navy) 24%, transparent);
+
+  /* Home "За мен" portrait frame ratio (owner choice); both toggle images share it. */
+  --about-portrait-ratio: 4 / 5;
 }
 
 /* Dark world: components inside read navy/gold values from the same semantic tokens. */

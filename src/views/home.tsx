@@ -193,9 +193,14 @@ export function HomeView() {
 
       <Surface
         tone="light"
-        className="container-page section-y grid gap-10 md:grid-cols-[220px_1fr] md:items-start lg:grid-cols-[260px_1fr]"
+        className="container-page section-y grid gap-10 lg:grid-cols-[clamp(300px,26vw,380px)_1fr] lg:items-start"
       >
-        <PortraitSwitch compact className="max-w-[260px]" aiImage={aboutAiRoyal} />
+        {/* Stacked below lg; the width cap keeps the frame under 75dvh tall on short screens. */}
+        <PortraitSwitch
+          compact
+          className="w-full max-w-[min(380px,calc(75dvh*var(--about-portrait-ratio)))]"
+          aiImage={aboutAiRoyal}
+        />
         <div className="max-w-2xl">
           <h2 className="title-section">{m.aboutTitle}</h2>
           <p className="mt-6 font-serif text-2xl leading-snug">{m.aboutLead}</p>

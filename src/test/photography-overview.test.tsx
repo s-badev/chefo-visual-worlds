@@ -246,6 +246,21 @@ describe("Photography album overview", () => {
     expect(home.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
   });
 
+  it("keeps both compact portrait versions in one cover-fitted ratio frame", () => {
+    activeLocale = "bg";
+    render(<PortraitSwitch compact aiImage="/ai.png" />);
+    const real = screen.getByRole("img", { name: messages.bg.portrait.realAlt });
+    const frame = real.parentElement!;
+    expect(frame).toHaveClass("aspect-(--about-portrait-ratio)");
+    expect(real).toHaveClass("object-cover", "object-center");
+
+    fireEvent.click(screen.getByRole("button", { name: messages.bg.portrait.ai }));
+    const ai = screen.getByRole("img", { name: messages.bg.portrait.aiAlt });
+    expect(ai.parentElement).toBe(frame);
+    expect(ai).toHaveClass("object-cover", "object-top");
+    expect(ai.className).not.toMatch(/scale-|translate-/);
+  });
+
   it.each(["bg", "en"] as const)("removes the About creation pipeline in %s", (locale) => {
     activeLocale = locale;
     render(<AboutView />);
