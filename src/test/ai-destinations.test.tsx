@@ -405,7 +405,9 @@ describe("Around the World pages", () => {
     expect(screen.getByText("Направление 01 / 16")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: messages.bg.ai.prompt })).toBeInTheDocument();
     expect(screen.getByText(getAiWork(destination.slug)!.prompt)).toBeInTheDocument();
-    expect(screen.getByText("Пясъчни дюни, палми и камили в далечината.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Глинени крепостни стени, палми и високи кули на заден план."),
+    ).toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: messages.bg.ai.allDestinations });
     expect(
       within(nav)

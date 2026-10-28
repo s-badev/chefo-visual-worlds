@@ -153,8 +153,8 @@ const historicalRows: ImportedRow[] = [
       "An alarming letter reaches the fortress, and the Bulgarian voivode must choose between a final defense and a dangerous road to safety.",
     ],
     alt: [
-      "Разгневен войвода в кожена наметка държи писмо пред горяща крепост",
-      "Enraged voivode in a fur cloak holding a letter before a burning fortress",
+      "Разгневен войвода в кожена наметка държи писмо пред крепост с горящи факли",
+      "Enraged voivode in a fur cloak holding a letter before a torchlit fortress",
     ],
     scene:
       "Depict them as an enraged medieval voivode in dark lamellar armour and a thick fur mantle, gripping a creased letter in one hand. Place the intense waist-up portrait on a stone battlement with watchtowers, smoke, torches and distant mountain slopes under a cold storm-lit sky.",
@@ -222,8 +222,8 @@ const historicalRows: ImportedRow[] = [
       "In the narrow pass, the Spartan warrior leads the battle cry as the ranks behind him prepare to hold against a far stronger enemy.",
     ],
     alt: [
-      "Спартански воин с бронзова броня и щит в огнен планински проход",
-      "Spartan warrior in bronze armour with a shield inside a fiery mountain pass",
+      "Спартански воин с бронзова броня и щит в скалист планински проход",
+      "Spartan warrior in bronze armour with a shield inside a rocky mountain pass",
     ],
     scene:
       "Cast them as a Spartan warrior in weathered bronze armour, crimson cloak and crested helmet, shouting while reaching forward beside a round shield. Fill the rocky pass behind the chest-up figure with spears, warriors, smoke and scattered fire under harsh battle light.",
@@ -451,12 +451,12 @@ const cinemaRows: ImportedRow[] = [
     category: "Кино визии",
     title: ["Картографът на времето", "The Cartographer of Time"],
     description: [
-      "Механичният компас отваря разлом над града, а неговият пазител трябва да избере коя версия на миналото заслужава да оцелее.",
-      "A mechanical compass opens a fracture above the city, and its keeper must decide which version of the past deserves to survive.",
+      "Механичният часовник отваря разлом над града, а неговият пазител трябва да избере коя версия на миналото заслужава да оцелее.",
+      "A mechanical pocket watch opens a fracture above the city, and its keeper must decide which version of the past deserves to survive.",
     ],
     alt: [
-      "Пазител с механичен компас пред светлинен времеви портал в градска улица",
-      "Guardian holding a mechanical compass before a luminous time portal on a city street",
+      "Пазител с механичен джобен часовник пред светлинен времеви портал в градска улица",
+      "Guardian holding a mechanical pocket watch before a luminous time portal on a city street",
     ],
     scene:
       "Present the person as a time-portal guardian in a dark leather field coat, holding an intricate brass chronometer while looking toward an opening in the air. Blend historic domes and stone facades with distant future towers, using circular blue-gold energy trails, wet pavement and grounded evening light.",
@@ -493,8 +493,8 @@ const cinemaRows: ImportedRow[] = [
       "The explosion cuts off the retreat, leaving the soldier only seconds to reach cover and warn the others about the next attack.",
     ],
     alt: [
-      "Войник в очукана екипировка пред експлодиращ камион и разрушени сгради",
-      "Soldier in battered equipment before an exploding truck and ruined buildings",
+      "Войник в очукана екипировка пред експлозия и разрушени сгради",
+      "Soldier in battered equipment before an explosion and ruined buildings",
     ],
     scene:
       "Frame a close battlefield portrait of the person in worn modern combat gear, crouched behind rubble and turning sharply toward danger outside the frame. A military truck erupts in flame and debris behind them between damaged stone buildings, with smoke and sparks creating urgency without obscuring the face.",
@@ -546,8 +546,8 @@ const cinemaRows: ImportedRow[] = [
       "Among ruins swallowed by the jungle, an adventurer finds the entrance to a nameless temple—and a clue someone wanted to remain hidden.",
     ],
     alt: [
-      "Приключенец с раница и кожена риза сред обрасли древни каменни руини",
-      "Adventurer with a backpack and leather shirt among overgrown ancient stone ruins",
+      "Приключенец с раница и светла риза сред обрасли древни каменни руини",
+      "Adventurer with a backpack and a light shirt among overgrown ancient stone ruins",
     ],
     scene:
       "Stage an archaeological adventure in a humid jungle, with the person seated against a carved stone block in a worn tan field shirt, leather forearm guard and backpack harness. Surround the figure with vines, moss, broken arches and a distant temple, using shafts of warm sunlight and a watchful pause between discoveries.",

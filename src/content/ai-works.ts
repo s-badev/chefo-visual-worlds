@@ -228,13 +228,13 @@ export const aiWorks: AiWork[] = [
     },
     portraitDetails: {
       clothing: text(
-        "Бяла роба и светло покривало за глава с черен агал.",
-        "A white robe and light head covering with a black agal.",
+        "Бяла роба и червено-бяла карирана кърпа за глава с черен агал.",
+        "A white robe and a red-and-white checked headscarf with a black agal.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Пясъчни дюни, палми и камили в далечината.",
-        "Sand dunes, palms and camels in the distance.",
+        "Глинени крепостни стени, палми и високи кули на заден план.",
+        "Mud-brick fortress walls, palms and tall towers in the background.",
       ),
     },
   }),
@@ -242,17 +242,17 @@ export const aiWorks: AiWork[] = [
     slug: "chefo-v-gartsiya", title: "Гръцки следобед",
     image: worldGreece, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural, photorealistic vertical travel portrait of the same person seated at a blue outdoor cafe table in Athens. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in an open-collar pale blue linen shirt and light trousers. Show one hand resting near their face, with iced coffee, a glass of water and a small plate on the table. In the sunlit background, include a lively street cafe, flowers, a Greek flag and the Acropolis on its hill. Use a relaxed waist-up composition, crisp Mediterranean daylight, natural shadows and authentic photographic texture; avoid artificial faces, distorted hands and added lettering.",
-    alt: "AI портрет на Чефо със светлосиня риза на маса пред гръцки знамена и антични сгради",
+    alt: "AI портрет на Чефо със светлосиня риза на маса пред гръцко знаме и антични сгради",
     description: "Атина има търпение за хора, които не гонят следващата забележителност. Той ѝ посвещава целия следобед.",
     en: {
       title: "A Greek Afternoon",
-      alt: "AI portrait of Chefo in a light blue shirt at a table before Greek flags and ancient buildings",
+      alt: "AI portrait of Chefo in a light blue shirt at a table before a Greek flag and ancient buildings",
       description: "Athens has time for people who are not chasing the next landmark. He gives it the whole afternoon.",
     },
     portraitDetails: {
       clothing: text(
-        "Бяла риза, светъл панталон и син шал.",
-        "A white shirt, light trousers and a blue scarf.",
+        "Светлосиня ленена риза и бял панталон.",
+        "A light blue linen shirt and white trousers.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
@@ -273,11 +273,11 @@ export const aiWorks: AiWork[] = [
       description: "In Havana, plans change at the first corner. Perhaps that is the right way to get to know it.",
     },
     portraitDetails: {
-      clothing: text("Сива тениска и тъмен панталон.", "A grey T-shirt and dark trousers."),
-      grooming: text(
-        "По-дълга разрошена коса и лека брада.",
-        "Longer tousled hair and light stubble.",
+      clothing: text(
+        "Бяла риза тип гуаябера и златна верижка.",
+        "A white guayabera-style shirt and a gold chain.",
       ),
+      grooming: text("Къса къдрава коса и къса брада.", "Short curly hair and a short beard."),
       setting: text(
         "Цветни фасади, балкони и ретро автомобили.",
         "Colourful façades, balconies and vintage cars.",
@@ -375,17 +375,17 @@ export const aiWorks: AiWork[] = [
     slug: "chefo-vav-frantsiya", title: "Френски стил",
     image: worldFrance, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical travel portrait of the same person seated at a Parisian outdoor cafe at golden hour. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a dark overcoat and a soft grey scarf, raising a small espresso cup near their face; a croissant rests on a plate on the table. Include the Eiffel Tower in the softly focused background beyond the cafe terrace and city street. Frame them chest-up with a relaxed seated posture, warm sunset light across the face and a subtle cinematic depth of field. Keep fabric, hands and table details believable, avoiding exaggerated features, distorted anatomy or artificial lettering.",
-    alt: "AI портрет на Чефо с тъмен костюм и сив шал на улица край кафе",
+    alt: "AI портрет на Чефо с тъмно палто и сив шал на улица край кафе",
     description: "Париж няма нужда от още една снимка за доказателство. Той оставя следобеда да свърши, преди да реши как да го запомни.",
     en: {
       title: "French Style",
-      alt: "AI portrait of Chefo in a dark suit and grey scarf on a street beside a café",
+      alt: "AI portrait of Chefo in a dark coat and grey scarf on a street beside a café",
       description: "Paris does not need another photograph as proof. He lets the afternoon end before deciding how to remember it.",
     },
     portraitDetails: {
       clothing: text(
-        "Тъмен костюм, бяла риза и сив шал.",
-        "A dark suit, white shirt and grey scarf.",
+        "Тъмно палто, тъмен пуловер и сив шал.",
+        "A dark coat, dark sweater and grey scarf.",
       ),
       grooming: text("Къса коса и лека брада.", "Short hair and light stubble."),
       setting: text(
@@ -412,8 +412,8 @@ export const aiWorks: AiWork[] = [
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Аркаден двор, куполни форми и слон на заден план.",
-        "An arched courtyard, domed forms and an elephant in the background.",
+        "Пазарна улица с фенери, подправки и платове, минаре и купол на заден план.",
+        "A market street with lanterns, spices and textiles, and a minaret and dome in the background.",
       ),
     },
   }),
@@ -437,11 +437,14 @@ export const aiWorks: AiWork[] = [
         "In Istanbul, the two shores never argue over which matters more. He stops choosing sides, too.",
     },
     portraitDetails: {
-      clothing: text("Тъмносин костюм и бяла риза.", "A dark blue suit and white shirt."),
+      clothing: text(
+        "Тъмно палто, шарен шал, тъмен пуловер и бяла риза.",
+        "A dark coat, patterned scarf, dark sweater and white shirt.",
+      ),
       grooming: text("Къса коса и лека брада.", "Short hair and light stubble."),
       setting: text(
-        "Тясна улица, стенни фенери и минаре на заден план.",
-        "A narrow street, wall lanterns and a minaret in the background.",
+        "Тераса край водата с фенери, ферибот и джамия с минарета на заден план.",
+        "A waterside terrace with lanterns, a ferry and a mosque with minarets in the background.",
       ),
     },
   }),
@@ -458,13 +461,13 @@ export const aiWorks: AiWork[] = [
     },
     portraitDetails: {
       clothing: text(
-        "Светла дълга роба и бежов шал около главата.",
-        "A light long robe and beige scarf wrapped around the head.",
+        "Бяла ленена риза със закачени слънчеви очила.",
+        "A white linen shirt with sunglasses hooked on it.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Пясъчен терен, пирамиди и камили на заден план.",
-        "Sandy ground, pyramids and camels in the background.",
+        "Улица със сергия за сокове, таксита и пирамиди на заден план.",
+        "A street with a juice stall, taxis and pyramids in the background.",
       ),
     },
   }),
@@ -480,11 +483,14 @@ export const aiWorks: AiWork[] = [
       description: "Dubai loves to talk about tomorrow. He stays with today and discovers that this, too, is a luxury.",
     },
     portraitDetails: {
-      clothing: text("Тъмносин костюм и бяла риза.", "A dark blue suit and white shirt."),
+      clothing: text(
+        "Бяла кандура и бяла гутра с черен агал.",
+        "A white kandura and a white ghutra with a black agal.",
+      ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Широк булевард с палми и високи сгради в топла светлина.",
-        "A broad palm-lined boulevard and tall buildings in warm light.",
+        "Крайбрежие с дървени лодки, вятърни кули и небостъргачи на заден план.",
+        "A waterfront with wooden boats, wind towers and skyscrapers in the background.",
       ),
     },
   }),
