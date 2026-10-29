@@ -220,11 +220,11 @@ export const aiWorks: AiWork[] = [
     image: worldSaudiArabia, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial portrait of the same person seated at an outdoor cafe table on a warm Saudi Arabian city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a crisp white thobe and a red-and-white checked headscarf secured with a black agal. They hold a small white coffee cup, with dates resting on the table. Frame them from about the waist up, looking calmly toward the camera. Place palms, sandy-toned buildings and a modern tower softly behind them in clear golden daylight. Render fabric folds, hands and tableware naturally, with a warm restrained palette, believable depth of field and no caricature or text overlays.",
     alt: "AI портрет на Чефо в бяла роба и червено-бяла кърпа за глава в градска сцена с палми",
-    description: "В Рияд първо те канят да останеш, после питат накъде си тръгнал. Той не бърза да отговори.",
+    description: "В Рияд първо те канят да останеш, после питат накъде си тръгнал. С отговора никой не бърза.",
     en: {
       title: "Under the Arabian Sun",
       alt: "AI portrait of Chefo in a white robe and red-and-white headscarf in a city scene with palms",
-      description: "In Riyadh, they invite you to stay before asking where you are headed. He takes his time answering.",
+      description: "In Riyadh, they invite you to stay before asking where you are headed. Nobody is in a hurry for the answer.",
     },
     portraitDetails: {
       clothing: text(
@@ -243,11 +243,11 @@ export const aiWorks: AiWork[] = [
     image: worldGreece, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural, photorealistic vertical travel portrait of the same person seated at a blue outdoor cafe table in Athens. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in an open-collar pale blue linen shirt and light trousers. Show one hand resting near their face, with iced coffee, a glass of water and a small plate on the table. In the sunlit background, include a lively street cafe, flowers, a Greek flag and the Acropolis on its hill. Use a relaxed waist-up composition, crisp Mediterranean daylight, natural shadows and authentic photographic texture; avoid artificial faces, distorted hands and added lettering.",
     alt: "AI портрет на Чефо със светлосиня риза на маса пред гръцко знаме и антични сгради",
-    description: "Атина има търпение за хора, които не гонят следващата забележителност. Той ѝ посвещава целия следобед.",
+    description: "Атина има търпение за хора, които не гонят следващата забележителност. Целият следобед е за маса на каменната улица.",
     en: {
       title: "A Greek Afternoon",
       alt: "AI portrait of Chefo in a light blue shirt at a table before a Greek flag and ancient buildings",
-      description: "Athens has time for people who are not chasing the next landmark. He gives it the whole afternoon.",
+      description: "Athens has time for people who are not chasing the next landmark. The afternoon goes to one table on a stone street.",
     },
     portraitDetails: {
       clothing: text(
@@ -266,11 +266,11 @@ export const aiWorks: AiWork[] = [
     image: worldCuba, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical street portrait of the same person standing on a colourful Cuban city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a textured white short-sleeved open-collar shirt, with their torso visible, arms relaxed and a composed direct gaze. Position a vintage blue car on the street beside them, warm painted colonial facades and a palm behind them, and a domed building farther down the road. Use bright but soft tropical daylight, realistic urban depth, vivid yet credible colours and a waist-up to mid-thigh camera distance. Keep the portrait grounded and documentary in feel; avoid caricature, malformed hands and text overlays.",
     alt: "AI портрет на Чефо с бяла риза пред цветни фасади и ретро автомобил",
-    description: "В Хавана плановете се променят още на първия ъгъл. Може би това е правилният начин да я опознаеш.",
+    description: "В Хавана плановете се променят още на първия ъгъл. Сред цветните фасади така се опознава градът.",
     en: {
       title: "Streets of Cuba",
       alt: "AI portrait of Chefo in a white shirt before colourful façades and a vintage car",
-      description: "In Havana, plans change at the first corner. Perhaps that is the right way to get to know it.",
+      description: "In Havana, plans change at the first corner. Among colourful façades, that is how to get to know the city.",
     },
     portraitDetails: {
       clothing: text(
@@ -289,11 +289,11 @@ export const aiWorks: AiWork[] = [
     image: worldBrazil, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a realistic vertical editorial travel portrait of the same person seated beside a lively Brazilian beach. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear an open, colourful short-sleeved tropical floral shirt and a thin dark cord necklace. Give them a relaxed expression. Frame the upper body while allowing the palm-lined shore, people near the water and distant rocky mountains to remain visible behind them. Use a bright blue sky, warm coastal sunlight, natural fabric detail and a candid vacation atmosphere without over-saturating the scene. Keep human anatomy and hands plausible, with photographic depth of field and no unnecessary text.",
     alt: "AI портрет на Чефо с цветна флорална риза на плаж с палми",
-    description: "Рио започва деня така, сякаш вече празнува нещо. Той решава, че не е нужно да знае повода.",
+    description: "Рио започва деня така, сякаш вече празнува нещо. Между палмите на плажа поводът изобщо не е важен.",
     en: {
       title: "Brazilian Rhythm",
       alt: "AI portrait of Chefo in a colourful floral shirt on a palm-lined beach",
-      description: "Rio begins the day as though it is already celebrating something. He decides he does not need to know why.",
+      description: "Rio begins the day as though it is already celebrating something. On a beach lined with palms, the reason hardly matters.",
     },
     portraitDetails: {
       clothing: text("Риза с ярки флорални мотиви.", "A shirt with bright floral motifs."),
@@ -352,12 +352,12 @@ export const aiWorks: AiWork[] = [
     image: worldItaly, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial portrait of the same person seated at an outdoor cafe in Rome. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a dark navy blazer over an open white shirt with a light beige scarf draped around their neck. Show a relaxed seated posture at a small cafe table, with the Colosseum clearly recognizable but softly set back across the sunlit street. Frame them from roughly the waist up, allowing the table and ancient stone architecture to share the composition. Use warm late-afternoon light, natural shadows and restrained earth tones; avoid stiff posing, distorted hands and lettering.",
     alt: "AI портрет на Чефо с тъмно сако и светъл шал на улица пред античен амфитеатър",
-    description: "Рим не бърза да впечатлява никого. Може би затова един обикновен следобед тук остава толкова дълго в паметта.",
+    description: "Рим не бърза да впечатлява никого. Затова и един обикновен следобед край амфитеатъра остава толкова дълго в паметта.",
     en: {
       title: "Italian Elegance",
       alt: "AI portrait of Chefo in a dark jacket and light scarf on a street before an ancient amphitheatre",
       description:
-        "Rome is in no hurry to impress anyone. Perhaps that is why an ordinary afternoon here stays with you.",
+        "Rome is in no hurry to impress anyone. That is why an ordinary afternoon by the amphitheatre stays in the memory.",
     },
     portraitDetails: {
       clothing: text(
@@ -376,11 +376,11 @@ export const aiWorks: AiWork[] = [
     image: worldFrance, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical travel portrait of the same person seated at a Parisian outdoor cafe at golden hour. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a dark overcoat and a soft grey scarf, raising a small espresso cup near their face; a croissant rests on a plate on the table. Include the Eiffel Tower in the softly focused background beyond the cafe terrace and city street. Frame them chest-up with a relaxed seated posture, warm sunset light across the face and a subtle cinematic depth of field. Keep fabric, hands and table details believable, avoiding exaggerated features, distorted anatomy or artificial lettering.",
     alt: "AI портрет на Чефо с тъмно палто и сив шал на улица край кафе",
-    description: "Париж няма нужда от още една снимка за доказателство. Той оставя следобеда да свърши, преди да реши как да го запомни.",
+    description: "Париж няма нужда от още една снимка за доказателство. Първо нека следобедът край масите на кафето свърши, а споменът ще дойде после.",
     en: {
       title: "French Style",
       alt: "AI portrait of Chefo in a dark coat and grey scarf on a street beside a café",
-      description: "Paris does not need another photograph as proof. He lets the afternoon end before deciding how to remember it.",
+      description: "Paris does not need another photograph as proof. Let the afternoon at the café tables end first; the memory can come later.",
     },
     portraitDetails: {
       clothing: text(
@@ -399,11 +399,11 @@ export const aiWorks: AiWork[] = [
     image: worldIndia, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural photorealistic vertical portrait of the same person seated at an Indian tea stall along a lively market lane. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a light beige kurta-style shirt and a pale scarf across one shoulder, holding a small glass of chai near the table. Give them a thoughtful expression. Show warm hanging lanterns, market activity and arched buildings with distant minaret-like forms in the background. Compose a chest-up to waist-up portrait with warm golden afternoon light, textured fabrics, believable hands and an authentic street atmosphere. Do not add animals, ceremonial clothing, caricature or text overlays.",
     alt: "AI портрет на Чефо със светъл шал и чаша чай на оживена пазарна улица",
-    description: "На този пазар разговорът започва преди пазарлъка. Той се отбива за малко, а остава заради хората.",
+    description: "На този пазар разговорът започва преди пазарлъка. Една минута между сергиите се превръща в цял следобед, заради хората, не заради стоката.",
     en: {
       title: "Colours of the Market",
       alt: "AI portrait of Chefo with a light scarf and a glass of tea on a busy market street",
-      description: "At this market, conversation begins before bargaining does. He meant to stop briefly, but the people make him stay.",
+      description: "At this market, conversation begins before bargaining does. A minute between the stalls becomes a whole afternoon, because of the people rather than the goods.",
     },
     portraitDetails: {
       clothing: text(
@@ -429,12 +429,12 @@ export const aiWorks: AiWork[] = [
       "Using the uploaded reference photograph as the identity source, create a photorealistic vertical evening portrait of the same person seated by the Bosphorus in Istanbul. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a dark coat and patterned scarf; they hold a small tulip-shaped glass of Turkish tea near their chest while looking calmly toward the camera. Show water, a passing ferry and the silhouettes of domed mosques and minarets across the shore, softly lit at dusk. Use a chest-up composition with warm bokeh lights against the blue evening sky, realistic hands and glass reflections, and an understated cinematic atmosphere without caricature or lettering.",
     alt: "AI портрет на мъж с тъмно палто и чаша турски чай вечер край Босфора в Истанбул, с джамии на заден план",
     description:
-      "В Истанбул двата бряга никога не спорят кой е по-важен. Той също престава да избира страна.",
+      "В Истанбул двата бряга никога не спорят кой е по-важен. Вечерта край водата не изисква да избереш страна.",
     en: {
       title: "Evening on the Bosphorus",
       alt: "AI portrait of a man in a dark coat with a glass of Turkish tea on an evening by the Bosphorus in Istanbul, with mosques in the background",
       description:
-        "In Istanbul, the two shores never argue over which matters more. He stops choosing sides, too.",
+        "In Istanbul, the two shores never argue over which matters more. An evening by the water does not ask you to choose a side.",
     },
     portraitDetails: {
       clothing: text(
@@ -453,11 +453,11 @@ export const aiWorks: AiWork[] = [
     image: worldEgypt, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical travel portrait of the same person standing at a busy Egyptian street-side cafe or vendor stall near the pyramids. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in an open-collar white linen shirt with sunglasses hanging from its placket, and show them holding a clear glass of red drink. Frame them from the waist up, with market stalls, passing cars and the pyramids visible behind them through warm dusty daylight. Keep the modern street setting credible and the light slightly hazy, with realistic glass, fabric and hand details. Avoid invented robes, head wraps, camels, caricature or text overlays.",
     alt: "AI портрет на Чефо с бяла риза и чаша напитка на улица пред пирамидите",
-    description: "Кайро не дели деня на минало и настояще. Той също спира да пита кое време е по-интересно.",
+    description: "Кайро не дели деня на минало и настояще. Пирамидите на хоризонта и студената напитка в ръката са част от един и същи следобед.",
     en: {
       title: "Egyptian Horizons",
       alt: "AI portrait of Chefo in a white shirt holding a drink on a street before the pyramids",
-      description: "Cairo does not divide the day into past and present. He stops asking which one is more interesting.",
+      description: "Cairo does not divide the day into past and present. The pyramids on the horizon and the cold drink in hand belong to the same afternoon.",
     },
     portraitDetails: {
       clothing: text(
@@ -476,11 +476,11 @@ export const aiWorks: AiWork[] = [
     image: worldDubai, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial travel portrait of the same person seated beside Dubai's waterfront in bright hazy daylight. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a clean white kandura and white head covering secured with a black agal; they hold a small white coffee cup. Compose a calm waist-up portrait with water, boats, palm trees and the contemporary Dubai skyline, including the Burj Khalifa, behind them. Balance the white clothing against the blue water and pale city buildings, with natural fabric folds, believable hand anatomy and subtle photographic depth. Avoid a suit, stylized fantasy effects and unnecessary text overlays.",
     alt: "AI портрет на Чефо в бяла роба и покривало за глава край водата с високи сгради",
-    description: "Дубай обича да говори за утре. Той остава в днешния ден и открива, че това също е лукс.",
+    description: "Дубай обича да говори за утре. Край водата, със силуета на небостъргачите зад гърба, най-големият лукс е днешният ден.",
     en: {
       title: "Modern Dubai",
       alt: "AI portrait of Chefo in a white robe and head covering by the water with tall buildings",
-      description: "Dubai loves to talk about tomorrow. He stays with today and discovers that this, too, is a luxury.",
+      description: "Dubai loves to talk about tomorrow. By the water, with the skyline behind you, the greatest luxury is today.",
     },
     portraitDetails: {
       clothing: text(

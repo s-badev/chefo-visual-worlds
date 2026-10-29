@@ -39,8 +39,8 @@ const rows: Phase3Row[] = [
     category: "Професии и роли",
     title: ["Майсторът на царевицата", "The Corn Vendor"],
     description: [
-      "За другите лятото е почивка. За него е сезонът на нови лица и поръчки, които вече знае наизуст.",
-      "For everyone else, summer is a holiday. For him, it brings new faces and orders he already knows by heart.",
+      "Край морето лятото е почивка за другите. При щанда с царевица е сезонът на нови лица и поръчки, познати наизуст.",
+      "By the sea, summer is a holiday for everyone else. At the corn stand, it means new faces and orders known by heart.",
     ],
     alt: [
       "Продавач подправя топла варена царевица на щанд край морето",
@@ -56,8 +56,8 @@ const rows: Phase3Row[] = [
     category: "Професии и роли",
     title: ["Бояджия с характер", "The Painter's Touch"],
     description: [
-      "Всяка стена крие изненада, която не е била в плана. Той обикновено я посреща с чувство за хумор.",
-      "Every wall holds a surprise that was never in the plan. He usually meets it with a sense of humour.",
+      "Всяка стена крие изненада, която не е била в плана. Обикновено я посреща с валяк в ръка и с чувство за хумор.",
+      "Every wall hides a surprise that was never in the plan. Roller in hand, he usually meets it with a sense of humour.",
     ],
     alt: [
       "Бояджия с изцапано работно облекло държи валяк с капеща бяла боя",
@@ -73,8 +73,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Ню Йорк след дъжда", "New York After the Rain"],
     description: [
-      "След дъжд Ню Йорк забавя крачка за секунда. Той я улавя, преди градът отново да се сети да бърза.",
-      "After the rain, New York slows down for a second. He catches it before the city remembers to rush.",
+      "След дъжд Ню Йорк забавя крачка за секунда. Секундата с кафе в ръка трае, докато градът се сети да бърза.",
+      "After the rain, New York slows down for a second. Coffee in hand, it lasts until the city remembers to rush.",
     ],
     alt: [
       "Мъж с тъмно палто и чаша кафе на дъждовна улица в Ню Йорк",
@@ -98,8 +98,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Залез над Сидни", "Sydney at Sunset"],
     description: [
-      "В Сидни денят приключва без голям финал. Понякога точно това е най-хубавото, което пътуването може да предложи.",
-      "In Sydney, the day ends without a grand finale. Sometimes that is the best thing a journey can offer.",
+      "В Сидни денят приключва без голям финал. Светлината над пристанището тихо угасва, а точно в това е най-хубавото.",
+      "In Sydney, the day ends without a grand finale. The light over the harbour simply fades, and that is the best part.",
     ],
     alt: [
       "Мъж със светлосиня ленена риза край пристанището на Сидни по залез",
@@ -126,8 +126,8 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Последните лъчи", "The Last Light"],
     description: [
-      "Не всеки залез иска да се превърне в история. Понякога стига да си бил там, когато денят е свършил.",
-      "Not every sunset needs to become a story. Sometimes it is enough to have been there when the day ended.",
+      "Не всеки залез иска да се превърне в история. На скалистия бряг стига да си бил там, когато денят свършва.",
+      "Not every sunset needs to become a story. Being there on a rocky shore as the day ends is enough.",
     ],
     alt: [
       "Пътешественик с раница на скалист тропически бряг по залез",

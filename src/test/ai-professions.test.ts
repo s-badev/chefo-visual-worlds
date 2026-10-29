@@ -63,10 +63,10 @@ describe("Professions & Roles portraits", () => {
     const worker = getAiWork("chefo-coffee-break")!;
     expect(worker.role).toBe("sanitation-worker");
     expect(worker.description).toBe(
-      "Градът още спи, когато смяната му започва. Работата му остава незабелязана точно когато е свършена добре.",
+      "Градът още спи, когато смяната започва. Тази работа остава незабелязана точно когато е свършена добре.",
     );
     expect(worker.en?.description).toBe(
-      "The city is still asleep when his shift begins. His work goes unnoticed precisely when he has done it well.",
+      "The city is still asleep when the shift begins. This is work that goes unnoticed precisely when it is done well.",
     );
     expect(futureAiConcepts.some(({ id }) => id === "sanitation-worker")).toBe(false);
   });
