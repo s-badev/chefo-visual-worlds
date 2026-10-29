@@ -63,13 +63,13 @@ describe("homepage featured albums", () => {
     expect(Array.from(section.querySelectorAll("h3")).map((h) => h.textContent)).toEqual(
       locale === "en"
         ? [
-            "Medieval Ruler",
+            "The Lion King",
             "Captain Against the Storm",
             "The Last Witness",
             "Evening on the Bosphorus",
           ]
         : [
-            "Средновековен владетел",
+            "Крал на лъва",
             "Капитанът срещу бурята",
             "Последният свидетел",
             "Вечер край Босфора",

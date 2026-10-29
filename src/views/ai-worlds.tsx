@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import {
   aiWorks,
@@ -27,6 +27,7 @@ import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/componen
 import {
   ArtEdge,
   ArtImage,
+  artworkAnchor,
   CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
@@ -177,6 +178,7 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const works = getCollectionWorks(collection, locale);
   const { prev, next } = getAdjacentCollections(collection);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
   return (
     <Surface tone="dark" as="article">
       <header className="container-page pt-10 md:pt-14">
@@ -201,11 +203,18 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
 
       {works.length > 0 && (
         <>
-          <ExhibitionWall works={works} onOpen={setLightbox} />
+          <ExhibitionWall
+            works={works}
+            onOpen={(index, trigger) => {
+              lightboxTrigger.current = trigger;
+              setLightbox(index);
+            }}
+          />
           <Lightbox
             items={works.map(toLightboxItem)}
             index={lightbox}
             onIndex={setLightbox}
+            returnFocusTo={lightboxTrigger}
             variant="artwork"
           />
         </>
@@ -215,9 +224,9 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
         className="seam-top container-page grid grid-cols-2 gap-6 py-10 md:py-14"
       >
         {[
-          { c: prev, label: m.prevCollection, align: "start" as const },
-          { c: next, label: m.nextCollection, align: "end" as const },
-        ].map(({ c, label, align }) => {
+          { c: prev, label: m.prevCollection, align: "start" as const, Icon: ArrowLeft },
+          { c: next, label: m.nextCollection, align: "end" as const, Icon: ArrowRight },
+        ].map(({ c, label, align, Icon }) => {
           const cover = getCollectionCover(c, locale);
           return (
             <LocaleLink
@@ -225,11 +234,11 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
               to="/ai-worlds/collections/$slug"
               slug={c.slug}
               className={cn(
-                "group flex items-center gap-4 transition-colors hover:text-gold",
+                "group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised/60 hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:min-h-28 sm:p-5",
                 align === "end" && "flex-row-reverse text-right",
               )}
             >
-              <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
+              <span className="relative hidden w-16 shrink-0 overflow-hidden rounded-sm sm:block">
                 {cover ? (
                   <ArtImage work={cover} />
                 ) : (
@@ -238,6 +247,13 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
                   </span>
                 )}
               </span>
+              <Icon
+                aria-hidden="true"
+                className={cn(
+                  "size-5 shrink-0 text-gold transition-transform duration-(--dur-base) ease-cinematic",
+                  align === "end" ? "group-hover:translate-x-1" : "group-hover:-translate-x-1",
+                )}
+              />
               <span className="min-w-0">
                 <span className="eyebrow block text-muted-foreground">{label}</span>
                 <span className="mt-1 block font-serif text-lg leading-snug sm:text-xl">
@@ -324,6 +340,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           <AiBackLink
             to="/ai-worlds/collections/$slug"
             slug={collection.slug}
+            hash={artworkAnchor(raw.slug)}
             label={m.backToCollection}
           />
         )}
@@ -351,7 +368,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       </nav>
 
       <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="ai-frame-portal group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
+        <figure className="group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
           <button
             type="button"
             onClick={() => setLightbox(0)}

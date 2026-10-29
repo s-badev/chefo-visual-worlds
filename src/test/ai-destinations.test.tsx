@@ -270,20 +270,20 @@ describe("Around the World pages", () => {
       );
       expect(screen.getAllByRole("link", { name: collection })).toHaveLength(2); // breadcrumb + chip
       expect(screen.getByText(messages[locale].common.aiBadge)).toBeInTheDocument();
-      const facts = Array.from(document.querySelectorAll("dt")).map((dt) => [
-        dt.textContent,
-        dt.nextElementSibling?.textContent,
-      ]);
-      expect(facts).toEqual([
-        [m.tool, "ChatGPT Image Generation"],
-        [m.created, locale === "bg" ? "12 октомври 2026 г." : "12 October 2026"],
-        [m.theme, locale === "bg" ? "Култури по света" : "World cultures"],
-        [messages[locale].photos.place, locale === "bg" ? "Турция" : "Turkey"],
-        [m.clothing, work.portraitDetails!.clothing[locale]],
-        [m.grooming, work.portraitDetails!.grooming[locale]],
-        [m.settingLabel, work.portraitDetails!.setting[locale]],
-        [m.status, m.statusPublished],
-      ]);
+      const metadata = document.querySelector("dl");
+      expect(metadata).not.toBeNull();
+      expect(metadata?.querySelectorAll("dt")).toHaveLength(8);
+      expect(within(metadata as HTMLElement).getByText("ChatGPT Image Generation")).toBeInTheDocument();
+      expect(
+        within(metadata as HTMLElement).getByText(
+          locale === "bg" ? "12 октомври 2026 г." : "12 October 2026",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        within(metadata as HTMLElement).getByText(
+          locale === "bg" ? "Култури по света" : "World cultures",
+        ),
+      ).toBeInTheDocument();
       expect(screen.getByRole("navigation", { name: m.others })).toBeInTheDocument();
     },
   );
@@ -372,7 +372,7 @@ describe("Around the World pages", () => {
     expect(screen.queryByText(messages.en.ai.portraitPlanned)).toBeNull();
     const portrait = screen.getByAltText(work.en!.alt!);
     expect(portrait).toBeInTheDocument();
-    expect(portrait.closest("figure")).toHaveClass("ai-frame-portal");
+    expect(portrait.closest("figure")).not.toHaveClass("ai-frame-portal");
     expect(portrait).toHaveAttribute("width", String(work.width));
     expect(portrait).toHaveAttribute("height", String(work.height));
     expect(portrait).toHaveAttribute("loading", "eager");

@@ -80,6 +80,37 @@ const expectCleanDetail = (slug: string) => {
 };
 
 describe("AI artwork detail cleanup", () => {
+  it.each([
+    [
+      "chefo-srednovekoven-ritsar",
+      ["tool", "created", "theme", "era", "setting", "role"],
+      [],
+    ],
+    [
+      "renesansov-portret",
+      ["tool", "created", "theme", "era", "setting"],
+      ["role"],
+    ],
+    ["eye-of-the-storm", ["theme"], ["tool", "created", "era", "setting", "role"]],
+  ] as const)(
+    "restores conditional detail metadata for %s",
+    (slug, presentKeys, absentKeys) => {
+      const labels = messages.en.ai;
+      const labelFor = (key: (typeof presentKeys)[number] | (typeof absentKeys)[number]) =>
+        labels[key];
+      render(<AiDetailView work={getAiWork(slug)!} />);
+      const metadata = document.querySelector("dl");
+      expect(metadata).not.toBeNull();
+      expect(metadata?.querySelectorAll("dt")).toHaveLength(presentKeys.length);
+      for (const key of presentKeys) {
+        expect(within(metadata as HTMLElement).getByText(labelFor(key))).toBeInTheDocument();
+      }
+      for (const key of absentKeys) {
+        expect(within(metadata as HTMLElement).queryByText(labelFor(key))).toBeNull();
+      }
+    },
+  );
+
   it.each(["bg", "en"] as const)(
     "keeps the primary historical artwork and prompt but omits process imagery in %s",
     async (locale) => {
@@ -129,6 +160,8 @@ describe("AI artwork detail cleanup", () => {
   it("opens only the primary artwork in the fullscreen viewer", () => {
     const work = getAiWork("chefo-srednovekoven-ritsar")!;
     render(<AiDetailView work={work} />);
+    const primaryImage = screen.getByAltText(work.en!.alt!);
+    expect(primaryImage.closest("figure")).not.toHaveClass("ai-frame-portal");
     fireEvent.click(
       screen.getByRole("button", { name: `Open “${work.en!.title}” in full screen` }),
     );

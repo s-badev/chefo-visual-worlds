@@ -15,13 +15,15 @@ type Props = {
   children?: ReactNode;
   onClick?: (() => void) | undefined;
   search?: Record<string, string | undefined>;
+  /** Element id to scroll to, without "#". */
+  hash?: string | undefined;
   "aria-label"?: string;
   /** Classes applied when the link matches the current page. */
   activeClassName?: string;
 } & ({ to: StaticPath; slug?: never } | { to: SlugPath; slug: string });
 
 /** Link written with Bulgarian paths; automatically points to the /en version on English pages. */
-export function LocaleLink({ to, slug, activeClassName, ...rest }: Props) {
+export function LocaleLink({ to, slug, hash, activeClassName, ...rest }: Props) {
   const locale = useLocale();
   const bgPath = slug ? to.replace("$slug", slug) : to;
   const href = localizePath(bgPath, locale);
@@ -29,6 +31,7 @@ export function LocaleLink({ to, slug, activeClassName, ...rest }: Props) {
   return (
     <Link
       {...rest}
+      {...(hash ? { hash } : {})}
       to={href as "/"}
       activeOptions={{ exact: to === "/" }}
       activeProps={{ className: activeClassName ?? "" }}

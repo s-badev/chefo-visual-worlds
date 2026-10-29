@@ -111,13 +111,13 @@ const worldPortrait = (work: Omit<AiWork, "category" | "references" | "variants"
 export const aiWorks: AiWork[] = [
   {
     slug: "chefo-srednovekoven-ritsar",
-    title: "Средновековен владетел",
+    title: "Крал на лъва",
     image: knight,
     width: 1159,
     height: 1358,
     alt: "AI портрет на брадат мъж като средновековен владетел с корона и броня в тронна зала",
     description:
-      "След коронацията средновековният владетел остава сам пред решение, което може да запази мира или да поведе царството към война.",
+      "След коронацията кралят остава сам пред решение, което може да запази мира или да поведе кралството към война.",
     prompt:
       "Using the uploaded reference photograph as the identity source, create a cinematic, painterly vertical portrait of the same person as a medieval ruler seated on a carved throne in a shadowy stone hall. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Place an ornate gold crown on their head and dress them in engraved steel armour with a deep blue cloak edged in gold. Keep their direct, composed expression and upright seated posture prominent from about the waist up. Candles glow in the dark hall behind them, picking out metalwork and heavy fabric with dramatic chiaroscuro. Use a restrained navy, bronze and gold palette, credible hands and historical textures; avoid fantasy caricature, distorted anatomy and added text.",
     promptKind: "illustrative",
@@ -143,10 +143,10 @@ export const aiWorks: AiWork[] = [
       },
     ],
     en: {
-      title: "Medieval Ruler",
+      title: "The Lion King",
       alt: "AI portrait of a bearded man as a medieval ruler with a crown and armour in a throne hall",
       description:
-        "After the coronation, the medieval ruler faces a decision that could preserve the peace or lead the realm into war.",
+        "After the coronation, the king faces a decision that could preserve the peace or lead the realm into war.",
     },
   },
   {

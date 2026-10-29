@@ -2,8 +2,8 @@ import { ArrowLeft } from "lucide-react";
 import { LocaleLink } from "@/i18n/link";
 
 type AiBackLinkProps =
-  | { to: "/ai-worlds"; slug?: never; label: string }
-  | { to: "/ai-worlds/collections/$slug"; slug: string; label: string };
+  | { to: "/ai-worlds"; slug?: never; hash?: never; label: string }
+  | { to: "/ai-worlds/collections/$slug"; slug: string; hash?: string | undefined; label: string };
 
 /** Deterministic parent navigation for AI collection and artwork pages (shared back pill). */
 export function AiBackLink(props: AiBackLinkProps) {
@@ -22,7 +22,12 @@ export function AiBackLink(props: AiBackLinkProps) {
       {content}
     </LocaleLink>
   ) : (
-    <LocaleLink to="/ai-worlds/collections/$slug" slug={props.slug} className={className}>
+    <LocaleLink
+      to="/ai-worlds/collections/$slug"
+      slug={props.slug}
+      hash={props.hash}
+      className={className}
+    >
       {content}
     </LocaleLink>
   );

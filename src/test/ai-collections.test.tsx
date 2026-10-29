@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter, isNotFound, isRedirect } from "@tanstack/react-router";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -157,7 +157,7 @@ describe("AI collection page", () => {
   );
 
   it.each([
-    ["historical-eras-rulers", "Medieval Ruler", "Knight of the Last Wall"],
+    ["historical-eras-rulers", "The Lion King", "Knight of the Last Wall"],
     ["professions-roles", "The Neighborhood Barber", "Sanitation Worker on an Early Shift"],
     ["cinema-archetypes", "The Red Planet", "The Final Assault"],
     ["chefo-around-the-world", "Under the Arabian Sun", "A Greek Afternoon"],
@@ -167,10 +167,9 @@ describe("AI collection page", () => {
       const { container } = render(<AiCollectionView collection={getAiCollection(slug)!} />);
       const wall = container.querySelector("ol.container-page")!;
       expect(wall.querySelectorAll("li article").length).toBeGreaterThan(0);
-      expect(wall.querySelectorAll(".ai-frame-portal")).toHaveLength(
-        wall.querySelectorAll("figure").length,
-      );
+      expect(wall.querySelectorAll(".ai-frame-portal")).toHaveLength(0);
       expect(wall.querySelector(".eyebrow.tabular-nums")).toBeNull();
+      expect(wall.textContent).not.toContain(" · ");
       for (const title of new Set([firstTitle, laterTitle])) {
         expect(
           within(wall as HTMLElement).getByRole("heading", { level: 2, name: title })
@@ -191,14 +190,63 @@ describe("AI collection page", () => {
     const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(titles).toHaveLength(16);
     expect(titles.slice(0, 3)).toEqual([
-      "Medieval Ruler",
+      "The Lion King",
       "Roman Emperor",
       "Italian Renaissance Nobleman",
     ]);
+    const viewActions = screen.getAllByRole("link", { name: "View artwork" });
+    const fullscreenActions = screen.getAllByRole("button", { name: "Full screen" });
+    expect(viewActions).toHaveLength(16);
+    expect(fullscreenActions).toHaveLength(16);
+    expect(viewActions[0]).toHaveAttribute(
+      "href",
+      "/ai-worlds/chefo-srednovekoven-ritsar",
+    );
+    expect(viewActions[0]?.closest("button")).toBeNull();
+    expect(fullscreenActions[0]).toHaveAttribute("type", "button");
+    expect(container.querySelector("ol.container-page")?.textContent).not.toContain(" · ");
     fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[2]!);
     const viewer = screen.getByRole("dialog", { name: "Italian Renaissance Nobleman" });
     expect(within(viewer).getByText("3 / 16")).toBeInTheDocument();
     expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
+  });
+
+  it("restores focus to the exact fullscreen action after Escape and close", async () => {
+    render(<AiCollectionView collection={getAiCollection("historical-eras-rulers")!} />);
+    const triggers = screen.getAllByRole("button", { name: "Full screen" });
+
+    const escapeTrigger = triggers[1]!;
+    escapeTrigger.focus();
+    fireEvent.click(escapeTrigger);
+    expect(screen.getByRole("dialog", { name: "Roman Emperor" })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(escapeTrigger).toHaveFocus());
+
+    const closeTrigger = triggers[14]!;
+    closeTrigger.focus();
+    fireEvent.click(closeTrigger);
+    const dialog = screen.getByRole("dialog", { name: "Spartan Warrior" });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: messages.en.lightbox.close }),
+    );
+    await waitFor(() => expect(closeTrigger).toHaveFocus());
+  });
+
+  it("uses two bounded collection cards and preserves the intentional wraparound order", () => {
+    const collection = getAiCollection("historical-eras-rulers")!;
+    render(<AiCollectionView collection={collection} />);
+    const navigation = screen.getByRole("navigation", { name: "Collections" });
+    const links = within(navigation).getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/ai-worlds/collections/chefo-around-the-world",
+    );
+    expect(links[1]).toHaveAttribute("href", "/ai-worlds/collections/professions-roles");
+    for (const link of links) {
+      expect(link).toHaveClass("min-h-24", "rounded-sm", "border");
+      expect(link.querySelector("svg")).toBeInTheDocument();
+    }
   });
 
   it("exhibits all sixteen professions without exposing planned ideas", () => {

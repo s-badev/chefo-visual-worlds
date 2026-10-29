@@ -521,60 +521,80 @@
   border-top: 1px solid var(--border);
 }
 
-/* Stage F Wave 1: paint-only Portal frames for production AI artwork surfaces. */
-.surface-dark .ai-frame-portal {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklch, var(--gold) 42%, transparent),
-    0 12px 26px -22px color-mix(in oklch, var(--gold) 18%, transparent);
+/* AI artwork actions are scoped to collection presentations. */
+.ai-artwork-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid;
+  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  transition:
+    background-color var(--dur-fast) var(--motion-ease),
+    border-color var(--dur-fast) var(--motion-ease),
+    color var(--dur-fast) var(--motion-ease),
+    transform var(--dur-fast) var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
 }
-.surface-dark .ai-frame-portal::after {
-  --portal-corner-size: 16px;
-  --portal-corner-thickness: 2px;
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  pointer-events: none;
-  background:
-    conic-gradient(
-        from 90deg at var(--portal-corner-thickness) var(--portal-corner-thickness),
-        transparent 90deg,
-        color-mix(in oklch, var(--gold) 78%, transparent) 0
-      )
-      0 0 / var(--portal-corner-size) var(--portal-corner-size),
-    conic-gradient(
-        from 180deg at calc(100% - var(--portal-corner-thickness)) var(--portal-corner-thickness),
-        transparent 90deg,
-        color-mix(in oklch, var(--gold) 78%, transparent) 0
-      )
-      100% 0 / var(--portal-corner-size) var(--portal-corner-size),
-    conic-gradient(
-        from 0deg at var(--portal-corner-thickness) calc(100% - var(--portal-corner-thickness)),
-        transparent 90deg,
-        color-mix(in oklch, var(--gold) 78%, transparent) 0
-      )
-      0 100% / var(--portal-corner-size) var(--portal-corner-size),
-    conic-gradient(
-        from 270deg at calc(100% - var(--portal-corner-thickness))
-          calc(100% - var(--portal-corner-thickness)),
-        transparent 90deg,
-        color-mix(in oklch, var(--gold) 78%, transparent) 0
-      )
-      100% 100% / var(--portal-corner-size) var(--portal-corner-size);
-  background-repeat: no-repeat;
+.ai-artwork-action-primary {
+  border-color: var(--navy-foreground);
+  background-color: var(--navy-foreground);
+  color: var(--navy);
 }
-.surface-dark .ai-frame-portal > button:focus-visible,
+.ai-artwork-action-secondary {
+  border-color: color-mix(in oklch, var(--navy-foreground) 48%, transparent);
+  background-color: transparent;
+  color: var(--navy-foreground);
+}
+.ai-artwork-action:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.ai-artwork-action:active {
+  transform: scale(0.98);
+}
+.ai-artwork-action-primary:active {
+  background-color: color-mix(in oklch, var(--navy-foreground) 90%, var(--gold));
+}
+.ai-artwork-action-secondary:active {
+  background-color: color-mix(in oklch, var(--navy-foreground) 12%, transparent);
+}
+.ai-artwork-action-arrow {
+  transition: transform var(--dur-fast) var(--motion-ease);
+}
+@media (hover: hover) {
+  .ai-artwork-action-primary:hover {
+    background-color: color-mix(in oklch, var(--navy-foreground) 88%, white);
+  }
+  .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
+    transform: translateX(4px);
+  }
+  .ai-artwork-action-secondary:hover {
+    border-color: var(--gold);
+    background-color: color-mix(in oklch, var(--navy-foreground) 9%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-artwork-action,
+  .ai-artwork-action-arrow {
+    transition: none;
+  }
+  .ai-artwork-action:active,
+  .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
+    transform: none;
+  }
+}
+
+/* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;
-}
-.surface-dark .ai-frame-portal > button > .eyebrow {
-  z-index: 2;
 }
 .surface-dark .ai-frame-compact {
   box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--gold) 30%, transparent);
 }
 @media (forced-colors: active) {
-  .surface-dark .ai-frame-portal > button:focus-visible,
   .surface-dark .ai-frame-compact:focus-visible {
     outline-color: Highlight;
   }

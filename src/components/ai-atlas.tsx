@@ -16,7 +16,14 @@ import { LocaleLink } from "@/i18n/link";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { AiBackLink } from "@/components/ai-back-link";
-import { ArtEdge, ArtImage, PromptNote, pad2, toLightboxItem } from "@/components/ai-exhibition";
+import {
+  ArtEdge,
+  ArtImage,
+  artworkAnchor,
+  PromptNote,
+  pad2,
+  toLightboxItem,
+} from "@/components/ai-exhibition";
 import { reveal } from "@/hooks/use-reveal";
 import { toolLabel } from "@/content/ai-works";
 import { cn } from "@/lib/utils";
@@ -223,6 +230,8 @@ export function DestinationView({ destination: d }: { destination: Destination }
         <AiBackLink
           to="/ai-worlds/collections/$slug"
           slug={ATLAS_SLUG}
+          // Only a published destination hangs in the collection with an anchor.
+          hash={work ? artworkAnchor(d.slug) : undefined}
           label={m.backToCollection}
         />
         <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
@@ -252,7 +261,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
       >
         <div className={cn("space-y-8", work ? "mx-auto w-full max-w-[68rem]" : "lg:col-span-6")}>
           {work ? (
-            <figure className="ai-frame-portal group relative overflow-hidden rounded-sm">
+            <figure className="group relative overflow-hidden rounded-sm">
               <button
                 type="button"
                 onClick={() => setLightbox(0)}

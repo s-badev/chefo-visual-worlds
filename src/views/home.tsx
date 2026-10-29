@@ -27,7 +27,7 @@ const FEATURED_AI_WORKS: {
 }[] = [
   {
     slug: "chefo-srednovekoven-ritsar",
-    title: { bg: "Средновековен владетел", en: "Medieval Ruler" },
+    title: { bg: "Крал на лъва", en: "The Lion King" },
   },
   {
     slug: "captain-against-the-storm",
