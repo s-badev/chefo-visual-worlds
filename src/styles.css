@@ -113,6 +113,7 @@
   --interaction-link-hover: var(--interaction-ink-on-gold);
   --interaction-icon-hover: var(--interaction-ink-on-gold);
   --interaction-control-hover: var(--interaction-ink-on-gold);
+  --interaction-focus-ring: var(--interaction-ink-on-gold);
 
   /* Stage F · Photography frames — paint-only derivatives of existing tokens. */
   --photo-frame-mat: var(--card);
@@ -159,6 +160,7 @@
   --interaction-link-hover: var(--interaction-gold-bright);
   --interaction-icon-hover: var(--interaction-gold-bright);
   --interaction-control-hover: var(--interaction-cream);
+  --interaction-focus-ring: var(--interaction-gold-bright);
 }
 
 @keyframes reveal-up {
@@ -633,7 +635,7 @@
 .interaction-media:focus-visible,
 .interaction-card:focus-visible,
 .interaction-special:focus-visible {
-  outline: 2px solid var(--interaction-gold-bright);
+  outline: 2px solid var(--interaction-focus-ring);
   outline-offset: 3px;
 }
 .interaction-primary:focus-visible {
@@ -784,12 +786,13 @@
 }
 
 /*
- * One interaction unit per presentation (.ai-presentation): pointing anywhere on it lights
- * its title and primary action together (same bright gold) and zooms its photo. Pointing at
- * the secondary control names that control instead. Lift, press and arrow use separate
- * translate/scale properties so they combine instead of overriding each other.
+ * Title + primary action pair (.ai-presentation): pointing at the title or at the primary
+ * action lights both in the same bright gold. The photo only zooms, and the description, count
+ * and empty space stay quiet. Lift, press and arrow use separate translate/scale properties so
+ * they combine instead of overriding each other.
  */
 .ai-presentation-title {
+  width: fit-content;
   color: var(--interaction-cream);
   transition: color var(--interaction-duration) var(--motion-ease);
 }
@@ -809,7 +812,7 @@
     outline: none;
   }
   .ai-presentation:has(.ai-presentation-link:focus-visible) {
-    outline: 2px solid var(--interaction-gold-bright);
+    outline: 2px solid var(--interaction-focus-ring);
     outline-offset: 8px;
     border-radius: var(--radius);
   }
@@ -827,12 +830,13 @@
       0 12px 32px var(--interaction-halo);
   }
 }
-/* :has() rules stay apart so a browser without it still keeps the direct hover rules. */
+/* Without :has() each element still answers its own hover; the pair needs :has(). */
 @media (hover: hover) and (pointer: fine) {
-  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-presentation-title {
+  .ai-presentation-title:hover,
+  .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title {
     color: var(--interaction-gold-bright);
   }
-  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-primary {
+  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-primary {
     border-color: var(--interaction-primary-hover-border);
     background-color: var(--interaction-gold-bright);
     box-shadow:
@@ -841,13 +845,13 @@
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-primary {
+  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-primary {
     translate: 0 -2px;
   }
-  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-arrow {
+  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-arrow {
     translate: 6px 0;
   }
-  .ai-presentation:hover .ai-presentation-media img {
+  .ai-presentation-media:hover img {
     scale: 1.03;
   }
 }
@@ -1528,7 +1532,7 @@
 }
 .unified-album a:focus-visible,
 .unified-album button:focus-visible {
-  outline: 2px solid var(--interaction-gold-bright);
+  outline: 2px solid var(--interaction-focus-ring);
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1690,11 +1694,11 @@ a.next-album-card:active {
 a.back-pill:focus-visible,
 :is(a, button).action-pill:focus-visible,
 a.next-album-card:focus-visible {
-  outline: 2px solid var(--interaction-gold-bright);
+  outline: 2px solid var(--interaction-focus-ring);
   outline-offset: 3px;
 }
 .surface-dark a.back-pill:focus-visible {
-  outline-color: var(--interaction-gold-bright);
+  outline-color: var(--interaction-focus-ring);
 }
 @media (hover: hover) and (pointer: fine) {
   a.back-pill:hover {

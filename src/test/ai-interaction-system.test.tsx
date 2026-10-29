@@ -30,7 +30,7 @@ const renderAt = async (path: string, view: () => ReactNode) => {
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   await router.load();
-  return render(<RouterProvider router={router} />);
+  return { ...render(<RouterProvider router={router} />), router };
 };
 
 const prefix = { bg: "", en: "/en" } as const;
@@ -71,8 +71,9 @@ const contrast = (a: string, b: string) => {
 const CREAM = "#f4eee1";
 const GOLD = "#e2b14e";
 const INK = "#1b1610";
-// --navy, oklch(0.21 0.045 262), converted to sRGB.
+// --navy, oklch(0.21 0.045 262), and the light --background, oklch(0.965 0.017 85), in sRGB.
 const NAVY = "#0d182d";
+const LIGHT_PAGE = "#f9f3e7";
 
 // Every style rule with the at-rules that enclose it, so tests can check where a hover lives.
 const rules = (() => {
@@ -140,6 +141,22 @@ describe("AI Worlds overview halls", () => {
       });
     },
   );
+});
+
+describe("AI Worlds overview hall clicks", () => {
+  it("opens the collection from the description and the photo through the one link", async () => {
+    const collection = aiCollections[0]!;
+    const target = `/ai-worlds/collections/${collection.slug}`;
+    for (const part of ["p", "img"] as const) {
+      const { container, router, unmount } = await renderAt("/ai-worlds", () => (
+        <CollectionHalls />
+      ));
+      const hall = container.querySelector<HTMLElement>("article")!;
+      fireEvent.click(hall.querySelector(part)!);
+      await waitFor(() => expect(router.state.location.pathname).toBe(target));
+      unmount();
+    }
+  });
 });
 
 describe("AI collection presentations", () => {
@@ -224,18 +241,57 @@ describe("Design A interaction system", () => {
     );
   });
 
-  it("turns the primary action and the section title the same bright gold", () => {
+  it("lights title and button together when the pointer is over the button", () => {
     const hover = rule(".interaction-primary:hover", POINTER)!.body;
     expect(hover).toContain("background-color: var(--interaction-gold-bright)");
     expect(hover).toContain("0 0 0 6px var(--interaction-ring)");
-    expect(rule(".interaction-primary:focus-visible")!.body).toContain(
+    expect(
+      rule(
+        ".ai-presentation-title:hover, .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title",
+        POINTER,
+      )!.body,
+    ).toBe("color: var(--interaction-gold-bright);");
+  });
+
+  it("lights title and button together when the pointer is over the title", () => {
+    const pair = ".ai-presentation:has(.ai-presentation-title:hover)";
+    expect(rule(`${pair} .ai-artwork-action-primary`, POINTER)!.body).toContain(
       "background-color: var(--interaction-gold-bright)",
     );
-    const section = ".ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover))";
-    expect(rule(`${section} .ai-presentation-title`, POINTER)!.body).toBe(
-      "color: var(--interaction-gold-bright);",
+    const motion = `${POINTER} and (prefers-reduced-motion: no-preference)`;
+    expect(rule(`${pair} .ai-artwork-action-primary`, motion)!.body).toBe("translate: 0 -2px;");
+    expect(rule(`${pair} .ai-artwork-action-arrow`, motion)!.body).toBe("translate: 6px 0;");
+    // The title hover zone is its own text box, not the full column.
+    expect(rule(".ai-presentation-title")!.body).toContain("width: fit-content");
+  });
+
+  it("leaves description, count, image and empty space out of the pair", () => {
+    const hovers = rules.filter(
+      (r) => r.selector.includes(".ai-presentation") && r.selector.includes(":hover"),
     );
-    expect(rule(`${section} .ai-artwork-action-primary`, POINTER)!.body).toContain(
+    expect(hovers.length).toBeGreaterThan(0);
+    for (const r of hovers) {
+      // Hovering the container itself (which covers the empty space) never triggers anything.
+      expect(r.selector).not.toMatch(/\.ai-presentation:hover/);
+      for (const part of r.selector.match(/[.\w-]+:hover/g) ?? []) {
+        expect([
+          ".ai-presentation-title:hover",
+          ".ai-artwork-action-primary:hover",
+          ".ai-presentation-media:hover",
+        ]).toContain(part);
+      }
+    }
+    // Hovering the photo only zooms it.
+    expect(
+      rule(
+        ".ai-presentation-media:hover img",
+        `${POINTER} and (prefers-reduced-motion: no-preference)`,
+      )!.body,
+    ).toBe("scale: 1.03;");
+  });
+
+  it("lights title and button together on keyboard focus", () => {
+    expect(rule(".interaction-primary:focus-visible")!.body).toContain(
       "background-color: var(--interaction-gold-bright)",
     );
     const focused = rules.find(
@@ -269,6 +325,20 @@ describe("Design A interaction system", () => {
     )!;
     expect(reduced.body).toContain("translate: none !important");
     expect(reduced.body).toContain("scale: none !important");
+  });
+
+  it("draws a dark focus ring on light surfaces and a gold one on dark surfaces", () => {
+    expect(css).toContain("--interaction-focus-ring: var(--interaction-ink-on-gold);");
+    expect(rule('.surface-dark, [data-theme="dark"]')!.body).toContain(
+      "--interaction-focus-ring: var(--interaction-gold-bright)",
+    );
+    const shared = rules.find((r) => r.selector.endsWith(".interaction-special:focus-visible"))!;
+    expect(shared.body).toContain("outline: 2px solid var(--interaction-focus-ring)");
+    expect(shared.body).toContain("outline-offset: 3px");
+    // Non-text contrast of the ring against the surrounding light page (WCAG >= 3:1).
+    expect(contrast(INK, LIGHT_PAGE)).toBeGreaterThanOrEqual(3);
+    expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(3);
+    expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(3);
   });
 
   it("leaves the Home Hero CTA outside the shared system", () => {

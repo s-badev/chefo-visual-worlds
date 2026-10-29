@@ -21,14 +21,11 @@ import { cn } from "@/lib/utils";
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** Soft gold edge that answers hover and keyboard focus on an artwork. */
-export function ArtEdge({ className }: { className?: string }) {
+export function ArtEdge() {
   return (
     <span
       aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/35 group-focus-within:ring-gold/60",
-        className,
-      )}
+      className="pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/35 group-focus-within:ring-gold/60"
     />
   );
 }
@@ -80,6 +77,29 @@ function EmptyCollectionCover({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Pointer users can open a hall from anywhere on it; keyboard and screen-reader users reach the
+ * same place through its one link. The click is handed to that link (modifier keys included), so
+ * the router and "open in new tab" behave as if the link itself was clicked.
+ */
+function openHall(event: React.MouseEvent<HTMLElement>) {
+  const link = event.currentTarget.querySelector<HTMLAnchorElement>(".ai-presentation-link");
+  if (!link || event.defaultPrevented || link.contains(event.target as Node)) return;
+  // Selecting the curatorial text is not a request to leave the page.
+  if (window.getSelection()?.type === "Range") return;
+  link.dispatchEvent(
+    new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      button: event.button,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+    }),
+  );
+}
+
 /** One collection on the AI Worlds landing page: cover and curatorial label, mirrored per row. */
 function CollectionHall({ collection, index }: { collection: AiCollection; index: number }) {
   const { t, locale } = useT();
@@ -91,10 +111,14 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const title = collectionText(collection.title, locale);
   return (
     <li {...reveal(0)}>
-      <article className="ai-presentation group relative grid items-center gap-8 md:grid-cols-12 md:gap-0">
+      {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
+      <article
+        onClick={openHall}
+        className="ai-presentation relative grid cursor-pointer items-center gap-8 md:grid-cols-12 md:gap-0"
+      >
         <div
           className={cn(
-            "ai-presentation-media relative overflow-hidden rounded-sm md:col-span-6",
+            "ai-presentation-media group relative overflow-hidden rounded-sm md:col-span-6",
             mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
           )}
         >
@@ -127,14 +151,11 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
           {finished > 0 && (
             <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
           )}
-          {/* The one link stretches over the hall, so the photo and copy are part of its target.
-              The button look sits on an inner span: a transform on the link itself would make it
-              the containing block of the overlay and shrink the target to the button. */}
           <LocaleLink
             to="/ai-worlds/collections/$slug"
             slug={collection.slug}
             aria-label={`${m.exploreCollection}: ${title}`}
-            className="ai-presentation-link mt-8 inline-flex after:absolute after:inset-0"
+            className="ai-presentation-link mt-8 inline-flex"
           >
             <span className="interaction-primary ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
               {m.exploreCollection}
@@ -263,8 +284,8 @@ export function ExhibitionWall({
         return (
           // The scroll margin keeps a linked work clear of the sticky header.
           <li key={work.slug} id={artworkAnchor(work.slug)} className="scroll-mt-20" {...reveal()}>
-            {/* One hover unit; the link and the button below stay independent controls. */}
-            <article className="ai-presentation group/presentation grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
+            {/* The title and "view" light up together; the link and the button stay independent. */}
+            <article className="ai-presentation grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
                   "ai-presentation-media group relative overflow-hidden rounded-sm lg:col-span-7",
@@ -279,7 +300,7 @@ export function ExhibitionWall({
                 >
                   <ArtImage work={work} eager={index === 0} />
                 </button>
-                <ArtEdge className="group-hover/presentation:ring-gold/35" />
+                <ArtEdge />
               </figure>
               <div
                 className={cn(
