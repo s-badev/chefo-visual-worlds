@@ -7,7 +7,7 @@ type AiBackLinkProps =
 
 /** Deterministic parent navigation for AI collection and artwork pages (shared back pill). */
 export function AiBackLink(props: AiBackLinkProps) {
-  const className = "back-pill";
+  const className = "interaction-control back-pill";
   const content = (
     <>
       <span className="back-pill-badge" aria-hidden="true">

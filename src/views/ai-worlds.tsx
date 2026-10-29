@@ -93,7 +93,7 @@ export function AiWorldsView() {
 
   const tab = (active: boolean) =>
     cn(
-      "border-b-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast) hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold",
+      "interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast)",
       active ? "border-gold text-foreground" : "border-transparent text-muted-foreground",
     );
 
@@ -164,7 +164,7 @@ export function AiCollectionNotFoundView() {
   return (
     <Surface tone="dark" as="div" className="px-5 py-32 text-center">
       <h1 className="text-4xl">{t.ai.collectionNotFound}</h1>
-      <LocaleLink to="/ai-worlds" className="mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink to="/ai-worlds" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
         {t.ai.backToCollections}
       </LocaleLink>
     </Surface>
@@ -234,7 +234,7 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
               to="/ai-worlds/collections/$slug"
               slug={c.slug}
               className={cn(
-                "group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised/60 hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:min-h-28 sm:p-5",
+                "interaction-card group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised/60 hover:text-gold sm:min-h-28 sm:p-5",
                 align === "end" && "flex-row-reverse text-right",
               )}
             >
@@ -285,7 +285,7 @@ export function AiNotFoundView() {
   return (
     <div className="py-32 text-center">
       <h1 className="text-4xl">{t.notFound.work}</h1>
-      <LocaleLink to="/ai-worlds" className="mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink to="/ai-worlds" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
         {t.notFound.toAi}
       </LocaleLink>
     </div>
@@ -346,7 +346,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
         )}
         <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
           <li>
-            <LocaleLink to="/ai-worlds" className="transition-colors hover:text-gold">
+            <LocaleLink to="/ai-worlds" className="interaction-link transition-colors">
               {m.title}
             </LocaleLink>
           </li>
@@ -357,7 +357,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
                 <LocaleLink
                   to="/ai-worlds/collections/$slug"
                   slug={collection.slug}
-                  className="transition-colors hover:text-gold"
+                  className="interaction-link transition-colors"
                 >
                   {collectionText(collection.title, locale)}
                 </LocaleLink>
@@ -373,7 +373,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
             type="button"
             onClick={() => setLightbox(0)}
             aria-label={t.common.openFullscreen(work.title)}
-            className="block w-full cursor-zoom-in"
+            className="interaction-media block w-full cursor-zoom-in"
           >
             <ArtImage work={work} eager />
             <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
@@ -392,7 +392,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
               <LocaleLink
                 to="/ai-worlds/collections/$slug"
                 slug={collection.slug}
-                className="eyebrow px-1 py-1 text-eyebrow transition-colors hover:text-foreground"
+                className="interaction-link eyebrow px-1 py-1 text-eyebrow transition-colors"
               >
                 {collectionText(collection.title, locale)}
               </LocaleLink>
@@ -427,7 +427,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
             to="/ai-worlds/$slug"
             slug={w.slug}
             className={cn(
-              "group flex items-center gap-4 transition-colors hover:text-gold",
+              "interaction-link group flex items-center gap-4 transition-colors",
               align === "end" && "flex-row-reverse text-right",
             )}
           >

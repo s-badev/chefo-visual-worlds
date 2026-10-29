@@ -236,7 +236,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
         />
         <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
           <li>
-            <LocaleLink to="/ai-worlds" className="transition-colors hover:text-gold">
+            <LocaleLink to="/ai-worlds" className="interaction-link transition-colors">
               {m.title}
             </LocaleLink>
           </li>
@@ -245,7 +245,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
             <LocaleLink
               to="/ai-worlds/collections/$slug"
               slug={ATLAS_SLUG}
-              className="transition-colors hover:text-gold"
+              className="interaction-link transition-colors"
             >
               {collectionText(atlas.title, locale)}
             </LocaleLink>
@@ -266,7 +266,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
                 type="button"
                 onClick={() => setLightbox(0)}
                 aria-label={t.common.openFullscreen(work.title)}
-                className="block w-full cursor-zoom-in"
+                className="interaction-media block w-full cursor-zoom-in"
               >
                 <ArtImage work={work} eager className="object-contain motion-safe:group-hover:scale-100" />
                 <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
@@ -363,7 +363,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
               to="/ai-worlds/$slug"
               slug={dest.slug}
               className={cn(
-                "group flex items-center gap-4 transition-colors hover:text-gold",
+                "interaction-link group flex items-center gap-4 transition-colors",
                 align === "end" && "flex-row-reverse text-right",
               )}
             >

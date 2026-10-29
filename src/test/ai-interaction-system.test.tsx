@@ -33,6 +33,17 @@ const renderAt = async (path: string, view: () => ReactNode) => {
 
 const prefix = { bg: "", en: "/en" } as const;
 const INTERACTIVE = "a[href], button, input, select, textarea, [tabindex]";
+const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8");
+
+const oklab = ([l, c, h]: readonly [number, number, number]) => {
+  const radians = (h * Math.PI) / 180;
+  return [l, c * Math.cos(radians), c * Math.sin(radians)] as const;
+};
+const deltaEok = (a: readonly [number, number, number], b: readonly [number, number, number]) => {
+  const left = oklab(a);
+  const right = oklab(b);
+  return Math.hypot(left[0] - right[0], left[1] - right[1], left[2] - right[2]) * 100;
+};
 
 afterEach(cleanup);
 
@@ -57,6 +68,9 @@ describe("AI Worlds overview halls", () => {
           `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
         );
         expect(link).toHaveTextContent(m.exploreCollection);
+        expect(link.querySelector(".ai-artwork-action-primary")).toHaveClass(
+          "interaction-primary",
+        );
         expect(link.querySelector(`${INTERACTIVE}, img`)).toBeNull();
         // Title and photo stay readable content next to the link, not inside it.
         expect(within(hall).getByRole("heading", { level: 2, name: title })).not.toContainElement(
@@ -94,6 +108,8 @@ describe("AI collection presentations", () => {
             name: m.fullscreen,
           });
           expect(view).toHaveAttribute("href", `${prefix[locale]}/ai-worlds/${work.slug}`);
+          expect(view).toHaveClass("interaction-primary");
+          expect(fullscreen).toHaveClass("interaction-secondary");
           expect(fullscreen).toHaveAttribute("type", "button");
           // Keyboard order within the actions: the link, then the button.
           expect(view.compareDocumentPosition(fullscreen)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
@@ -118,5 +134,35 @@ describe("AI collection presentations", () => {
     const first = container.querySelector<HTMLElement>("ol.container-page > li > article")!;
     fireEvent.click(within(first).getByRole("button", { name: messages.bg.ai.fullscreen }));
     expect(await screen.findByRole("dialog")).toHaveTextContent(work.title);
+  });
+});
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+describe("shared site interaction states", () => {
+  it("keeps the primary cream-to-gold change above the Delta E 25 guardrail", () => {
+    // Exact frozen site tokens: --navy-foreground and --gold.
+    expect(deltaEok([0.95, 0.018, 85], [0.7, 0.095, 78])).toBeGreaterThanOrEqual(25);
+  });
+
+  it("contains the shared semantic roles and pointer-only hover rules", () => {
+    for (const role of [
+      "interaction-primary",
+      "interaction-secondary",
+      "interaction-control",
+      "interaction-icon",
+      "interaction-link",
+      "interaction-media",
+      "interaction-card",
+    ]) {
+      expect(css).toContain(`.${role}`);
+    }
+    expect(css).toContain("@media (hover: hover)");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain("0 0 0 6px var(--interaction-ring)");
+    expect(css).toContain("0 12px 32px var(--interaction-halo)");
+    expect(css).toContain("translate: 0 -2px");
+    expect(css).toContain("translate: 6px 0");
+    expect(css).toContain("scale: 0.98");
   });
 });

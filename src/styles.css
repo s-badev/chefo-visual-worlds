@@ -91,6 +91,15 @@
   --dur-base: 320ms;
   --dur-slow: 700ms;
 
+  /* Shared interaction system: one gold language for buttons and button-like links. */
+  --interaction-cream: var(--navy-foreground);
+  --interaction-ink: var(--navy);
+  --interaction-gold: var(--gold);
+  --interaction-link-gold: var(--gold-ink);
+  --interaction-ring: color-mix(in oklch, var(--gold) 35%, transparent);
+  --interaction-halo: color-mix(in oklch, var(--gold) 35%, transparent);
+  --interaction-duration: 200ms;
+
   /* Stage F · Photography frames — paint-only derivatives of existing tokens. */
   --photo-frame-mat: var(--card);
   --photo-frame-gold: color-mix(in oklch, var(--gold) 65%, transparent);
@@ -118,12 +127,16 @@
   --muted: var(--surface-raised);
   --muted-foreground: var(--navy-muted);
   --border: var(--navy-border);
+  --interaction-link-gold: var(--gold);
   --color-border: var(--navy-border);
   --input: var(--navy-border);
   --eyebrow-ink: var(--gold);
   --gold-ink: var(--gold);
   background-color: var(--navy);
   color: var(--navy-foreground);
+}
+[data-theme="dark"] {
+  --interaction-link-gold: var(--gold);
 }
 
 @keyframes reveal-up {
@@ -521,6 +534,177 @@
   border-top: 1px solid var(--border);
 }
 
+/*
+ * Shared interaction language. Components opt into a semantic role instead of
+ * carrying one-off hover colors. Hover is deliberately pointer-only; keyboard
+ * focus receives the same visible paint change without requiring movement.
+ */
+.interaction-primary,
+.interaction-secondary,
+.interaction-control,
+.interaction-icon,
+.interaction-link,
+.interaction-media,
+.interaction-card,
+.interaction-special {
+  -webkit-tap-highlight-color: transparent;
+}
+.interaction-primary,
+.interaction-secondary,
+.interaction-control,
+.interaction-icon {
+  transition:
+    background-color var(--interaction-duration) var(--motion-ease),
+    border-color var(--interaction-duration) var(--motion-ease),
+    color var(--interaction-duration) var(--motion-ease),
+    box-shadow var(--interaction-duration) var(--motion-ease),
+    translate var(--interaction-duration) var(--motion-ease),
+    scale var(--interaction-duration) var(--motion-ease);
+}
+.interaction-primary {
+  border: 1px solid color-mix(in oklch, var(--interaction-gold) 62%, var(--interaction-ink));
+  background-color: var(--interaction-cream);
+  color: var(--interaction-ink);
+}
+.interaction-secondary {
+  border: 2px solid color-mix(in oklch, var(--interaction-cream) 48%, transparent);
+  background-color: transparent;
+  color: color-mix(in oklch, var(--interaction-cream) 64%, var(--interaction-ink));
+}
+.interaction-control {
+  border-color: color-mix(in oklch, var(--foreground) 48%, transparent);
+}
+.interaction-icon {
+  color: inherit;
+}
+.interaction-link {
+  text-decoration-color: transparent;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  transition:
+    color var(--interaction-duration) var(--motion-ease),
+    text-decoration-color var(--interaction-duration) var(--motion-ease),
+    opacity var(--interaction-duration) var(--motion-ease);
+}
+.interaction-card {
+  transition:
+    border-color var(--interaction-duration) var(--motion-ease),
+    box-shadow var(--interaction-duration) var(--motion-ease),
+    translate var(--interaction-duration) var(--motion-ease),
+    scale var(--interaction-duration) var(--motion-ease);
+}
+.interaction-primary:focus-visible,
+.interaction-secondary:focus-visible,
+.interaction-control:focus-visible,
+.interaction-icon:focus-visible,
+.interaction-link:focus-visible,
+.interaction-media:focus-visible,
+.interaction-card:focus-visible,
+.interaction-special:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
+}
+.interaction-primary:focus-visible {
+  border-color: var(--interaction-gold);
+  background-color: var(--interaction-gold);
+  color: var(--interaction-ink);
+  box-shadow:
+    0 0 0 6px var(--interaction-ring),
+    0 12px 32px var(--interaction-halo);
+}
+.interaction-secondary:focus-visible {
+  border-color: var(--interaction-cream);
+  background-color: color-mix(in oklch, var(--interaction-cream) 18%, transparent);
+  color: var(--interaction-cream);
+  box-shadow: 0 0 0 6px var(--interaction-ring);
+}
+.interaction-control:focus-visible,
+.interaction-icon:focus-visible {
+  border-color: var(--interaction-gold);
+  background-color: color-mix(in oklch, var(--interaction-gold) 24%, var(--background));
+  color: var(--foreground);
+  box-shadow: 0 0 0 6px var(--interaction-ring);
+}
+.interaction-link:focus-visible {
+  color: var(--interaction-link-gold);
+  text-decoration-color: currentColor;
+}
+.interaction-media:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--interaction-gold), 0 0 0 6px var(--interaction-ring);
+}
+.interaction-card:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--interaction-gold), 0 0 0 6px var(--interaction-ring);
+}
+.interaction-primary:active,
+.interaction-secondary:active,
+.interaction-control:active,
+.interaction-icon:active {
+  translate: 0 0;
+  scale: 0.98;
+}
+.interaction-card:active,
+.interaction-special:active {
+  translate: 0 0;
+  scale: 0.98;
+}
+@media (hover: hover) {
+  .interaction-primary:hover {
+    border-color: var(--interaction-gold);
+    background-color: var(--interaction-gold);
+    color: var(--interaction-ink);
+    box-shadow:
+      0 0 0 6px var(--interaction-ring),
+      0 12px 32px var(--interaction-halo);
+  }
+  .interaction-secondary:hover {
+    border-color: var(--interaction-cream);
+    background-color: color-mix(in oklch, var(--interaction-cream) 18%, transparent);
+    color: var(--interaction-cream);
+    box-shadow: 0 0 0 6px var(--interaction-ring);
+  }
+  .interaction-control:hover,
+  .interaction-icon:hover {
+    border-color: var(--interaction-gold);
+    background-color: color-mix(in oklch, var(--interaction-gold) 24%, var(--background));
+    color: var(--foreground);
+    box-shadow: 0 0 0 4px color-mix(in oklch, var(--interaction-gold) 22%, transparent);
+  }
+  .interaction-link:hover {
+    color: var(--interaction-link-gold);
+    text-decoration-color: currentColor;
+  }
+  .interaction-media:hover {
+    box-shadow: inset 0 0 0 3px var(--interaction-gold);
+  }
+  .interaction-card:hover {
+    box-shadow: inset 0 0 0 3px var(--interaction-gold), 0 12px 32px var(--interaction-halo);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .interaction-primary:hover {
+    translate: 0 -2px;
+  }
+  .interaction-primary:hover :is(.interaction-arrow, .ai-artwork-action-arrow) {
+    translate: 6px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .interaction-primary,
+  .interaction-secondary,
+  .interaction-control,
+  .interaction-icon,
+  .interaction-link,
+  .interaction-media,
+  .interaction-card,
+  .interaction-special,
+  .interaction-arrow {
+    transition-duration: 0s !important;
+    translate: none !important;
+    scale: none !important;
+  }
+}
+
 /* AI artwork actions: collection presentations and the AI Worlds overview entries. */
 .ai-artwork-action {
   display: inline-flex;
@@ -541,24 +725,40 @@
   -webkit-tap-highlight-color: transparent;
 }
 .ai-artwork-action-primary {
-  border-color: var(--navy-foreground);
-  background-color: var(--navy-foreground);
-  color: var(--navy);
+  border-color: color-mix(in oklch, var(--gold) 62%, var(--navy));
+  background-color: var(--interaction-cream);
+  color: var(--interaction-ink);
 }
 .ai-artwork-action-secondary {
+  border-width: 2px;
   border-color: color-mix(in oklch, var(--navy-foreground) 48%, transparent);
   background-color: transparent;
-  color: var(--navy-foreground);
+  color: color-mix(in oklch, var(--navy-foreground) 64%, var(--navy));
 }
 .ai-artwork-action:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
-.ai-artwork-action-primary:active {
-  background-color: color-mix(in oklch, var(--navy-foreground) 90%, var(--gold));
+.ai-artwork-action-primary:focus-visible {
+  border-color: var(--gold);
+  background-color: var(--gold);
+  color: var(--navy);
+  box-shadow:
+    0 0 0 6px var(--interaction-ring),
+    0 12px 32px var(--interaction-halo);
 }
-.ai-artwork-action-secondary:active {
-  background-color: color-mix(in oklch, var(--navy-foreground) 12%, transparent);
+.ai-presentation-link:focus-visible .ai-artwork-action-primary {
+  border-color: var(--gold);
+  background-color: var(--gold);
+  color: var(--navy);
+  box-shadow:
+    0 0 0 6px var(--interaction-ring),
+    0 12px 32px var(--interaction-halo);
+}
+.ai-artwork-action-secondary:focus-visible {
+  border-color: var(--navy-foreground);
+  background-color: color-mix(in oklch, var(--navy-foreground) 18%, transparent);
+  color: var(--navy-foreground);
 }
 .ai-artwork-action-arrow {
   transition: translate var(--dur-fast) var(--motion-ease);
@@ -571,8 +771,10 @@
  * combine instead of overriding each other.
  */
 .ai-artwork-action-primary {
-  --ai-action-hover-bg: color-mix(in oklch, var(--navy-foreground) 30%, white);
-  --ai-action-hover-halo: 0 0 0 4px color-mix(in oklch, var(--navy-foreground) 18%, transparent);
+  --ai-action-hover-bg: var(--gold);
+  --ai-action-hover-halo:
+    0 0 0 6px var(--interaction-ring),
+    0 12px 32px var(--interaction-halo);
 }
 .ai-presentation-media img {
   transition-duration: 550ms;
@@ -600,21 +802,22 @@
   }
   .ai-artwork-action-secondary:hover {
     border-color: var(--navy-foreground);
-    background-color: color-mix(in oklch, var(--navy-foreground) 8%, transparent);
+    background-color: color-mix(in oklch, var(--navy-foreground) 18%, transparent);
+    color: var(--navy-foreground);
   }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .ai-artwork-action-primary:hover {
-    translate: 0 -1px;
+    translate: 0 -2px;
   }
   .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
-    translate: 4px 0;
+    translate: 6px 0;
   }
   .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-primary {
-    translate: 0 -1px;
+    translate: 0 -2px;
   }
   .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-arrow {
-    translate: 4px 0;
+    translate: 6px 0;
   }
   .ai-presentation:hover .ai-presentation-media img {
     scale: 1.03;
@@ -1304,8 +1507,8 @@
 }
 .unified-album a:focus-visible,
 .unified-album button:focus-visible {
-  outline: 3px solid var(--foreground);
-  outline-offset: 4px;
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
   .unified-album-highlight img,
@@ -1466,16 +1669,16 @@ a.next-album-card:active {
 a.back-pill:focus-visible,
 :is(a, button).action-pill:focus-visible,
 a.next-album-card:focus-visible {
-  outline: 2px solid var(--foreground);
-  outline-offset: 2px;
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
 }
 .surface-dark a.back-pill:focus-visible {
   outline-color: var(--gold);
 }
 @media (hover: hover) {
   a.back-pill:hover {
-    border-color: var(--foreground);
-    color: var(--foreground);
+    border-color: var(--interaction-gold);
+    color: var(--interaction-link-gold);
   }
   a.back-pill:hover .back-pill-badge {
     background-color: color-mix(in srgb, var(--gold) 30%, transparent);
@@ -1485,9 +1688,9 @@ a.next-album-card:focus-visible {
     color: var(--navy-foreground);
   }
   :is(a, button).action-pill:hover {
-    border-color: var(--foreground);
-    background-color: var(--foreground);
-    color: var(--background);
+    border-color: var(--interaction-gold);
+    background-color: var(--interaction-gold);
+    color: var(--interaction-ink);
   }
   :is(a, button).action-pill:hover:active {
     background-color: color-mix(in srgb, var(--foreground) 85%, var(--background));

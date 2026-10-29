@@ -145,7 +145,7 @@ export function SiteHeader() {
                 <LocaleLink
                   to={n.to}
                   className={cn(
-                    "eyebrow border-b border-transparent pb-1 transition-colors",
+                    "interaction-link eyebrow border-b border-transparent pb-1 transition-colors",
                     navUnderline,
                     dark ? "hover:text-gold" : "hover:text-terracotta-ink",
                   )}
@@ -161,7 +161,7 @@ export function SiteHeader() {
         <Dialog.Root open={open} onOpenChange={setOpen}>
           {/* The ::after enlarges the touch target to 44px without moving the icon. */}
           <Dialog.Trigger
-            className="relative p-2 after:absolute after:-inset-1 lg:hidden"
+            className="interaction-icon relative rounded-full p-2 after:absolute after:-inset-1 lg:hidden"
             aria-label={open ? t.nav.close : t.nav.open}
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -181,7 +181,7 @@ export function SiteHeader() {
               >
                 <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
                 <Dialog.Close
-                  className="relative p-2 after:absolute after:-inset-1"
+                  className="interaction-icon relative rounded-full border border-transparent p-2 after:absolute after:-inset-1"
                   aria-label={t.nav.close}
                 >
                   <X className="size-5" />
@@ -201,7 +201,7 @@ export function SiteHeader() {
                       <LocaleLink
                         to={n.to}
                         onClick={() => setOpen(false)}
-                        className="flex items-center justify-between gap-4 py-5 font-serif text-4xl transition-colors hover:text-gold"
+                        className="interaction-link flex items-center justify-between gap-4 py-5 font-serif text-4xl transition-colors"
                         activeClassName="text-gold"
                       >
                         {t.nav[n.key]}
@@ -247,7 +247,7 @@ export function SiteFooter() {
                     href={instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-gold"
+                    className="interaction-link"
                   >
                     Instagram
                   </a>
@@ -255,7 +255,7 @@ export function SiteFooter() {
               )}
               {email && (
                 <li>
-                  <a href={`mailto:${email}`} className="hover:text-gold">
+                  <a href={`mailto:${email}`} className="interaction-link">
                     {t.footer.email}
                   </a>
                 </li>
@@ -327,7 +327,7 @@ export function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
+        "interaction-control min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border hover:border-gold",
@@ -415,7 +415,7 @@ export function PhotoCard({
         <button
           type="button"
           onClick={onOpen}
-          className="block w-full text-left"
+          className="interaction-media block w-full text-left"
           aria-label={t.common.openFullscreen(photo.title)}
         >
           {img}
@@ -424,7 +424,7 @@ export function PhotoCard({
           <LocaleLink
             to="/photography/$slug"
             slug={photo.slug}
-            className="block transition-colors hover:text-terracotta-ink"
+            className="interaction-link block transition-colors"
           >
             {meta}
           </LocaleLink>
@@ -689,7 +689,7 @@ export function Lightbox({
                   aria-label={zoomed ? t.lightbox.zoomOut : t.lightbox.zoomIn}
                   aria-pressed={zoomed}
                   onClick={() => setZoomed((value) => !value)}
-                  className="fixed left-3 top-3 z-10 rounded-full border border-navy-border bg-navy/85 p-2.5 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:left-4 sm:top-4"
+                  className="interaction-icon fixed left-3 top-3 z-10 rounded-full border border-navy-border bg-navy/85 p-2.5 sm:left-4 sm:top-4"
                 >
                   {zoomed ? <ZoomOut className="size-5" /> : <ZoomIn className="size-5" />}
                 </button>
@@ -701,7 +701,7 @@ export function Lightbox({
                     onClick={() => go(-1)}
                     aria-label={t.lightbox.prev}
                     className={cn(
-                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      "interaction-icon top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3",
                       artwork ? "fixed left-2 md:left-6" : "absolute left-2 md:left-6",
                     )}
                   >
@@ -712,7 +712,7 @@ export function Lightbox({
                     onClick={() => go(1)}
                     aria-label={t.lightbox.next}
                     className={cn(
-                      "top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3 transition-colors hover:border-gold",
+                      "interaction-icon top-1/2 -translate-y-1/2 rounded-full border border-navy-border bg-navy/80 p-3",
                       artwork ? "fixed right-2 md:right-6" : "absolute right-2 md:right-6",
                     )}
                   >
@@ -723,7 +723,7 @@ export function Lightbox({
               <Dialog.Close
                 aria-label={t.lightbox.close}
                 className={cn(
-                  "right-4 top-4 z-10 rounded-full border border-navy-border bg-navy/85 p-2 transition-colors hover:border-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                  "interaction-icon right-4 top-4 z-10 rounded-full border border-navy-border bg-navy/85 p-2",
                   artwork ? "fixed" : "absolute",
                 )}
               >
@@ -737,7 +737,7 @@ export function Lightbox({
   );
 }
 
-const btnMotion = "transition-colors duration-(--dur-base) ease-cinematic";
-export const btnPrimary = `inline-flex items-center gap-2 rounded-sm bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground ${btnMotion} hover:bg-primary-hover`;
-export const btnOutline = `inline-flex items-center gap-2 rounded-sm border border-current px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion} hover:border-gold hover:text-gold`;
-export const btnGold = `inline-flex items-center gap-2 rounded-sm bg-gold px-6 py-3 text-sm font-semibold tracking-wide text-accent-foreground ${btnMotion} hover:bg-navy-foreground`;
+const btnMotion = "transition-colors duration-(--interaction-duration) ease-cinematic";
+export const btnPrimary = `interaction-primary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;
+export const btnOutline = `interaction-secondary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;
+export const btnGold = `interaction-primary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;

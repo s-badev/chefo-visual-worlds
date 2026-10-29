@@ -136,7 +136,7 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
             aria-label={`${m.exploreCollection}: ${title}`}
             className="ai-presentation-link mt-8 inline-flex after:absolute after:inset-0"
           >
-            <span className="ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
+            <span className="interaction-primary ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
               {m.exploreCollection}
               <ArrowRight className="ai-artwork-action-arrow size-4" />
             </span>
@@ -275,7 +275,7 @@ export function ExhibitionWall({
                   type="button"
                   onClick={(event) => onOpen(index, event.currentTarget)}
                   aria-label={t.common.openFullscreen(work.title)}
-                  className="block w-full cursor-zoom-in"
+                  className="interaction-media block w-full cursor-zoom-in"
                 >
                   <ArtImage work={work} eager={index === 0} />
                 </button>
@@ -298,7 +298,7 @@ export function ExhibitionWall({
                     <LocaleLink
                       to="/ai-worlds/$slug"
                       slug={work.slug}
-                      className="ai-artwork-action ai-artwork-action-primary group/link w-full sm:w-auto"
+                      className="interaction-primary ai-artwork-action ai-artwork-action-primary group/link w-full sm:w-auto"
                       aria-label={`${m.viewWork}: ${work.title}`}
                     >
                       {m.viewWork}
@@ -307,7 +307,7 @@ export function ExhibitionWall({
                     <button
                       type="button"
                       onClick={(event) => onOpen(index, event.currentTarget)}
-                      className="ai-artwork-action ai-artwork-action-secondary w-full sm:w-auto"
+                      className="interaction-secondary ai-artwork-action ai-artwork-action-secondary w-full sm:w-auto"
                     >
                       <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
                     </button>
@@ -359,7 +359,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
             onClick={handleCopy}
             disabled={copying}
             className={cn(
-              "inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait",
+              "interaction-control inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs font-semibold disabled:cursor-wait",
               copied
                 ? "border-gold bg-gold text-navy"
                 : "border-gold/60 bg-navy text-gold hover:border-gold hover:bg-surface-raised",
@@ -402,7 +402,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
           aria-expanded={expanded}
           aria-controls="prompt-text"
           onClick={() => setExpanded((e) => !e)}
-          className="mt-2 text-xs font-semibold underline decoration-border underline-offset-4 transition-colors hover:text-gold"
+          className="interaction-link mt-2 text-xs font-semibold underline decoration-border underline-offset-4 transition-colors"
         >
           {expanded ? m.showLessPrompt : m.showFullPrompt}
         </button>
