@@ -27,6 +27,7 @@ import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/componen
 import {
   ArtEdge,
   ArtImage,
+  artworkAnchor,
   CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
@@ -339,6 +340,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           <AiBackLink
             to="/ai-worlds/collections/$slug"
             slug={collection.slug}
+            hash={artworkAnchor(raw.slug)}
             label={m.backToCollection}
           />
         )}

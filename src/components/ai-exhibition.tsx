@@ -217,6 +217,32 @@ export const toLightboxItem = (work: AiWork): LightboxItem => ({
   caption: work.description,
 });
 
+/** Anchor of a work on its collection page; detail pages link back to it. */
+export const artworkAnchor = (slug: string) => `artwork-${slug}`;
+
+/**
+ * After the router has scrolled a collection to the work in the URL hash, moves focus to
+ * that work's main link so keyboard and screen-reader users continue from there. A restored
+ * Back/Forward position that shows other works keeps focus where it was.
+ */
+function useFocusLinkedWork() {
+  // Detail pages are separate routes, so the wall mounts again on every return.
+  useEffect(() => {
+    const hash = decodeURIComponent(window.location.hash.slice(1));
+    if (!hash) return;
+    const raf = requestAnimationFrame(() => {
+      const target = document.getElementById(hash);
+      if (!target) return;
+      const { top } = target.getBoundingClientRect();
+      if (top < 0 || top >= window.innerHeight) return;
+      target
+        .querySelector<HTMLElement>(".ai-artwork-action-primary")
+        ?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+}
+
 /** Collection page: each work hung large at its own ratio, labels alternating sides. */
 export function ExhibitionWall({
   works,
@@ -227,12 +253,14 @@ export function ExhibitionWall({
 }) {
   const { t, locale } = useT();
   const m = t.ai;
+  useFocusLinkedWork();
   return (
     <ol className="container-page space-y-24 py-16 lg:space-y-36 lg:py-24">
       {works.map((work, index) => {
         const mirrored = index % 2 === 1;
         return (
-          <li key={work.slug} {...reveal()}>
+          // The scroll margin keeps a linked work clear of the sticky header.
+          <li key={work.slug} id={artworkAnchor(work.slug)} className="scroll-mt-20" {...reveal()}>
             <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
