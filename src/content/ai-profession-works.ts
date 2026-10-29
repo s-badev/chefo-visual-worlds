@@ -36,8 +36,8 @@ const rows: ProfessionRow[] = [
     image: barber,
     title: ["Кварталният барбер", "The Neighborhood Barber"],
     description: [
-      "В квартална бръснарница машинката, огледалата и топлата светлина оформят позната градска сцена.",
-      "Clippers, mirrors and warm light frame a familiar scene in a neighborhood barbershop.",
+      "Прическата е поводът да влезеш. Някои се връщат, защото той помни какво са му разказали миналия път.",
+      "A haircut gets you through the door. Some come back because he remembers what they told him last time.",
     ],
     alt: [
       "Барбер с машинка за подстригване до клиент в квартална бръснарница",
@@ -51,8 +51,8 @@ const rows: ProfessionRow[] = [
     image: beachBartender,
     title: ["Барман на морето", "Seaside Bartender"],
     description: [
-      "Коктейл, бар край морето и последната топла светлина на летния ден.",
-      "A cocktail, a seaside bar and the last warm light of a summer day.",
+      "Той подава напитката преди залеза. Историите, заради които хората остават, започват малко по-късно.",
+      "He serves the drink before sunset. The stories that make people stay begin a little later.",
     ],
     alt: [
       "Барман подава оранжев коктейл в бар край морето по залез",
@@ -66,8 +66,8 @@ const rows: ProfessionRow[] = [
     image: ticketInspector,
     title: ["Билетен инспектор", "Ticket Inspector"],
     description: [
-      "Проверка на билет в градския транспорт сред обичайния ритъм на пътниците.",
-      "A ticket check on public transport amid the everyday rhythm of passengers.",
+      "По тази линия всеки бърза за някъде. Той знае, че билетът разказва само малка част от пътуването.",
+      "Everyone on this route is heading somewhere. He knows a ticket tells only a small part of the journey.",
     ],
     alt: [
       "Билетен инспектор проверява билет в автобус или трамвай",
@@ -81,8 +81,8 @@ const rows: ProfessionRow[] = [
     image: taxiDriver,
     title: ["Таксиджия от Люлин", "Taxi Driver from Lyulin"],
     description: [
-      "Жълто такси, жилищни блокове и делничният ритъм на кварталните улици.",
-      "A yellow taxi, apartment blocks and the everyday rhythm of neighborhood streets.",
+      "Познатите адреси са лесната част. Трудното е да усети кога пътникът иска разговор и кога предпочита тишина.",
+      "Knowing the addresses is the easy part. The harder skill is sensing when a passenger wants to talk and when they need quiet.",
     ],
     alt: [
       "Таксиметров шофьор до жълто такси на градска улица",
@@ -96,8 +96,8 @@ const rows: ProfessionRow[] = [
     image: econtCourier,
     title: ["Куриер на Еконт", "Econt Courier"],
     description: [
-      "Пратка в ръце, служебен бус и поредна доставка пред жилищните блокове.",
-      "A parcel in hand, a delivery van and another stop among apartment buildings.",
+      "За него това е още една спирка. За човека зад вратата може да е нещото, което чака цяла седмица.",
+      "For him, it is another stop. For the person behind the door, it may be what they have waited for all week.",
     ],
     alt: [
       "Куриер на Еконт държи кашон до служебен бус",
@@ -111,8 +111,8 @@ const rows: ProfessionRow[] = [
     image: rakiaDistiller,
     title: ["Майстор на ракия", "Traditional Rakia Distiller"],
     description: [
-      "Меден казан, плодове и топлината на огъня в есенен двор.",
-      "A copper still, fruit and the warmth of a fire in an autumn courtyard.",
+      "Рецептата се предава без записки. Всяка есен той променя по нещо и после нарича резултата традиция.",
+      "The recipe is passed on without notes. Every autumn he changes one small thing, then calls the result tradition.",
     ],
     alt: [
       "Мъж с чаша до меден казан за ракия и касетки с плодове",
@@ -126,8 +126,8 @@ const rows: ProfessionRow[] = [
     image: acTechnician,
     title: ["Майстор на климатици", "Air Conditioning Technician"],
     description: [
-      "Външно тяло на климатик, работни инструменти и майстор на градския терен.",
-      "An outdoor air conditioning unit, tools and a technician at work in the city.",
+      "Градът си спомня за него, когато жегата стане нетърпима. Той пристига с инструменти и с повече търпение от всички останали.",
+      "The city remembers him when the heat becomes unbearable. He arrives with tools and more patience than anyone else.",
     ],
     alt: [
       "Техник с винтоверт работи до външно тяло на климатик",
@@ -141,8 +141,8 @@ const rows: ProfessionRow[] = [
     image: donerChef,
     title: ["Дюнер майстор", "Doner Chef"],
     description: [
-      "Въртящ се грил, прясно приготвен дюнер и светлините на оживена вечерна улица.",
-      "A vertical grill, a freshly prepared doner and the lights of a lively evening street.",
+      "„Както обикновено“ идва преди клиентът да е направил поръчката. В този квартал това е вид доверие.",
+      "“The usual” comes before the customer has ordered. In this neighbourhood, that is a kind of trust.",
     ],
     alt: [
       "Дюнер майстор подава готов дюнер пред въртящ се грил",
@@ -156,8 +156,8 @@ const rows: ProfessionRow[] = [
     image: nightclubSecurity,
     title: ["Нощен охранител", "Nightclub Security Guard"],
     description: [
-      "Охранител на входа на нощен клуб сред неонови светлини и вечерен градски шум.",
-      "A guard at a nightclub entrance amid neon lights and the bustle of the evening city.",
+      "Най-добрата му смяна е тази, в която нищо не се случва. Затова никога не спира да наблюдава.",
+      "His best shift is one where nothing happens. That is why he never stops watching.",
     ],
     alt: [
       "Охранител с радиостанция пред нощен клуб",
@@ -171,8 +171,8 @@ const rows: ProfessionRow[] = [
     image: fisherman,
     title: ["Рибар на пристанището", "Harbor Fisherman"],
     description: [
-      "Пресен улов, рибарски лодки и работното утро край морето.",
-      "A fresh catch, fishing boats and a working morning by the sea.",
+      "Морето не обещава улов. Той пак излиза, защото някои сутрини си струват и без гаранция.",
+      "The sea never promises a catch. He goes out anyway; some mornings are worth it without a guarantee.",
     ],
     alt: [
       "Рибар държи риба на пристанище с лодки зад него",
@@ -186,8 +186,8 @@ const rows: ProfessionRow[] = [
     image: marketVendor,
     title: ["Продавач на пазара", "Market Vendor"],
     description: [
-      "Сергия с плодове и зеленчуци и оживлението на кварталния пазар.",
-      "Fruit and vegetables on a stall amid the bustle of a neighborhood market.",
+      "Той знае кой избира внимателно и кой идва само да поговори. И за двамата намира време.",
+      "He knows who takes their time choosing and who came just to talk. He makes time for both.",
     ],
     alt: [
       "Продавач държи ябълка пред сергия с плодове и зеленчуци",
@@ -201,8 +201,8 @@ const rows: ProfessionRow[] = [
     image: autoMechanic,
     title: ["Квартален автомонтьор", "Neighborhood Auto Mechanic"],
     description: [
-      "Инструмент в ръка, отворен капак и всекидневната работа в квартален автосервиз.",
-      "A tool in hand, an open hood and everyday work in a neighborhood garage.",
+      "Колата пристига с шум, който собственикът не може да опише. Той го чува и вече знае откъде да започне.",
+      "The car arrives with a noise its owner cannot describe. He hears it and knows where to begin.",
     ],
     alt: [
       "Автомонтьор с гаечен ключ до отворен двигател в сервиз",
@@ -217,8 +217,8 @@ const rows: ProfessionRow[] = [
     role: "sanitation-worker",
     title: ["Боклукджия на сутрешна смяна", "Sanitation Worker on an Early Shift"],
     description: [
-      "Ранно утро в софийски квартал. Светлоотразителна жилетка, работни ръкавици и кратка почивка с кафе до камиона за смет.",
-      "An early morning in a Sofia neighborhood. High-visibility workwear, gloves, and a short coffee break beside the garbage truck.",
+      "Градът още спи, когато смяната му започва. Работата му остава незабелязана точно когато е свършена добре.",
+      "The city is still asleep when his shift begins. His work goes unnoticed precisely when he has done it well.",
     ],
     alt: [
       "Работник в светлоотразителна жилетка държи кафе до служебен автомобил",
@@ -232,8 +232,8 @@ const rows: ProfessionRow[] = [
     image: baker,
     title: ["Сутрин в пекарната", "Morning at the Bakery"],
     description: [
-      "Току-що изпечена баница и топлата светлина на квартална пекарна.",
-      "Freshly baked banitsa and the warm light of a neighborhood bakery.",
+      "Първите хора влизат, преди денят да е започнал истински. За него най-хубавата част е започнала още преди изгрев.",
+      "The first customers arrive before the day has properly begun. His favourite part started before sunrise.",
     ],
     alt: [
       "Пекар подава парче баница над витрина с печива",
