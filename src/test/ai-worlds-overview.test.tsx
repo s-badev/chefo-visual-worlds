@@ -91,7 +91,7 @@ describe("AI Worlds overview", () => {
     expect(professions.querySelector("img")?.getAttribute("src")).toContain(
       "chefo-taxi-driver.webp",
     );
-    expect(professions.querySelector(".ai-frame-portal")).toBeInTheDocument();
+    expect(professions.querySelector(".ai-frame-portal")).toBeNull();
     expect(professions.textContent).not.toMatch(/coming soon|очаква|подготвя/i);
     const aroundTheWorld = links[3]!.closest("article")!;
     expect(aroundTheWorld).toHaveTextContent(messages[locale].ai.count(16));

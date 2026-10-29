@@ -13,7 +13,7 @@ import { AtlasCover } from "@/components/ai-atlas";
 import { toolLabel, type AiWork } from "@/content/ai-works";
 import type { LightboxItem } from "@/components/site";
 import { reveal } from "@/hooks/use-reveal";
-import { useT, type Locale } from "@/i18n";
+import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
@@ -91,7 +91,6 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
         <div
           className={cn(
             "relative overflow-hidden rounded-sm md:col-span-6",
-            cover && "ai-frame-portal",
             mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
           )}
         >
@@ -208,22 +207,6 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
   );
 }
 
-const VERIFIED_TOOL_CREDIT_SLUGS = new Set([
-  "chefo-srednovekoven-ritsar",
-  "chefo-v-badeshteto",
-  "chefo-v-turtsiya",
-  "nubian-king-and-returning-army",
-  "rainy-neon-noir",
-  "captain-against-the-storm",
-]);
-
-/** A quiet credit: name the tool only when the final displayed image has supporting evidence. */
-export function artworkCredit(work: AiWork, locale: Locale, genericLabel: string) {
-  return work.tool && VERIFIED_TOOL_CREDIT_SLUGS.has(work.slug)
-    ? toolLabel(work.tool, locale)
-    : genericLabel;
-}
-
 export const toLightboxItem = (work: AiWork): LightboxItem => ({
   slug: work.slug,
   image: work.image,
@@ -240,7 +223,7 @@ export function ExhibitionWall({
   onOpen,
 }: {
   works: AiWork[];
-  onOpen: (index: number) => void;
+  onOpen: (index: number, trigger: HTMLButtonElement) => void;
 }) {
   const { t, locale } = useT();
   const m = t.ai;
@@ -253,13 +236,13 @@ export function ExhibitionWall({
             <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
-                  "ai-frame-portal group relative overflow-hidden rounded-sm lg:col-span-7",
+                  "group relative overflow-hidden rounded-sm lg:col-span-7",
                   mirrored ? "lg:col-start-6 lg:row-start-1" : "lg:col-start-1",
                 )}
               >
                 <button
                   type="button"
-                  onClick={() => onOpen(index)}
+                  onClick={(event) => onOpen(index, event.currentTarget)}
                   aria-label={t.common.openFullscreen(work.title)}
                   className="block w-full cursor-zoom-in"
                 >
@@ -288,16 +271,16 @@ export function ExhibitionWall({
                     <LocaleLink
                       to="/ai-worlds/$slug"
                       slug={work.slug}
-                      className="group/link inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-gold bg-gold/10 px-4 py-2.5 text-gold transition-[background-color,border-color,color] hover:bg-gold/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                      className="ai-artwork-action ai-artwork-action-primary group/link w-full sm:w-auto"
                       aria-label={`${m.viewWork}: ${work.title}`}
                     >
                       {m.viewWork}
-                      <ArrowRight className="size-4 transition-transform motion-safe:group-hover/link:translate-x-1" />
+                      <ArrowRight className="ai-artwork-action-arrow size-4" />
                     </LocaleLink>
                     <button
                       type="button"
-                      onClick={() => onOpen(index)}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-border bg-surface-raised/40 px-4 py-2.5 text-foreground transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                      onClick={(event) => onOpen(index, event.currentTarget)}
+                      className="ai-artwork-action ai-artwork-action-secondary w-full sm:w-auto"
                     >
                       <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
                     </button>

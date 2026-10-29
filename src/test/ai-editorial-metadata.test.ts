@@ -6,7 +6,7 @@ import { Route as EnWorkRoute } from "@/routes/en.ai-worlds.$slug";
 
 const expectedTitles = {
   "historical-eras-rulers": [
-    ["Средновековен владетел", "Medieval Ruler"],
+    ["Крал на лъва", "The Lion King"],
     ["Римски император", "Roman Emperor"],
     ["Италиански ренесансов благородник", "Italian Renaissance Nobleman"],
     ["Нубийски цар", "Nubian King"],
@@ -85,6 +85,21 @@ describe("AI Worlds editorial metadata", () => {
         " ",
       ),
     ).not.toMatch(/НДК|National Palace of Culture/i);
+  });
+
+  it("keeps the approved fictional Lion King copy exact without changing its identity", () => {
+    const work = getAiWork("chefo-srednovekoven-ritsar")!;
+    expect(work.title).toBe("Крал на лъва");
+    expect(work.en?.title).toBe("The Lion King");
+    expect(work.description).toBe(
+      "След коронацията кралят остава сам пред решение, което може да запази мира или да поведе кралството към война.",
+    );
+    expect(work.en?.description).toBe(
+      "After the coronation, the king faces a decision that could preserve the peace or lead the realm into war.",
+    );
+    expect(work.slug).toBe("chefo-srednovekoven-ritsar");
+    expect(work.role).toBe("ruler");
+    expect(work.era).toBe("medieval");
   });
 
   it("uses the approved Bulgarian spelling for the voivode without changing its identity", () => {

@@ -252,7 +252,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
       >
         <div className={cn("space-y-8", work ? "mx-auto w-full max-w-[68rem]" : "lg:col-span-6")}>
           {work ? (
-            <figure className="ai-frame-portal group relative overflow-hidden rounded-sm">
+            <figure className="group relative overflow-hidden rounded-sm">
               <button
                 type="button"
                 onClick={() => setLightbox(0)}

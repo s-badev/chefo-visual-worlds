@@ -1,11 +1,16 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import {
   aiWorks,
+  aiCategoryLabel,
+  aiEraLabel,
+  aiRoleLabel,
+  aiSettingLabel,
   filterAiWorks,
   getAiFilterOptions,
   localizeAiWork,
+  toolLabel,
   type AiWork,
 } from "@/content/ai-works";
 import {
@@ -22,7 +27,6 @@ import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/componen
 import {
   ArtEdge,
   ArtImage,
-  artworkCredit,
   CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
@@ -30,8 +34,9 @@ import {
   toLightboxItem,
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
+import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
-import { getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
+import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
 export type AiSearch = AiFilterValues & { view?: "works" | undefined };
@@ -172,6 +177,7 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const works = getCollectionWorks(collection, locale);
   const { prev, next } = getAdjacentCollections(collection);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
   return (
     <Surface tone="dark" as="article">
       <header className="container-page pt-10 md:pt-14">
@@ -196,11 +202,18 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
 
       {works.length > 0 && (
         <>
-          <ExhibitionWall works={works} onOpen={setLightbox} />
+          <ExhibitionWall
+            works={works}
+            onOpen={(index, trigger) => {
+              lightboxTrigger.current = trigger;
+              setLightbox(index);
+            }}
+          />
           <Lightbox
             items={works.map(toLightboxItem)}
             index={lightbox}
             onIndex={setLightbox}
+            returnFocusTo={lightboxTrigger}
             variant="artwork"
           />
         </>
@@ -283,13 +296,41 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   const m = t.ai;
   const work = localizeAiWork(raw, locale);
   const collection = getCollectionForWork(raw.slug);
+  // A destination shown on this template keeps its brief (see Destination.artworkTemplate).
+  const destination = getDestination(raw.slug);
+  const details = work.portraitDetails;
   const idx = aiWorks.findIndex((w) => w.slug === raw.slug);
   const prev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
   const next = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   const viewerItems = [toLightboxItem(work)];
-  const credit = artworkCredit(work, locale, m.aiImageCredit);
+  const facts: [string, string][] = [
+    ...(work.tool ? [[m.tool, toolLabel(work.tool, locale)] as [string, string]] : []),
+    ...(work.date ? [[m.created, formatDate(work.date, locale)] as [string, string]] : []),
+    [m.theme, aiCategoryLabel(work.category, locale)],
+    ...(work.era ? [[m.era, aiEraLabel(work.era, locale)] as [string, string]] : []),
+    ...(work.setting
+      ? [[m.setting, aiSettingLabel(work.setting, locale)] as [string, string]]
+      : []),
+    ...(work.role ? [[m.role, aiRoleLabel(work.role, locale)] as [string, string]] : []),
+    ...(destination
+      ? ([
+          [
+            t.photos.place,
+            [destination.place, destination.country]
+              .filter((part) => part !== undefined)
+              .map((part) => destinationText(part, locale))
+              .join(", ") +
+              (destination.context ? ` — ${destinationText(destination.context, locale)}` : ""),
+          ],
+          [m.clothing, destinationText(details?.clothing ?? destination.clothing, locale)],
+          [m.grooming, destinationText(details?.grooming ?? destination.grooming, locale)],
+          [m.settingLabel, destinationText(details?.setting ?? destination.setting, locale)],
+          [m.status, destination.status === "published" ? m.statusPublished : m.statusPlanned],
+        ] as [string, string][])
+      : []),
+  ];
 
   return (
     <Surface tone="dark" as="article">
@@ -325,7 +366,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       </nav>
 
       <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="ai-frame-portal group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
+        <figure className="group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
           <button
             type="button"
             onClick={() => setLightbox(0)}
@@ -357,9 +398,14 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           </div>
           <h1 className="title-detail mt-5 break-words">{work.title}</h1>
           <p className="mt-6 font-serif text-2xl leading-snug">{work.description}</p>
-          <p className="mt-8 border-t border-border pt-5 text-sm text-muted-foreground">
-            {credit}
-          </p>
+          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
+            {facts.map(([key, value]) => (
+              <div key={key}>
+                <dt className="eyebrow text-muted-foreground">{key}</dt>
+                <dd className="mt-1">{value}</dd>
+              </div>
+            ))}
+          </dl>
           <PromptNote work={work} prompt={raw.prompt} />
         </div>
       </div>
