@@ -159,9 +159,9 @@ export function SiteHeader() {
           <LanguageSwitcher label={t.nav.language} />
         </nav>
         <Dialog.Root open={open} onOpenChange={setOpen}>
-          {/* The ::after enlarges the touch target to 44px without moving the icon. */}
+          {/* A 44px button; the negative margin keeps the icon and header layout in place. */}
           <Dialog.Trigger
-            className="relative p-2 after:absolute after:-inset-1 lg:hidden"
+            className="relative -m-1 p-3 lg:hidden"
             aria-label={open ? t.nav.close : t.nav.open}
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -180,10 +180,7 @@ export function SiteHeader() {
                 className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
               >
                 <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
-                <Dialog.Close
-                  className="relative p-2 after:absolute after:-inset-1"
-                  aria-label={t.nav.close}
-                >
+                <Dialog.Close className="relative -m-1 p-3" aria-label={t.nav.close}>
                   <X className="size-5" />
                 </Dialog.Close>
               </div>

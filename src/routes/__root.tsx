@@ -14,7 +14,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader, SiteFooter } from "@/components/site";
 import { BackToTop } from "@/components/back-to-top";
-import { useReveal } from "@/hooks/use-reveal";
 import { Toaster } from "@/components/ui/sonner";
 import { localeFromPath, useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -105,7 +104,6 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { t } = useT();
-  useReveal();
   return (
     <QueryClientProvider client={queryClient}>
       <a
