@@ -395,15 +395,15 @@ export const aiWorks: AiWork[] = [
     },
   }),
   worldPortrait({
-    slug: "chefo-v-indiya", title: "Цветовете на Индия",
+    slug: "chefo-v-indiya", title: "Цветовете на пазара",
     image: worldIndia, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural photorealistic vertical portrait of the same person seated at an Indian tea stall along a lively market lane. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a light beige kurta-style shirt and a pale scarf across one shoulder, holding a small glass of chai near the table. Give them a thoughtful expression. Show warm hanging lanterns, market activity and arched buildings with distant minaret-like forms in the background. Compose a chest-up to waist-up portrait with warm golden afternoon light, textured fabrics, believable hands and an authentic street atmosphere. Do not add animals, ceremonial clothing, caricature or text overlays.",
     alt: "AI портрет на Чефо със светъл шал и чаша чай на оживена пазарна улица",
-    description: "На този пазар в Индия разговорът започва преди пазарлъка. Той се отбива за малко, а остава заради хората.",
+    description: "На този пазар разговорът започва преди пазарлъка. Той се отбива за малко, а остава заради хората.",
     en: {
-      title: "Colors of India",
+      title: "Colours of the Market",
       alt: "AI portrait of Chefo with a light scarf and a glass of tea on a busy market street",
-      description: "At this market in India, conversation begins before bargaining does. He meant to stop briefly, but the people make him stay.",
+      description: "At this market, conversation begins before bargaining does. He meant to stop briefly, but the people make him stay.",
     },
     portraitDetails: {
       clothing: text(

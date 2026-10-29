@@ -293,7 +293,7 @@ export const destinations: Destination[] = [
     order: 9,
     source: "video",
     country: text("Индия", "India"),
-    title: text("Цветовете на Индия", "Colors of India"),
+    title: text("Цветовете на пазара", "Colours of the Market"),
     description: text(
       "Пясъчникови дворци, балкони джарокха и цветът на пазарите за текстил.",
       "Sandstone palaces, jharokha balconies and the colour of the textile markets.",

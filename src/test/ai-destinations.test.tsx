@@ -101,7 +101,7 @@ describe("Around the World data", () => {
       ["Руска зима", "Russian Winter"],
       ["Италианска елегантност", "Italian Elegance"],
       ["Френски стил", "French Style"],
-      ["Цветовете на Индия", "Colors of India"],
+      ["Цветовете на пазара", "Colours of the Market"],
       ["Между традиция и съвременност", "Between Tradition and Modernity"],
       ["Египетски хоризонти", "Egyptian Horizons"],
       ["Съвременен Дубай", "Modern Dubai"],
