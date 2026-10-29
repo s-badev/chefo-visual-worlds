@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
-import { getAlbum } from "@/content/albums";
+import { getAlbum, getAlbumPhotos } from "@/content/albums";
 import { photos } from "@/content/photos";
 import { filterGalleryPhotos, getAllGalleryPhotos } from "@/content/photo-gallery";
 import { PortraitSwitch } from "@/components/portrait";
@@ -156,7 +156,7 @@ describe("Photography album overview", () => {
     expect(screen.queryByText(messages[locale].photos.place)).not.toBeInTheDocument();
   });
 
-  it("uses the approved opening and changes the desktop cover preview on hover and focus", () => {
+  it("preserves the approved opening and album preview without extra featured sections", () => {
     activeLocale = "en";
     const { container } = render(<PhotographyView />);
     const opening = container.querySelector<HTMLImageElement>("[data-photo-opening] img")!;
@@ -185,11 +185,6 @@ describe("Photography album overview", () => {
       "src",
       "/photos/sofia/sofia-001.webp",
     );
-    expect(container.querySelectorAll(".photography-editorial-reportage-image")).toHaveLength(3);
-    expect(container.querySelector(".photography-editorial-panorama-frame img")).toHaveAttribute(
-      "src",
-      "/photos/rila/rila-008.webp",
-    );
     expect(container.querySelector(".photography-editorial-opening-photo")).not.toHaveClass(
       "photo-frame-print",
     );
@@ -200,17 +195,8 @@ describe("Photography album overview", () => {
     expect(
       container.querySelectorAll(".photography-editorial-thumb.photo-frame-keyline"),
     ).toHaveLength(12);
-    expect(
-      container.querySelectorAll(".photography-editorial-reportage-frame.photo-frame-print"),
-    ).toHaveLength(2);
-    expect(
-      container.querySelector(
-        ".photography-editorial-reportage-image-3 .photography-editorial-reportage-frame",
-      ),
-    ).not.toHaveClass("photo-frame-print");
-    expect(container.querySelector(".photography-editorial-panorama-frame")).not.toHaveClass(
-      "photo-frame-print",
-    );
+    expect(container.querySelector(".photography-editorial-reportage")).toBeNull();
+    expect(container.querySelector(".photography-editorial-panorama")).toBeNull();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
@@ -246,6 +232,21 @@ describe("Photography album overview", () => {
     expect(home.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
   });
 
+  it("keeps both compact portrait versions in one cover-fitted ratio frame", () => {
+    activeLocale = "bg";
+    render(<PortraitSwitch compact aiImage="/ai.png" />);
+    const real = screen.getByRole("img", { name: messages.bg.portrait.realAlt });
+    const frame = real.parentElement!;
+    expect(frame).toHaveClass("aspect-(--about-portrait-ratio)");
+    expect(real).toHaveClass("object-cover", "object-center");
+
+    fireEvent.click(screen.getByRole("button", { name: messages.bg.portrait.ai }));
+    const ai = screen.getByRole("img", { name: messages.bg.portrait.aiAlt });
+    expect(ai.parentElement).toBe(frame);
+    expect(ai).toHaveClass("object-cover", "object-top");
+    expect(ai.className).not.toMatch(/scale-|translate-/);
+  });
+
   it.each(["bg", "en"] as const)("removes the About creation pipeline in %s", (locale) => {
     activeLocale = locale;
     render(<AboutView />);
@@ -276,7 +277,9 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/lyon/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-grid img")).toHaveLength(
+      getAlbumPhotos(getAlbum("lyon")!, locale).length,
+    );
     expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 
@@ -294,7 +297,9 @@ describe("Photography album overview", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(messages[locale].photos.albumEmpty)).not.toBeInTheDocument();
-    expect(container.querySelectorAll('img[src^="/photos/edirne/"]')).toHaveLength(5);
+    expect(container.querySelectorAll(".unified-album-grid img")).toHaveLength(
+      getAlbumPhotos(getAlbum("edirne")!, locale).length,
+    );
     expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 

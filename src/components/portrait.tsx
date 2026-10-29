@@ -29,7 +29,7 @@ export function PortraitSwitch({
       <div
         className={cn(
           "relative overflow-hidden rounded-md bg-muted",
-          compact ? "aspect-square" : "aspect-[4/5]",
+          compact ? "aspect-(--about-portrait-ratio)" : "aspect-[4/5]",
           frame === "matted" && "photo-frame-print photo-frame-print--portrait",
         )}
       >
@@ -39,8 +39,13 @@ export function PortraitSwitch({
             alt={mode === "ai" ? t.portrait.aiAlt : t.portrait.realAlt}
             className={cn(
               "h-full w-full",
-              (mode === "real" && !compact) || (mode === "ai" && aiImage) ? "object-contain" : "object-cover",
-              mode === "ai" && aiImage && (compact ? "translate-y-[11.5%] scale-[1.28]" : "translate-y-[8.7%] scale-[1.22]"),
+              // Compact: cover-fit; the AI source has the least headroom, so it is anchored to the top.
+              compact
+                ? cn("object-cover", mode === "ai" ? "object-top" : "object-center")
+                : mode === "real" || aiImage
+                  ? "object-contain"
+                  : "object-cover",
+              !compact && mode === "ai" && aiImage && "translate-y-[8.7%] scale-[1.22]",
             )}
           />
         ) : (
@@ -58,7 +63,7 @@ export function PortraitSwitch({
               type="button"
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
-              className={cn("rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground" : "hover:text-terracotta-ink")}
+              className={cn("min-h-11 rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground" : "hover:text-terracotta-ink")}
             >
               {m === "real" ? t.portrait.real : t.portrait.ai}
             </button>

@@ -220,21 +220,21 @@ export const aiWorks: AiWork[] = [
     image: worldSaudiArabia, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial portrait of the same person seated at an outdoor cafe table on a warm Saudi Arabian city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a crisp white thobe and a red-and-white checked headscarf secured with a black agal. They hold a small white coffee cup, with dates resting on the table. Frame them from about the waist up, looking calmly toward the camera. Place palms, sandy-toned buildings and a modern tower softly behind them in clear golden daylight. Render fabric folds, hands and tableware naturally, with a warm restrained palette, believable depth of field and no caricature or text overlays.",
     alt: "AI портрет на Чефо в бяла роба и червено-бяла кърпа за глава в градска сцена с палми",
-    description: "Бяла роба, палми и пясъчни дюни в топлата светлина на пустинята.",
+    description: "В Рияд първо те канят да останеш, после питат накъде си тръгнал. Той не бърза да отговори.",
     en: {
       title: "Under the Arabian Sun",
       alt: "AI portrait of Chefo in a white robe and red-and-white headscarf in a city scene with palms",
-      description: "A white robe, palms and sand dunes in warm desert light.",
+      description: "In Riyadh, they invite you to stay before asking where you are headed. He takes his time answering.",
     },
     portraitDetails: {
       clothing: text(
-        "Бяла роба и светло покривало за глава с черен агал.",
-        "A white robe and light head covering with a black agal.",
+        "Бяла роба и червено-бяла карирана кърпа за глава с черен агал.",
+        "A white robe and a red-and-white checked headscarf with a black agal.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Пясъчни дюни, палми и камили в далечината.",
-        "Sand dunes, palms and camels in the distance.",
+        "Глинени крепостни стени, палми и високи кули на заден план.",
+        "Mud-brick fortress walls, palms and tall towers in the background.",
       ),
     },
   }),
@@ -242,17 +242,17 @@ export const aiWorks: AiWork[] = [
     slug: "chefo-v-gartsiya", title: "Гръцки следобед",
     image: worldGreece, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural, photorealistic vertical travel portrait of the same person seated at a blue outdoor cafe table in Athens. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in an open-collar pale blue linen shirt and light trousers. Show one hand resting near their face, with iced coffee, a glass of water and a small plate on the table. In the sunlit background, include a lively street cafe, flowers, a Greek flag and the Acropolis on its hill. Use a relaxed waist-up composition, crisp Mediterranean daylight, natural shadows and authentic photographic texture; avoid artificial faces, distorted hands and added lettering.",
-    alt: "AI портрет на Чефо със светлосиня риза на маса пред гръцки знамена и антични сгради",
-    description: "Бяла риза и син шал сред варосани сгради и каменна настилка.",
+    alt: "AI портрет на Чефо със светлосиня риза на маса пред гръцко знаме и антични сгради",
+    description: "Атина има търпение за хора, които не гонят следващата забележителност. Той ѝ посвещава целия следобед.",
     en: {
       title: "A Greek Afternoon",
-      alt: "AI portrait of Chefo in a light blue shirt at a table before Greek flags and ancient buildings",
-      description: "A white shirt and blue scarf among whitewashed buildings and stone paving.",
+      alt: "AI portrait of Chefo in a light blue shirt at a table before a Greek flag and ancient buildings",
+      description: "Athens has time for people who are not chasing the next landmark. He gives it the whole afternoon.",
     },
     portraitDetails: {
       clothing: text(
-        "Бяла риза, светъл панталон и син шал.",
-        "A white shirt, light trousers and a blue scarf.",
+        "Светлосиня ленена риза и бял панталон.",
+        "A light blue linen shirt and white trousers.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
@@ -266,18 +266,18 @@ export const aiWorks: AiWork[] = [
     image: worldCuba, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical street portrait of the same person standing on a colourful Cuban city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a textured white short-sleeved open-collar shirt, with their torso visible, arms relaxed and a composed direct gaze. Position a vintage blue car on the street beside them, warm painted colonial facades and a palm behind them, and a domed building farther down the road. Use bright but soft tropical daylight, realistic urban depth, vivid yet credible colours and a waist-up to mid-thigh camera distance. Keep the portrait grounded and documentary in feel; avoid caricature, malformed hands and text overlays.",
     alt: "AI портрет на Чефо с бяла риза пред цветни фасади и ретро автомобил",
-    description: "Сива тениска, топли фасади и ретро автомобили в градска сцена.",
+    description: "В Хавана плановете се променят още на първия ъгъл. Може би това е правилният начин да я опознаеш.",
     en: {
       title: "Streets of Cuba",
       alt: "AI portrait of Chefo in a white shirt before colourful façades and a vintage car",
-      description: "A grey T-shirt, warm façades and vintage cars in a city scene.",
+      description: "In Havana, plans change at the first corner. Perhaps that is the right way to get to know it.",
     },
     portraitDetails: {
-      clothing: text("Сива тениска и тъмен панталон.", "A grey T-shirt and dark trousers."),
-      grooming: text(
-        "По-дълга разрошена коса и лека брада.",
-        "Longer tousled hair and light stubble.",
+      clothing: text(
+        "Бяла риза тип гуаябера и златна верижка.",
+        "A white guayabera-style shirt and a gold chain.",
       ),
+      grooming: text("Къса къдрава коса и къса брада.", "Short curly hair and a short beard."),
       setting: text(
         "Цветни фасади, балкони и ретро автомобили.",
         "Colourful façades, balconies and vintage cars.",
@@ -289,11 +289,11 @@ export const aiWorks: AiWork[] = [
     image: worldBrazil, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a realistic vertical editorial travel portrait of the same person seated beside a lively Brazilian beach. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear an open, colourful short-sleeved tropical floral shirt and a thin dark cord necklace. Give them a relaxed expression. Frame the upper body while allowing the palm-lined shore, people near the water and distant rocky mountains to remain visible behind them. Use a bright blue sky, warm coastal sunlight, natural fabric detail and a candid vacation atmosphere without over-saturating the scene. Keep human anatomy and hands plausible, with photographic depth of field and no unnecessary text.",
     alt: "AI портрет на Чефо с цветна флорална риза на плаж с палми",
-    description: "Пъстра риза и морски бряг под палмите.",
+    description: "Рио започва деня така, сякаш вече празнува нещо. Той решава, че не е нужно да знае повода.",
     en: {
       title: "Brazilian Rhythm",
       alt: "AI portrait of Chefo in a colourful floral shirt on a palm-lined beach",
-      description: "A colourful shirt and a shoreline beneath the palms.",
+      description: "Rio begins the day as though it is already celebrating something. He decides he does not need to know why.",
     },
     portraitDetails: {
       clothing: text("Риза с ярки флорални мотиви.", "A shirt with bright floral motifs."),
@@ -306,11 +306,11 @@ export const aiWorks: AiWork[] = [
     image: worldGreenland, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical winter travel portrait of the same person standing in a snowy Greenland village. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a black knit beanie, dark heavy parka with fur-trimmed hood, scarf and gloves; they hold a small metal mug at chest level. Frame them from the waist up, facing the camera, with colourful houses on snow-covered slopes, icy water and a rocky mountain in the distance. Let the cold overcast daylight, pale blue snow and muted clothing create a quiet atmosphere. Preserve realistic proportions, visible breath-free natural skin, crisp clothing texture and believable hands; avoid caricature or lettering.",
     alt: "AI портрет на Чефо с тъмна зимна парка сред ледени блокове",
-    description: "Тъмна зимна парка сред светлосини ледове.",
+    description: "Тук тишината трае малко по-дълго, отколкото очакваш. Странното е, че след нея разговорите звучат по-ясно.",
     en: {
       title: "The Quiet of Greenland",
       alt: "AI portrait of Chefo in a dark winter parka among ice formations",
-      description: "A dark winter parka among pale blue ice formations.",
+      description: "Here, the silence lasts a little longer than you expect. Oddly, conversations sound clearer afterward.",
     },
     portraitDetails: {
       clothing: text(
@@ -329,11 +329,11 @@ export const aiWorks: AiWork[] = [
     image: worldRussia, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical winter portrait of the same person on a snowy Russian city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a dark fur ushanka, a thick grey knitted scarf and a dark winter coat, facing the camera in a chest-up composition. Snowflakes fall in front of softly focused colourful onion domes and a tall historic tower; keep the street architecture legible without making it dominate the subject. Use cold diffuse daylight, a muted blue-grey palette and believable snow on fabric. Maintain accurate facial anatomy, natural hand and garment details, and documentary photographic realism with no added text.",
     alt: "AI портрет на Чефо с тъмно палто и кожена шапка на заснежена улица",
-    description: "Тъмно палто и кожена шапка сред зимна градска архитектура.",
+    description: "Москва изглежда строга, докато не останеш достатъчно дълго, за да я чуеш. Тогава започва да разказва.",
     en: {
       title: "Russian Winter",
       alt: "AI portrait of Chefo in a dark coat and fur hat on a snowy street",
-      description: "A dark coat and fur hat amid winter city architecture.",
+      description: "Moscow seems stern until you stay long enough to listen. Then it begins to tell its stories.",
     },
     portraitDetails: {
       clothing: text(
@@ -352,12 +352,12 @@ export const aiWorks: AiWork[] = [
     image: worldItaly, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial portrait of the same person seated at an outdoor cafe in Rome. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a dark navy blazer over an open white shirt with a light beige scarf draped around their neck. Show a relaxed seated posture at a small cafe table, with the Colosseum clearly recognizable but softly set back across the sunlit street. Frame them from roughly the waist up, allowing the table and ancient stone architecture to share the composition. Use warm late-afternoon light, natural shadows and restrained earth tones; avoid stiff posing, distorted hands and lettering.",
     alt: "AI портрет на Чефо с тъмно сако и светъл шал на улица пред античен амфитеатър",
-    description: "Сако и светъл шал на каменна улица с античен амфитеатър в далечината.",
+    description: "Рим не бърза да впечатлява никого. Може би затова един обикновен следобед тук остава толкова дълго в паметта.",
     en: {
       title: "Italian Elegance",
       alt: "AI portrait of Chefo in a dark jacket and light scarf on a street before an ancient amphitheatre",
       description:
-        "A jacket and light scarf on a stone street with an ancient amphitheatre beyond.",
+        "Rome is in no hurry to impress anyone. Perhaps that is why an ordinary afternoon here stays with you.",
     },
     portraitDetails: {
       clothing: text(
@@ -375,17 +375,17 @@ export const aiWorks: AiWork[] = [
     slug: "chefo-vav-frantsiya", title: "Френски стил",
     image: worldFrance, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical travel portrait of the same person seated at a Parisian outdoor cafe at golden hour. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a dark overcoat and a soft grey scarf, raising a small espresso cup near their face; a croissant rests on a plate on the table. Include the Eiffel Tower in the softly focused background beyond the cafe terrace and city street. Frame them chest-up with a relaxed seated posture, warm sunset light across the face and a subtle cinematic depth of field. Keep fabric, hands and table details believable, avoiding exaggerated features, distorted anatomy or artificial lettering.",
-    alt: "AI портрет на Чефо с тъмен костюм и сив шал на улица край кафе",
-    description: "Тъмен костюм и сив шал на павирана улица с маси на кафе.",
+    alt: "AI портрет на Чефо с тъмно палто и сив шал на улица край кафе",
+    description: "Париж няма нужда от още една снимка за доказателство. Той оставя следобеда да свърши, преди да реши как да го запомни.",
     en: {
       title: "French Style",
-      alt: "AI portrait of Chefo in a dark suit and grey scarf on a street beside a café",
-      description: "A dark suit and grey scarf on a cobbled street beside café tables.",
+      alt: "AI portrait of Chefo in a dark coat and grey scarf on a street beside a café",
+      description: "Paris does not need another photograph as proof. He lets the afternoon end before deciding how to remember it.",
     },
     portraitDetails: {
       clothing: text(
-        "Тъмен костюм, бяла риза и сив шал.",
-        "A dark suit, white shirt and grey scarf.",
+        "Тъмно палто, тъмен пуловер и сив шал.",
+        "A dark coat, dark sweater and grey scarf.",
       ),
       grooming: text("Къса коса и лека брада.", "Short hair and light stubble."),
       setting: text(
@@ -395,15 +395,15 @@ export const aiWorks: AiWork[] = [
     },
   }),
   worldPortrait({
-    slug: "chefo-v-indiya", title: "Цветовете на Индия",
+    slug: "chefo-v-indiya", title: "Цветовете на пазара",
     image: worldIndia, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a natural photorealistic vertical portrait of the same person seated at an Indian tea stall along a lively market lane. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a light beige kurta-style shirt and a pale scarf across one shoulder, holding a small glass of chai near the table. Give them a thoughtful expression. Show warm hanging lanterns, market activity and arched buildings with distant minaret-like forms in the background. Compose a chest-up to waist-up portrait with warm golden afternoon light, textured fabrics, believable hands and an authentic street atmosphere. Do not add animals, ceremonial clothing, caricature or text overlays.",
     alt: "AI портрет на Чефо със светъл шал и чаша чай на оживена пазарна улица",
-    description: "Светла курта, аркади и слон в топлата светлина на двора.",
+    description: "На този пазар разговорът започва преди пазарлъка. Той се отбива за малко, а остава заради хората.",
     en: {
-      title: "Colors of India",
+      title: "Colours of the Market",
       alt: "AI portrait of Chefo with a light scarf and a glass of tea on a busy market street",
-      description: "A light kurta, archways and an elephant in warm courtyard light.",
+      description: "At this market, conversation begins before bargaining does. He meant to stop briefly, but the people make him stay.",
     },
     portraitDetails: {
       clothing: text(
@@ -412,8 +412,8 @@ export const aiWorks: AiWork[] = [
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Аркаден двор, куполни форми и слон на заден план.",
-        "An arched courtyard, domed forms and an elephant in the background.",
+        "Пазарна улица с фенери, подправки и платове, минаре и купол на заден план.",
+        "A market street with lanterns, spices and textiles, and a minaret and dome in the background.",
       ),
     },
   }),
@@ -429,19 +429,22 @@ export const aiWorks: AiWork[] = [
       "Using the uploaded reference photograph as the identity source, create a photorealistic vertical evening portrait of the same person seated by the Bosphorus in Istanbul. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a dark coat and patterned scarf; they hold a small tulip-shaped glass of Turkish tea near their chest while looking calmly toward the camera. Show water, a passing ferry and the silhouettes of domed mosques and minarets across the shore, softly lit at dusk. Use a chest-up composition with warm bokeh lights against the blue evening sky, realistic hands and glass reflections, and an understated cinematic atmosphere without caricature or lettering.",
     alt: "AI портрет на мъж с тъмно палто и чаша турски чай вечер край Босфора в Истанбул, с джамии на заден план",
     description:
-      "Вечер край Босфора в Истанбул, Турция. Тъмно палто, чаша турски чай и силуетите на джамиите създават атмосфера, в която традицията среща съвременния град.",
+      "В Истанбул двата бряга никога не спорят кой е по-важен. Той също престава да избира страна.",
     en: {
       title: "Evening on the Bosphorus",
       alt: "AI portrait of a man in a dark coat with a glass of Turkish tea on an evening by the Bosphorus in Istanbul, with mosques in the background",
       description:
-        "An evening by the Bosphorus in Istanbul, Turkey. A dark coat, a glass of Turkish tea, and mosque silhouettes capture the atmosphere where tradition meets modern city life.",
+        "In Istanbul, the two shores never argue over which matters more. He stops choosing sides, too.",
     },
     portraitDetails: {
-      clothing: text("Тъмносин костюм и бяла риза.", "A dark blue suit and white shirt."),
+      clothing: text(
+        "Тъмно палто, шарен шал, тъмен пуловер и бяла риза.",
+        "A dark coat, patterned scarf, dark sweater and white shirt.",
+      ),
       grooming: text("Къса коса и лека брада.", "Short hair and light stubble."),
       setting: text(
-        "Тясна улица, стенни фенери и минаре на заден план.",
-        "A narrow street, wall lanterns and a minaret in the background.",
+        "Тераса край водата с фенери, ферибот и джамия с минарета на заден план.",
+        "A waterside terrace with lanterns, a ferry and a mosque with minarets in the background.",
       ),
     },
   }),
@@ -450,21 +453,21 @@ export const aiWorks: AiWork[] = [
     image: worldEgypt, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical travel portrait of the same person standing at a busy Egyptian street-side cafe or vendor stall near the pyramids. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in an open-collar white linen shirt with sunglasses hanging from its placket, and show them holding a clear glass of red drink. Frame them from the waist up, with market stalls, passing cars and the pyramids visible behind them through warm dusty daylight. Keep the modern street setting credible and the light slightly hazy, with realistic glass, fabric and hand details. Avoid invented robes, head wraps, camels, caricature or text overlays.",
     alt: "AI портрет на Чефо с бяла риза и чаша напитка на улица пред пирамидите",
-    description: "Светла роба и шал пред пирамиди в пясъчната вечерна светлина.",
+    description: "Кайро не дели деня на минало и настояще. Той също спира да пита кое време е по-интересно.",
     en: {
       title: "Egyptian Horizons",
       alt: "AI portrait of Chefo in a white shirt holding a drink on a street before the pyramids",
-      description: "A light robe and scarf before pyramids in warm desert light.",
+      description: "Cairo does not divide the day into past and present. He stops asking which one is more interesting.",
     },
     portraitDetails: {
       clothing: text(
-        "Светла дълга роба и бежов шал около главата.",
-        "A light long robe and beige scarf wrapped around the head.",
+        "Бяла ленена риза със закачени слънчеви очила.",
+        "A white linen shirt with sunglasses hooked on it.",
       ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Пясъчен терен, пирамиди и камили на заден план.",
-        "Sandy ground, pyramids and camels in the background.",
+        "Улица със сергия за сокове, таксита и пирамиди на заден план.",
+        "A street with a juice stall, taxis and pyramids in the background.",
       ),
     },
   }),
@@ -473,18 +476,21 @@ export const aiWorks: AiWork[] = [
     image: worldDubai, width: 1122, height: 1402,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical editorial travel portrait of the same person seated beside Dubai's waterfront in bright hazy daylight. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. Dress them in a clean white kandura and white head covering secured with a black agal; they hold a small white coffee cup. Compose a calm waist-up portrait with water, boats, palm trees and the contemporary Dubai skyline, including the Burj Khalifa, behind them. Balance the white clothing against the blue water and pale city buildings, with natural fabric folds, believable hand anatomy and subtle photographic depth. Avoid a suit, stylized fantasy effects and unnecessary text overlays.",
     alt: "AI портрет на Чефо в бяла роба и покривало за глава край водата с високи сгради",
-    description: "Тъмносин костюм на широк булевард сред палми и градски силует.",
+    description: "Дубай обича да говори за утре. Той остава в днешния ден и открива, че това също е лукс.",
     en: {
       title: "Modern Dubai",
       alt: "AI portrait of Chefo in a white robe and head covering by the water with tall buildings",
-      description: "A dark blue suit on a broad boulevard amid palms and a city skyline.",
+      description: "Dubai loves to talk about tomorrow. He stays with today and discovers that this, too, is a luxury.",
     },
     portraitDetails: {
-      clothing: text("Тъмносин костюм и бяла риза.", "A dark blue suit and white shirt."),
+      clothing: text(
+        "Бяла кандура и бяла гутра с черен агал.",
+        "A white kandura and a white ghutra with a black agal.",
+      ),
       grooming: text("Къса коса и поддържана брада.", "Short hair and a neat beard."),
       setting: text(
-        "Широк булевард с палми и високи сгради в топла светлина.",
-        "A broad palm-lined boulevard and tall buildings in warm light.",
+        "Крайбрежие с дървени лодки, вятърни кули и небостъргачи на заден план.",
+        "A waterfront with wooden boats, wind towers and skyscrapers in the background.",
       ),
     },
   }),
