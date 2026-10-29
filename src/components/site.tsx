@@ -517,7 +517,7 @@ export function AiCard({
             {t.common.aiBadge}
           </span>
         </div>
-        <h3 className="title-card mt-3 font-serif transition-colors group-hover:text-gold">
+        <h3 className="title-card mt-3 font-serif transition-colors group-hover:text-interaction-gold">
           {work.title}
         </h3>
       </LocaleLink>
@@ -589,6 +589,7 @@ export function Lightbox({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-navy/95 duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
         <Dialog.Content
           data-lightbox-variant={variant}
+          data-theme="dark"
           className={cn(
             "fixed inset-0 z-50 flex flex-col items-center justify-center text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
             artwork

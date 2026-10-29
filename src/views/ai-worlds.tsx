@@ -234,7 +234,7 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
               to="/ai-worlds/collections/$slug"
               slug={c.slug}
               className={cn(
-                "interaction-card group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:border-gold/70 hover:bg-surface-raised/60 hover:text-gold sm:min-h-28 sm:p-5",
+                "interaction-card group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:bg-surface-raised/60 hover:text-interaction-gold focus-visible:text-interaction-gold sm:min-h-28 sm:p-5",
                 align === "end" && "flex-row-reverse text-right",
               )}
             >

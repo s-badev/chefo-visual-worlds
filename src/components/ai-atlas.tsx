@@ -147,7 +147,7 @@ export function DestinationIndex() {
                     <LocaleLink
                       to="/ai-worlds/$slug"
                       slug={d.slug}
-                      className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
+                      className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-interaction-gold"
                     >
                       {destinationText(d.title, locale)}
                     </LocaleLink>

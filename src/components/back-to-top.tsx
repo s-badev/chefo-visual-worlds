@@ -31,6 +31,7 @@ export function BackToTop() {
             : "smooth",
         })
       }
+      data-theme="dark"
       className="interaction-icon fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 z-30 inline-flex size-12 items-center justify-center rounded-full border border-gold bg-navy text-gold shadow-soft sm:right-8"
     >
       <ArrowUp className="size-5" aria-hidden="true" />

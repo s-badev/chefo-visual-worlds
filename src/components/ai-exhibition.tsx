@@ -115,7 +115,7 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
             mirrored ? "md:col-start-1" : "md:col-start-8",
           )}
         >
-          <h2 className="title-section break-words">{title}</h2>
+          <h2 className="ai-presentation-title title-section break-words">{title}</h2>
           {collection.tagline && (
             <p className="mt-3 font-serif text-xl italic text-gold">
               {collectionText(collection.tagline, locale)}
@@ -190,7 +190,7 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
           <LocaleLink
             to="/ai-worlds/$slug"
             slug={work.slug}
-            className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
+            className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-interaction-gold"
           >
             {work.title}
           </LocaleLink>
@@ -288,7 +288,7 @@ export function ExhibitionWall({
                 )}
               >
                 <div data-exhibit-copy-content className="lg:row-start-2">
-                  <h2 className="title-section break-words">
+                  <h2 className="ai-presentation-title title-section break-words">
                     <LocaleLink to="/ai-worlds/$slug" slug={work.slug}>
                       {work.title}
                     </LocaleLink>
