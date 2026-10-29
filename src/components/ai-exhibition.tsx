@@ -21,11 +21,14 @@ import { cn } from "@/lib/utils";
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** Soft gold edge that answers hover and keyboard focus on an artwork. */
-export function ArtEdge() {
+export function ArtEdge({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/35 group-focus-within:ring-gold/60"
+      className={cn(
+        "pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/35 group-focus-within:ring-gold/60",
+        className,
+      )}
     />
   );
 }
@@ -85,12 +88,13 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const finished = getCollectionWorkSlugs(collection).length;
   const isAtlas = collection.kind === "destinations";
   const mirrored = index % 2 === 1;
+  const title = collectionText(collection.title, locale);
   return (
     <li {...reveal(0)}>
-      <article className="group relative grid items-center gap-8 md:grid-cols-12 md:gap-0">
+      <article className="ai-presentation group relative grid items-center gap-8 md:grid-cols-12 md:gap-0">
         <div
           className={cn(
-            "relative overflow-hidden rounded-sm md:col-span-6",
+            "ai-presentation-media relative overflow-hidden rounded-sm md:col-span-6",
             mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
           )}
         >
@@ -111,16 +115,7 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
             mirrored ? "md:col-start-1" : "md:col-start-8",
           )}
         >
-          <h2 className="title-section break-words">
-            {/* The stretched link makes the whole hall one target with one accessible name. */}
-            <LocaleLink
-              to="/ai-worlds/collections/$slug"
-              slug={collection.slug}
-              className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
-            >
-              {collectionText(collection.title, locale)}
-            </LocaleLink>
-          </h2>
+          <h2 className="title-section break-words">{title}</h2>
           {collection.tagline && (
             <p className="mt-3 font-serif text-xl italic text-gold">
               {collectionText(collection.tagline, locale)}
@@ -132,13 +127,20 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
           {finished > 0 && (
             <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
           )}
-          <span
-            aria-hidden="true"
-            className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-gold/60 bg-gold/5 px-4 py-2.5 text-sm font-semibold text-gold transition-[background-color,border-color,color] duration-(--dur-base) group-hover:border-gold group-hover:bg-gold/10 group-focus-within:outline-2 group-focus-within:outline-offset-4 group-focus-within:outline-gold"
+          {/* The one link stretches over the hall, so the photo and copy are part of its target.
+              The button look sits on an inner span: a transform on the link itself would make it
+              the containing block of the overlay and shrink the target to the button. */}
+          <LocaleLink
+            to="/ai-worlds/collections/$slug"
+            slug={collection.slug}
+            aria-label={`${m.exploreCollection}: ${title}`}
+            className="ai-presentation-link mt-8 inline-flex after:absolute after:inset-0"
           >
-            {m.exploreCollection}
-            <ArrowRight className="size-4 transition-transform duration-(--dur-base) ease-cinematic motion-safe:group-hover:translate-x-1" />
-          </span>
+            <span className="ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
+              {m.exploreCollection}
+              <ArrowRight className="ai-artwork-action-arrow size-4" />
+            </span>
+          </LocaleLink>
         </div>
       </article>
     </li>
@@ -261,10 +263,11 @@ export function ExhibitionWall({
         return (
           // The scroll margin keeps a linked work clear of the sticky header.
           <li key={work.slug} id={artworkAnchor(work.slug)} className="scroll-mt-20" {...reveal()}>
-            <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
+            {/* One hover unit; the link and the button below stay independent controls. */}
+            <article className="ai-presentation group/presentation grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
-                  "group relative overflow-hidden rounded-sm lg:col-span-7",
+                  "ai-presentation-media group relative overflow-hidden rounded-sm lg:col-span-7",
                   mirrored ? "lg:col-start-6 lg:row-start-1" : "lg:col-start-1",
                 )}
               >
@@ -276,7 +279,7 @@ export function ExhibitionWall({
                 >
                   <ArtImage work={work} eager={index === 0} />
                 </button>
-                <ArtEdge />
+                <ArtEdge className="group-hover/presentation:ring-gold/35" />
               </figure>
               <div
                 className={cn(
@@ -286,11 +289,7 @@ export function ExhibitionWall({
               >
                 <div data-exhibit-copy-content className="lg:row-start-2">
                   <h2 className="title-section break-words">
-                    <LocaleLink
-                      to="/ai-worlds/$slug"
-                      slug={work.slug}
-                      className="transition-colors hover:text-gold"
-                    >
+                    <LocaleLink to="/ai-worlds/$slug" slug={work.slug}>
                       {work.title}
                     </LocaleLink>
                   </h2>

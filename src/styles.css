@@ -521,7 +521,7 @@
   border-top: 1px solid var(--border);
 }
 
-/* AI artwork actions are scoped to collection presentations. */
+/* AI artwork actions: collection presentations and the AI Worlds overview entries. */
 .ai-artwork-action {
   display: inline-flex;
   min-height: 44px;
@@ -535,7 +535,9 @@
     background-color var(--dur-fast) var(--motion-ease),
     border-color var(--dur-fast) var(--motion-ease),
     color var(--dur-fast) var(--motion-ease),
-    transform var(--dur-fast) var(--motion-ease);
+    box-shadow var(--dur-fast) var(--motion-ease),
+    translate var(--dur-fast) var(--motion-ease),
+    scale var(--dur-fast) var(--motion-ease);
   -webkit-tap-highlight-color: transparent;
 }
 .ai-artwork-action-primary {
@@ -552,9 +554,6 @@
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
-.ai-artwork-action:active {
-  transform: scale(0.98);
-}
 .ai-artwork-action-primary:active {
   background-color: color-mix(in oklch, var(--navy-foreground) 90%, var(--gold));
 }
@@ -562,28 +561,75 @@
   background-color: color-mix(in oklch, var(--navy-foreground) 12%, transparent);
 }
 .ai-artwork-action-arrow {
-  transition: transform var(--dur-fast) var(--motion-ease);
+  transition: translate var(--dur-fast) var(--motion-ease);
 }
+
+/*
+ * One interaction unit per presentation (.ai-presentation): pointing anywhere on it lights
+ * its primary action and zooms its photo. Pointing at the secondary control names that
+ * control instead. Lift, press and arrow use separate translate/scale properties so they
+ * combine instead of overriding each other.
+ */
+.ai-artwork-action-primary {
+  --ai-action-hover-bg: color-mix(in oklch, var(--navy-foreground) 30%, white);
+  --ai-action-hover-halo: 0 0 0 4px color-mix(in oklch, var(--navy-foreground) 18%, transparent);
+}
+.ai-presentation-media img {
+  transition-duration: 550ms;
+}
+/* The ring wraps the whole overview hall; without :has() the link keeps its own outline. */
+@supports selector(:has(*)) {
+  .ai-presentation-link:focus-visible {
+    outline: none;
+  }
+  .ai-presentation:has(.ai-presentation-link:focus-visible) {
+    outline: 2px solid var(--gold);
+    outline-offset: 8px;
+    border-radius: var(--radius);
+  }
+}
+/* :has() rules stay apart so a browser without it still keeps the direct hover rules. */
 @media (hover: hover) {
   .ai-artwork-action-primary:hover {
-    background-color: color-mix(in oklch, var(--navy-foreground) 88%, white);
+    background-color: var(--ai-action-hover-bg);
+    box-shadow: var(--ai-action-hover-halo);
   }
-  .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
-    transform: translateX(4px);
+  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-primary {
+    background-color: var(--ai-action-hover-bg);
+    box-shadow: var(--ai-action-hover-halo);
   }
   .ai-artwork-action-secondary:hover {
-    border-color: var(--gold);
-    background-color: color-mix(in oklch, var(--navy-foreground) 9%, transparent);
+    border-color: var(--navy-foreground);
+    background-color: color-mix(in oklch, var(--navy-foreground) 8%, transparent);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ai-artwork-action-primary:hover {
+    translate: 0 -1px;
+  }
+  .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
+    translate: 4px 0;
+  }
+  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-primary {
+    translate: 0 -1px;
+  }
+  .ai-presentation:hover:not(:has(.ai-artwork-action-secondary:hover)) .ai-artwork-action-arrow {
+    translate: 4px 0;
+  }
+  .ai-presentation:hover .ai-presentation-media img {
+    scale: 1.03;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ai-artwork-action:active,
+  .ai-presentation-link:active .ai-artwork-action {
+    scale: 0.98;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .ai-artwork-action,
   .ai-artwork-action-arrow {
     transition: none;
-  }
-  .ai-artwork-action:active,
-  .ai-artwork-action-primary:hover .ai-artwork-action-arrow {
-    transform: none;
   }
 }
 
