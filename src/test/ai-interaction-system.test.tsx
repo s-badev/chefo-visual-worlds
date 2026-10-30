@@ -155,13 +155,14 @@ describe("AI Worlds overview halls", () => {
       expect(layer).toHaveClass("ai-section-background");
       expect(layer.closest("a, button")).toBeNull();
       const source = layer.querySelector("source")!;
-      expect(source).toHaveAttribute("media", "(max-width: 768px)");
+      expect(source).toHaveAttribute("media", "(max-width: 767px)");
       expect(source).toHaveAttribute("srcset", `/background/ai-bg-${name}-960.webp`);
       const image = layer.querySelector("img")!;
       expect(image).toHaveAttribute("src", `/background/ai-bg-${name}-1600.webp`);
       expect(image).toHaveAttribute("alt", "");
       expect(image).toHaveAttribute("aria-hidden", "true");
-      expect(image).toHaveAttribute("loading", "lazy");
+      // Only the first hall can be in the initial viewport; the rest load on approach.
+      expect(image).toHaveAttribute("loading", index === 0 ? "eager" : "lazy");
       expect(image).toHaveAttribute("decoding", "async");
       expect(image).toHaveAttribute("width", "1600");
       expect(image).toHaveAttribute("height", "900");

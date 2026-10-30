@@ -100,7 +100,7 @@ export function AiWorldsView() {
   return (
     <>
       <Surface tone="dark" as="div">
-        <div className="container-page section-y">
+        <div className="container-page pt-16 md:pt-24">
           <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
           <div role="group" aria-label={m.view} className="mt-12 flex gap-8 border-b border-border">
@@ -121,28 +121,32 @@ export function AiWorldsView() {
               {m.allWorks}
             </button>
           </div>
+        </div>
 
-          <div key={view} className="duration-300 motion-safe:animate-in motion-safe:fade-in-0">
-            {view === "collections" ? (
-              <CollectionHalls />
-            ) : (
-              <div className="mt-8">
-                <AiFilterBar values={filters} count={items.length} onChange={(p) => set(p)} />
-                {items.length ? (
-                  <section
-                    aria-label={m.allWorks}
-                    className="mt-12 grid grid-cols-1 items-start gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"
-                  >
-                    {items.map((work, i) => (
-                      <ExhibitWork key={work.slug} work={work} index={i} />
-                    ))}
-                  </section>
-                ) : (
-                  <EmptyState text={m.empty} onClear={() => set(NO_FILTERS)} />
-                )}
-              </div>
-            )}
-          </div>
+        {/* Collection halls run edge to edge so their backdrops can; each hall re-centres its content. */}
+        <div
+          key={view}
+          className="pb-16 duration-300 motion-safe:animate-in motion-safe:fade-in-0 md:pb-24"
+        >
+          {view === "collections" ? (
+            <CollectionHalls />
+          ) : (
+            <div className="container-page mt-8">
+              <AiFilterBar values={filters} count={items.length} onChange={(p) => set(p)} />
+              {items.length ? (
+                <section
+                  aria-label={m.allWorks}
+                  className="mt-12 grid grid-cols-1 items-start gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  {items.map((work, i) => (
+                    <ExhibitWork key={work.slug} work={work} index={i} />
+                  ))}
+                </section>
+              ) : (
+                <EmptyState text={m.empty} onClear={() => set(NO_FILTERS)} />
+              )}
+            </div>
+          )}
         </div>
       </Surface>
     </>
