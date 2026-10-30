@@ -98,7 +98,7 @@ const rows: Phase3Row[] = [
     category: "Култури по света",
     title: ["Залез над Сидни", "Sydney at Sunset"],
     description: [
-      "В Сидни денят приключва без голям финал. Светлината над пристанището тихо угасва, а точно в това е най-хубавото.",
+      "В Сидни денят приключва без голям финал. Светлината над пристанището тихо угасва, и точно това е най-хубавото.",
       "In Sydney, the day ends without a grand finale. The light over the harbour simply fades, and that is the best part.",
     ],
     alt: [
