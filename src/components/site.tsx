@@ -36,6 +36,59 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
   );
 }
 
+/** Header logo: round portrait icon and wordmark ("CHEFO" only on phones), one link home. */
+export function BrandLockup({ onClick }: { onClick?: () => void }) {
+  const { t } = useT();
+  return (
+    <LocaleLink
+      to="/"
+      onClick={onClick}
+      aria-label={t.nav.home}
+      className="interaction-link flex min-h-11 items-center gap-3 rounded-sm"
+    >
+      <img
+        src="/brand/chefo-icon.svg"
+        alt=""
+        width={44}
+        height={44}
+        className="size-9 shrink-0 rounded-full ring-1 ring-gold/40 md:size-11"
+      />
+      <span className="whitespace-nowrap font-serif text-xl font-medium uppercase tracking-[0.14em] md:text-[1.4375rem]">
+        CHEFO<span className="hidden md:inline"> — Visual Worlds</span>
+      </span>
+    </LocaleLink>
+  );
+}
+
+const isHomePath = (pathname: string) => (pathname.replace(/^\/en(?=\/|$)/, "") || "/") === "/";
+
+/**
+ * On Home the header floats transparently over the hero until a sentinel at the top of the
+ * hero leaves the viewport. The server and the first client render agree on the top state.
+ */
+function useTransparentOverHero() {
+  const pathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  });
+  const home = isHomePath(pathname);
+  const [atTop, setAtTop] = useState(true);
+
+  useEffect(() => {
+    if (!home) return;
+    const sentinel = document.querySelector("[data-header-sentinel]");
+    // Without the observer (or the hero) the solid header is the readable choice.
+    if (!sentinel || typeof IntersectionObserver === "undefined") {
+      setAtTop(false);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => setAtTop(entry!.isIntersecting));
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [home, pathname]);
+
+  return home && atTop;
+}
+
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Route theme is available in SSR; the rendered surface remains authoritative after mounting. */
@@ -116,9 +169,12 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const { theme, animate } = useHeaderTheme(ref);
+  const overHero = useTransparentOverHero();
   const { t } = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const dark = theme === "dark" || open;
+  // The open mobile menu always shows the solid navy header.
+  const transparent = overHero && !open;
+  const dark = transparent || theme === "dark" || open;
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -126,18 +182,21 @@ export function SiteHeader() {
     <header
       ref={ref}
       data-theme={dark ? "dark" : "light"}
+      data-transparent={transparent ? "" : undefined}
       className={cn(
         "sticky top-0 z-40 border-b",
-        animate
+        animate || isHomePath(pathname)
           ? "transition-colors duration-(--dur-base) motion-reduce:transition-none"
           : "transition-none",
-        dark
-          ? "border-navy-border bg-navy text-navy-foreground"
-          : "border-border bg-background text-foreground",
+        transparent
+          ? "border-navy-foreground/12 bg-transparent text-navy-foreground"
+          : dark
+            ? "border-navy-border bg-navy text-navy-foreground"
+            : "border-border bg-background text-foreground",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
-        <Wordmark className="text-base md:text-lg" />
+        <BrandLockup />
         <nav aria-label={t.nav.main} className="hidden lg:flex lg:items-center lg:gap-10">
           <ul className="flex gap-10">
             {NAV.map((n) => (
@@ -179,7 +238,7 @@ export function SiteHeader() {
                 data-theme="dark"
                 className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
               >
-                <Wordmark className="text-base md:text-lg" onClick={() => setOpen(false)} />
+                <BrandLockup onClick={() => setOpen(false)} />
                 <Dialog.Close
                   className="interaction-icon relative rounded-full border border-transparent p-2 after:absolute after:-inset-1"
                   aria-label={t.nav.close}
