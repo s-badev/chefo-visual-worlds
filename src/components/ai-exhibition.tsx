@@ -21,10 +21,38 @@ import { cn } from "@/lib/utils";
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 
 const collectionBackgrounds = {
-  "historical-eras-rulers": { image: "historical", position: "62% 38%", overlay: 0.8 },
-  "professions-roles": { image: "professions", position: "58% 45%", overlay: 0.82 },
-  "cinema-archetypes": { image: "cinema", position: "72% 32%", overlay: 0.79 },
-  "chefo-around-the-world": { image: "world", position: "68% 38%", overlay: 0.88 },
+  "historical-eras-rulers": {
+    image: "historical",
+    position: "62% 38%",
+    mobilePosition: "35% 0%",
+    overlay: 0.15,
+    mobileOverlay: 0.28,
+    brightness: 1.35,
+  },
+  "professions-roles": {
+    image: "professions",
+    position: "58% 45%",
+    mobilePosition: "58% 45%",
+    overlay: 0.25,
+    mobileOverlay: 0.4,
+    brightness: 1.25,
+  },
+  "cinema-archetypes": {
+    image: "cinema",
+    position: "72% 32%",
+    mobilePosition: "72% 32%",
+    overlay: 0.07,
+    mobileOverlay: 0.32,
+    brightness: 1.25,
+  },
+  "chefo-around-the-world": {
+    image: "world",
+    position: "68% 38%",
+    mobilePosition: "68% 38%",
+    overlay: 0.35,
+    mobileOverlay: 0.5,
+    brightness: 1.25,
+  },
 } as const;
 
 type CollectionBackground = (typeof collectionBackgrounds)[keyof typeof collectionBackgrounds];
@@ -33,7 +61,10 @@ type CollectionBackground = (typeof collectionBackgrounds)[keyof typeof collecti
 function CollectionAtmosphere({ background }: { background: CollectionBackground }) {
   const style = {
     "--ai-section-bg-position": background.position,
+    "--ai-section-bg-mobile-position": background.mobilePosition,
     "--ai-section-bg-overlay": background.overlay,
+    "--ai-section-bg-mobile-overlay": background.mobileOverlay,
+    "--ai-section-bg-brightness": background.brightness,
   } as CSSProperties;
   return (
     <div
