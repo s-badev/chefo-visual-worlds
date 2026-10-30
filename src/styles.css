@@ -380,7 +380,7 @@
   /* Narrow enough to stay clear of the face at every width from 900px. */
   .home-hero-copy {
     position: relative;
-    max-width: min(40rem, 42vw);
+    max-width: min(40rem, 40vw);
   }
   /* Soft navy panel behind the copy only; it fades out before the face. */
   .home-hero-copy::before {
