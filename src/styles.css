@@ -785,6 +785,48 @@
   display: inline-flex;
 }
 
+/* Atmospheric collection backdrops are decorative and stay behind every interactive/content layer. */
+.ai-overview-hall > :not(.ai-section-background) {
+  position: relative;
+  z-index: 1;
+}
+.ai-section-background {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+.ai-section-background picture,
+.ai-section-background img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ai-section-background img {
+  object-fit: cover;
+  object-position: var(--ai-section-bg-position, 70% 35%);
+  filter: blur(40px) saturate(0.6);
+  transform: scale(1.12);
+}
+.ai-section-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.8));
+}
+@media (max-width: 768px) {
+  .ai-section-background img {
+    filter: blur(20px) saturate(0.6);
+  }
+  .ai-section-background::after {
+    background: oklch(0.21 0.045 262 / 0.88);
+  }
+}
+
 /*
  * Title + primary action pair (.ai-presentation): pointing at the title or at the primary
  * action lights both in the same bright gold. The photo only zooms, and the description, count

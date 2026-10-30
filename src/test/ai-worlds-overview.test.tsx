@@ -95,7 +95,7 @@ describe("AI Worlds overview", () => {
     }
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;
-    expect(professions.querySelector("img")?.getAttribute("src")).toContain(
+    expect(professions.querySelector(".ai-presentation-media img")?.getAttribute("src")).toContain(
       "chefo-taxi-driver.webp",
     );
     expect(professions.querySelector(".ai-frame-portal")).toBeNull();

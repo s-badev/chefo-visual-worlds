@@ -1,6 +1,6 @@
 // Exhibition building blocks for AI Worlds: collection halls, exhibited works,
 // and the discreet prompt note. Colors follow the dark Surface.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Check, Copy, Expand } from "lucide-react";
 import {
   collectionText,
@@ -19,6 +19,47 @@ import { copyText } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
 
 export const pad2 = (n: number) => String(n).padStart(2, "0");
+
+const collectionBackgrounds = {
+  "historical-eras-rulers": { image: "historical", position: "62% 38%", overlay: 0.8 },
+  "professions-roles": { image: "professions", position: "58% 45%", overlay: 0.82 },
+  "cinema-archetypes": { image: "cinema", position: "72% 32%", overlay: 0.79 },
+  "chefo-around-the-world": { image: "world", position: "68% 38%", overlay: 0.88 },
+} as const;
+
+type CollectionBackground = (typeof collectionBackgrounds)[keyof typeof collectionBackgrounds];
+
+/** Decorative atmosphere for a collection hall; it never becomes artwork content or a control. */
+function CollectionAtmosphere({ background }: { background: CollectionBackground }) {
+  const style = {
+    "--ai-section-bg-position": background.position,
+    "--ai-section-bg-overlay": background.overlay,
+  } as CSSProperties;
+  return (
+    <div
+      aria-hidden="true"
+      data-ai-section-background={background.image}
+      className="ai-section-background"
+      style={style}
+    >
+      <picture aria-hidden="true">
+        <source
+          media="(max-width: 768px)"
+          srcSet={`/background/ai-bg-${background.image}-960.webp`}
+        />
+        <img
+          aria-hidden="true"
+          src={`/background/ai-bg-${background.image}-1600.webp`}
+          alt=""
+          width={1600}
+          height={900}
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+    </div>
+  );
+}
 
 /** Soft gold edge that answers hover and keyboard focus on an artwork. */
 export function ArtEdge() {
@@ -109,13 +150,15 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const isAtlas = collection.kind === "destinations";
   const mirrored = index % 2 === 1;
   const title = collectionText(collection.title, locale);
+  const background = collectionBackgrounds[collection.slug as keyof typeof collectionBackgrounds];
   return (
     <li {...reveal(0)}>
       {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
       <article
         onClick={openHall}
-        className="ai-presentation relative grid cursor-pointer items-center gap-8 md:grid-cols-12 md:gap-0"
+        className="ai-presentation ai-overview-hall relative isolate grid cursor-pointer items-center gap-8 overflow-hidden md:grid-cols-12 md:gap-0"
       >
+        {background && <CollectionAtmosphere background={background} />}
         <div
           className={cn(
             "ai-presentation-media group relative overflow-hidden rounded-sm md:col-span-6",
