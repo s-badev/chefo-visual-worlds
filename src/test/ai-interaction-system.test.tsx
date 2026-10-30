@@ -72,6 +72,8 @@ const contrast = (a: string, b: string) => {
 const CREAM = "#f4eee1";
 const GOLD = "#e2b14e";
 const INK = "#1b1610";
+const HOVER_GOLD = "#c9a46b";
+const HOVER_INK = "#16213a";
 // --navy, oklch(0.21 0.045 262), and the light --background, oklch(0.965 0.017 85), in sRGB.
 const NAVY = "#0d182d";
 const LIGHT_PAGE = "#f9f3e7";
@@ -269,16 +271,20 @@ describe("Design A interaction system", () => {
     expect(css).toContain(`--interaction-cream: ${CREAM};`);
     expect(css).toContain(`--interaction-gold-bright: ${GOLD};`);
     expect(css).toContain(`--interaction-ink-on-gold: ${INK};`);
+    expect(css).toContain(`--btn-hover-bg: ${HOVER_GOLD};`);
+    expect(css).toContain(`--btn-hover-fg: ${HOVER_INK};`);
+    expect(css).toContain(`--btn-hover-border: ${HOVER_GOLD};`);
+    expect(css).toContain("--btn-active-bg: #b8935a;");
   });
 
   it("keeps rest cream and hover gold apart (OKLab distance x100 >= 18)", () => {
-    // Recalibrated from 25 (muted site gold) to the exact Design A pair, measured ~19.6.
-    expect(deltaEok(CREAM, GOLD)).toBeGreaterThanOrEqual(18);
+    expect(deltaEok(CREAM, HOVER_GOLD)).toBeGreaterThanOrEqual(18);
   });
 
   it("keeps every text pair readable (WCAG >= 4.5:1)", () => {
     expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(INK, GOLD)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(HOVER_INK, HOVER_GOLD)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(CREAM, NAVY)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(4.5);
   });
@@ -298,20 +304,22 @@ describe("Design A interaction system", () => {
 
   it("lights title and button together when the pointer is over the button", () => {
     const hover = rule(".interaction-primary:hover", POINTER)!.body;
-    expect(hover).toContain("background-color: var(--interaction-gold-bright)");
-    expect(hover).toContain("0 0 0 6px var(--interaction-ring)");
+    expect(hover).toContain("background-color: var(--btn-hover-bg)");
+    expect(hover).toContain("border-color: var(--btn-hover-border)");
+    expect(hover).toContain("color: var(--btn-hover-fg)");
+    expect(hover).toContain("box-shadow: none");
     expect(
       rule(
         ".ai-presentation-title:hover, .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title",
         POINTER,
       )!.body,
-    ).toBe("color: var(--interaction-gold-bright);");
+    ).toBe("color: var(--btn-hover-bg);");
   });
 
   it("lights title and button together when the pointer is over the title", () => {
     const pair = ".ai-presentation:has(.ai-presentation-title:hover)";
     expect(rule(`${pair} .ai-artwork-action-primary`, POINTER)!.body).toContain(
-      "background-color: var(--interaction-gold-bright)",
+      "background-color: var(--btn-hover-bg)",
     );
     const motion = `${POINTER} and (prefers-reduced-motion: no-preference)`;
     expect(rule(`${pair} .ai-artwork-action-primary`, motion)!.body).toBe("translate: 0 -2px;");

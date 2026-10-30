@@ -1,53 +1,53 @@
-import { useRouterState } from "@tanstack/react-router";
-import { useEffect, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
+
+let observer: IntersectionObserver | undefined;
+
+const getObserver = () =>
+  (observer ??= new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const el = entry.target as HTMLElement;
+        el.dataset["reveal"] = "shown";
+        observer?.unobserve(el);
+      }
+    },
+    { rootMargin: "0px 0px -8% 0px" },
+  ));
 
 /**
  * Fades `[data-reveal]` elements up as they scroll into view. Only elements that start
  * below the viewport are hidden, and only on the client, so server HTML, the first screen
  * and reduced-motion visitors always see content immediately.
+ *
+ * It runs as a ref because React attaches refs only after hydrating the element. A root
+ * effect could reach markup of a lazily loaded route before React hydrated it, so the
+ * client props no longer matched the attribute.
  */
-export function useReveal() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+const observeReveal = (el: HTMLElement | null) => {
+  if (!el || typeof IntersectionObserver === "undefined") return undefined;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+  const io = getObserver();
 
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // Wait a frame so scroll restoration has placed the page before measuring.
+  const raf = requestAnimationFrame(() => {
+    if (el.getBoundingClientRect().top <= window.innerHeight) return;
+    el.dataset["reveal"] = "pending";
+    io.observe(el);
+  });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const el = entry.target as HTMLElement;
-          el.dataset["reveal"] = "shown";
-          observer.unobserve(el);
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px" },
-    );
-
-    // Wait a frame so scroll restoration has placed the page before measuring.
-    const raf = requestAnimationFrame(() => {
-      document.querySelectorAll<HTMLElement>("main [data-reveal='']").forEach((el) => {
-        if (el.getBoundingClientRect().top <= window.innerHeight) return;
-        el.dataset["reveal"] = "pending";
-        observer.observe(el);
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      // Never leave content hidden when the page changes underneath.
-      document.querySelectorAll<HTMLElement>("[data-reveal='pending']").forEach((el) => {
-        el.dataset["reveal"] = "";
-      });
-    };
-  }, [pathname]);
-}
+  return () => {
+    cancelAnimationFrame(raf);
+    io.unobserve(el);
+    // Never leave content hidden when the page changes underneath.
+    if (el.dataset["reveal"] === "pending") el.dataset["reveal"] = "";
+  };
+};
 
 /** Props for an element that should reveal on scroll; `index` staggers siblings. */
 export const reveal = (index = 0) =>
   ({
     "data-reveal": "",
     style: { "--reveal-i": index % 6 } as CSSProperties,
+    ref: observeReveal,
   }) as const;

@@ -195,7 +195,13 @@ export function SiteHeader() {
             : "border-border bg-background text-foreground",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
+      <div
+        data-home-header-row={isHomePath(pathname) ? "" : undefined}
+        className={cn(
+          "flex h-16 items-center justify-between",
+          isHomePath(pathname) ? "home-header-row" : "mx-auto w-full max-w-7xl px-5 md:px-8",
+        )}
+      >
         <BrandLockup />
         <nav aria-label={t.nav.main} className="hidden lg:flex lg:items-center lg:gap-10">
           <ul className="flex gap-10">
@@ -206,7 +212,6 @@ export function SiteHeader() {
                   className={cn(
                     "interaction-link eyebrow border-b border-transparent pb-1 transition-colors",
                     navUnderline,
-                    dark ? "hover:text-gold" : "hover:text-terracotta-ink",
                   )}
                   activeClassName={cn("after:scale-x-100", dark && "text-gold")}
                 >

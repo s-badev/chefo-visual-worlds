@@ -31,7 +31,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-gold: var(--gold);
-  --color-interaction-gold: var(--interaction-gold-bright);
+  --color-interaction-gold: var(--btn-hover-bg);
   --color-terracotta: var(--terracotta);
   --color-navy: var(--navy);
   --color-navy-foreground: var(--navy-foreground);
@@ -92,6 +92,16 @@
   --dur-base: 320ms;
   --dur-slow: 700ms;
 
+  /* Shared Home alignment: only the Home header row and Hero copy consume this gutter. */
+  --home-gutter: clamp(20px, 5.5vw, 112px);
+
+  /* Unified button hover language. Focus rings deliberately keep their existing tokens below. */
+  --btn-hover-bg: #c9a46b;
+  --btn-hover-fg: #16213a;
+  --btn-hover-border: #c9a46b;
+  --btn-active-bg: #b8935a;
+  --btn-hover-duration: 150ms;
+
   /* Design A interaction system: exact owner-approved values. Muted --gold stays for passive
      editorial decoration; every interactive hover/focus state uses the bright gold. */
   --interaction-cream: #f4eee1;
@@ -102,7 +112,7 @@
   --interaction-card-ring: rgb(226 177 78 / 0.25);
   --interaction-tint: rgb(226 177 78 / 0.18);
   --interaction-icon-tint: rgb(226 177 78 / 0.24);
-  --interaction-duration: 200ms;
+  --interaction-duration: var(--btn-hover-duration);
   /* Light surfaces: cream actions keep a dark boundary; text stays dark, gold only underlines. */
   --interaction-primary-border: var(--interaction-ink-on-gold);
   --interaction-primary-hover-border: var(--interaction-ink-on-gold);
@@ -110,7 +120,7 @@
   --interaction-secondary-border: var(--interaction-ink-on-gold);
   --interaction-secondary-hover-bg: var(--interaction-tint);
   --interaction-secondary-hover-border: var(--interaction-gold-bright);
-  --interaction-link-hover: var(--interaction-ink-on-gold);
+  --interaction-link-hover: var(--btn-hover-bg);
   --interaction-icon-hover: var(--interaction-ink-on-gold);
   --interaction-control-hover: var(--interaction-ink-on-gold);
   --interaction-focus-ring: var(--interaction-ink-on-gold);
@@ -157,7 +167,7 @@
   --interaction-secondary-border: rgb(244 238 225 / 0.6);
   --interaction-secondary-hover-bg: rgb(244 238 225 / 0.18);
   --interaction-secondary-hover-border: var(--interaction-cream);
-  --interaction-link-hover: var(--interaction-gold-bright);
+  --interaction-link-hover: var(--btn-hover-bg);
   --interaction-icon-hover: var(--interaction-gold-bright);
   --interaction-control-hover: var(--interaction-cream);
   --interaction-focus-ring: var(--interaction-gold-bright);
@@ -261,7 +271,7 @@
  */
 .home-hero {
   --home-hero-h: clamp(640px, 100svh, 1000px);
-  --home-hero-scrim: 0.6;
+  --home-hero-scrim: 0.82;
   position: relative;
   isolation: isolate;
   /* Slides under the sticky 4rem header so the picture starts at the very top. */
@@ -308,8 +318,13 @@
 }
 .home-hero-content {
   /* The copy starts just below the camera (about 71% of the vertical image). */
+  padding-inline: var(--home-gutter);
   padding-top: 126vw;
   padding-bottom: 3.5rem;
+}
+.home-header-row {
+  width: 100%;
+  padding-inline: var(--home-gutter);
 }
 .home-hero-eyebrow {
   color: var(--gold);
@@ -353,7 +368,7 @@
   .home-hero-image {
     height: 100%;
     object-fit: cover;
-    object-position: 56% 50%;
+    object-position: 40% 50%;
   }
   .home-hero-shade {
     inset: 0;
@@ -369,8 +384,8 @@
       linear-gradient(
         to right,
         oklch(0.21 0.045 262 / 0.7),
-        oklch(0.21 0.045 262 / 0.5) 30%,
-        transparent 62%
+        oklch(0.21 0.045 262 / 0.58) 26%,
+        transparent 48%
       );
   }
   .home-hero-content {
@@ -380,7 +395,7 @@
   /* Narrow enough to stay clear of the face at every width from 900px. */
   .home-hero-copy {
     position: relative;
-    max-width: min(40rem, 40vw);
+    max-width: min(40rem, 35vw);
   }
   /* Soft navy panel behind the copy only; it fades out before the face. */
   .home-hero-copy::before {
@@ -415,19 +430,30 @@
     font-size: 0.8125rem;
   }
   .home-hero-title {
-    font-size: clamp(44px, 5vw, 84px);
+    font-size: clamp(44px, 4.5vw, 84px);
   }
   .home-hero-sub {
+    max-width: min(36rem, 29vw);
     font-size: clamp(1.125rem, 0.75rem + 0.6vw, 1.25rem);
   }
   .home-hero-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 14px;
   }
-  .home-hero-button {
+  .home-hero .home-hero-button {
     min-height: 48px;
+    padding-inline: 0.25rem;
   }
+}
+
+@media (min-width: 900px) and (max-width: 1100px) {
+  .home-hero-content {
+    padding-top: calc(var(--home-hero-h) * 0.16);
+  }
+}
+
+.home-hero .interaction-secondary {
+  background: oklch(0.21 0.045 262 / 0.56);
 }
 
 /* Stage F · Wave 2: photographic frames outside published album galleries. */
@@ -670,29 +696,27 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .interaction-primary:hover {
-    border-color: var(--interaction-primary-hover-border);
-    background-color: var(--interaction-gold-bright);
-    color: var(--interaction-ink-on-gold);
-    box-shadow:
-      0 0 0 6px var(--interaction-ring),
-      0 12px 32px var(--interaction-halo);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
+    box-shadow: none;
   }
   .interaction-secondary:hover {
-    border-color: var(--interaction-secondary-hover-border);
-    background-color: var(--interaction-secondary-hover-bg);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
   }
   .interaction-control:hover {
-    border-color: var(--interaction-gold-bright);
-    box-shadow: inset 0 0 0 1px var(--interaction-gold-bright);
-  }
-  .interaction-control:hover:not([aria-pressed="true"]) {
-    background-color: var(--interaction-tint);
-    color: var(--interaction-control-hover);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
+    box-shadow: none;
   }
   .interaction-icon:hover {
-    border-color: var(--interaction-gold-bright);
-    background-image: linear-gradient(var(--interaction-icon-tint), var(--interaction-icon-tint));
-    color: var(--interaction-icon-hover);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    background-image: none;
+    color: var(--btn-hover-fg);
   }
   .interaction-link:hover {
     color: var(--interaction-link-hover);
@@ -718,6 +742,18 @@
     outline-offset: -2px;
     box-shadow: 0 0 0 6px var(--interaction-card-ring);
   }
+}
+/* Pressed paint is shared on mouse, keyboard and touch; movement remains motion-conditional. */
+.interaction-primary:active,
+.interaction-secondary:active,
+.interaction-control:active,
+.interaction-icon:active,
+:is(a, button).action-pill:active {
+  border-color: var(--btn-active-bg);
+  background-color: var(--btn-active-bg);
+  background-image: none;
+  color: var(--btn-hover-fg);
+  box-shadow: none;
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .interaction-primary:hover {
@@ -962,14 +998,13 @@
 @media (hover: hover) and (pointer: fine) {
   .ai-presentation-title:hover,
   .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title {
-    color: var(--interaction-gold-bright);
+    color: var(--btn-hover-bg);
   }
   .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-primary {
-    border-color: var(--interaction-primary-hover-border);
-    background-color: var(--interaction-gold-bright);
-    box-shadow:
-      0 0 0 6px var(--interaction-ring),
-      0 12px 32px var(--interaction-halo);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
+    box-shadow: none;
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -1830,34 +1865,36 @@ a.next-album-card:focus-visible {
 }
 @media (hover: hover) and (pointer: fine) {
   a.back-pill:hover {
-    border-color: var(--interaction-gold-bright);
-    color: var(--interaction-link-hover);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
   }
   a.back-pill:hover .back-pill-badge {
-    background-color: var(--interaction-icon-tint);
+    background-color: transparent;
+    color: inherit;
   }
   .surface-dark a.back-pill:hover {
-    border-color: var(--interaction-gold-bright);
-    color: var(--navy-foreground);
+    border-color: var(--btn-hover-border);
+    color: var(--btn-hover-fg);
   }
   :is(a, button).action-pill:hover {
-    border-color: var(--interaction-gold-bright);
-    background-color: var(--interaction-gold-bright);
-    color: var(--interaction-ink-on-gold);
+    border-color: var(--btn-hover-border);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
   }
   :is(a, button).action-pill:hover:active {
-    background-color: color-mix(in srgb, var(--foreground) 85%, var(--background));
+    background-color: var(--btn-active-bg);
   }
   a.next-album-card:hover .next-album-card-cover {
     transform: scale(1.02);
   }
   a.next-album-card:hover .next-album-card-name {
-    color: var(--interaction-gold-bright);
+    color: var(--btn-hover-bg);
   }
   a.next-album-card:hover .next-album-card-arrow {
-    border-color: var(--interaction-gold-bright);
-    background: var(--interaction-gold-bright);
-    color: var(--interaction-ink-on-gold);
+    border-color: var(--btn-hover-border);
+    background: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
   }
 }
 a.next-album-card:focus-visible .next-album-card-name {
