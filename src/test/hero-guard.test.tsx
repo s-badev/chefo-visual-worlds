@@ -63,7 +63,7 @@ const COPY = {
     eyebrow: "Между кадъра и въображението",
     h1a: "Реални места,",
     h1b: "безкрайни светове.",
-    sub: "Фотографии от моите пътувания и AI светове, в които се озовавам там, където обективът не стига.",
+    sub: "Фотографии от моите пътувания и\u00a0AI светове, в\u00a0които се озовавам там, където обективът не стига.",
     ctaPhotos: "Разгледай фотографиите",
     ctaAi: "Влез в AI световете",
     home: "CHEFO — Visual Worlds, начало",
@@ -125,7 +125,7 @@ describe("homepage Hero", () => {
       expect(h1.querySelector("br")).not.toBeNull();
       expect(h1.querySelector("em")).toHaveTextContent(copy.h1b);
       expect(within(hero).getByText(copy.eyebrow)).toHaveClass("eyebrow");
-      expect(within(hero).getByText(copy.sub)).toBeInTheDocument();
+      expect(hero.querySelector(".home-hero-sub")?.textContent).toBe(copy.sub);
 
       const prefix = locale === "en" ? "/en" : "";
       const ctas = within(hero).getAllByRole("link");
@@ -135,6 +135,7 @@ describe("homepage Hero", () => {
       ]);
       expect(ctas[0]).toHaveAccessibleName(copy.ctaPhotos);
       expect(ctas[1]).toHaveAccessibleName(copy.ctaAi);
+      expect(ctas.every((cta) => cta.classList.contains("home-hero-button"))).toBe(true);
       expect(ctas[0]!.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
       expect(hero.textContent).not.toMatch(/Слънчев бряг|Sunny Beach|2126/);
     },
@@ -174,6 +175,11 @@ describe("homepage Hero", () => {
     expect(src).not.toMatch(/hero-(desktop|mobile)\.png/);
     expect(src).not.toMatch(/sunny-beach-(real|ai-future)-hero/);
   });
+
+  it("keeps Bulgarian one-letter words with the following word in the subtitle", () => {
+    expect(messages.bg.home.heroSub).toContain("и\u00a0AI");
+    expect(messages.bg.home.heroSub).toContain("в\u00a0които");
+  });
 });
 
 describe("Home hero styles", () => {
@@ -200,6 +206,16 @@ describe("Home hero styles", () => {
     expect(css).toContain("--home-gutter: clamp(20px, 5.5vw, 112px)");
     expect(css).toContain(".home-header-row { width: 100%; padding-inline: var(--home-gutter); }");
     expect(css).toMatch(/\.home-hero-content \{ .*padding-inline: var\(--home-gutter\);/);
+  });
+
+  it("uses the shared horizontal padding token and one Hero button size contract", () => {
+    expect(css).toContain("--btn-pad-x: 28px");
+    expect(css).toContain(
+      ".home-hero-button { min-height: 52px; padding-block: 0.75rem; padding-inline: var(--btn-pad-x); justify-content: center; border-radius: 6px; font-size: 0.875rem; font-weight: 600; }",
+    );
+    expect(css).toContain(
+      ".interaction-primary, .interaction-secondary { min-height: 44px; align-items: center; justify-content: center; gap: 12px; border-width: 2px; border-style: solid; border-radius: 6px; padding-block: 16px; padding-inline: var(--btn-pad-x); font-weight: 600; }",
+    );
   });
 });
 

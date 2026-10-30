@@ -93,7 +93,7 @@ export function AiWorldsView() {
 
   const tab = (active: boolean) =>
     cn(
-      "interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast)",
+      "interaction-control interaction-text-button min-h-11 border-b-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast)",
       active ? "border-gold text-foreground" : "border-transparent text-muted-foreground",
     );
 
