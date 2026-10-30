@@ -1,4 +1,5 @@
-import { ArrowRight, Camera, MapPin } from "lucide-react";
+import { preload } from "react-dom";
+import { ArrowRight } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
 import { getAiWork, localizeAiWork } from "@/content/ai-works";
@@ -9,13 +10,44 @@ import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
-const heroPhoto = "/hero/sunny-beach-real-hero.webp";
-const heroAi = "/hero/sunny-beach-ai-future-hero-v2.webp";
+/** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
+const HERO_IMAGES = {
+  desktop: {
+    avif: "/hero/chefo-hero-desktop-1280.avif 1280w, /hero/chefo-hero-desktop-1672.avif 1672w",
+    webp: "/hero/chefo-hero-desktop-1280.webp 1280w, /hero/chefo-hero-desktop-1672.webp 1672w",
+  },
+  mobile: {
+    avif: "/hero/chefo-hero-mobile-640.avif 640w, /hero/chefo-hero-mobile-941.avif 941w",
+    webp: "/hero/chefo-hero-mobile-640.webp 640w, /hero/chefo-hero-mobile-941.webp 941w",
+  },
+} as const;
+const HERO_DESKTOP = "(min-width: 900px)";
 
 export const homeHead = (locale: Locale) => {
   const m = getMessages(locale).home;
   return pageHead(locale, "/", m.metaTitle, m.metaDesc);
 };
+
+/**
+ * React does not preload an <img> inside <picture>, so the hero (the LCP image) would queue
+ * behind the page's other image preloads. A high-priority preload per breakpoint is flushed
+ * first. AVIF only: browsers without it skip the hint and take the WebP source.
+ */
+function preloadHeroImage() {
+  for (const [media, srcSet] of [
+    [HERO_DESKTOP, HERO_IMAGES.desktop.avif],
+    ["(max-width: 899px)", HERO_IMAGES.mobile.avif],
+  ] as const) {
+    preload(srcSet.split(", ").at(-1)!.split(" ")[0]!, {
+      as: "image",
+      type: "image/avif",
+      media,
+      imageSrcSet: srcSet,
+      imageSizes: "100vw",
+      fetchPriority: "high",
+    });
+  }
+}
 
 const FEATURED_ALBUM_SLUGS = ["nessebar", "sofia", "sunny-beach"] as const;
 
@@ -62,62 +94,7 @@ export function HomeView() {
 
   return (
     <>
-      <section data-header-theme="dark" className="relative isolate bg-navy text-navy-foreground">
-        <div
-          data-hero-copy-region
-          className="relative z-20 px-5 pb-10 pt-12 md:pointer-events-none md:absolute md:inset-x-0 md:bottom-32 md:px-12 md:pb-0 md:pt-0 md:text-center"
-        >
-          <div data-hero-copy className="home-hero-copy">
-            <p data-hero-eyebrow className="home-hero-eyebrow eyebrow relative text-gold">
-              <span aria-hidden="true" data-hero-scrim className="home-hero-eyebrow-scrim" />
-              {m.eyebrow}
-            </p>
-            <h1 data-hero-heading className="home-hero-title relative mt-4">
-              <span className="home-hero-phrase">
-                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
-                {m.h1a}
-              </span>
-              <em className="home-hero-phrase text-gold">
-                <span aria-hidden="true" data-hero-scrim className="home-hero-phrase-scrim" />
-                {m.h1b}
-              </em>
-            </h1>
-          </div>
-        </div>
-        <span
-          aria-hidden="true"
-          data-hero-separator
-          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 hidden w-px -translate-x-1/2 bg-gold/70 md:block"
-        />
-        <div className="grid md:grid-cols-2">
-          <HeroHalf
-            img={heroPhoto}
-            alt={m.heroPhotoAlt}
-            badge={
-              <>
-                <MapPin className="size-3.5 text-gold" /> {m.heroPhotoBadge}
-              </>
-            }
-            to="/photography"
-            cta={m.ctaPhotos}
-            side="real"
-          />
-          <span
-            aria-hidden="true"
-            data-hero-mobile-separator
-            className="h-px bg-gold/70 md:hidden"
-          />
-          <HeroHalf
-            img={heroAi}
-            alt={m.heroAiAlt}
-            badge={<>{m.heroAiBadge}</>}
-            to="/ai-worlds"
-            cta={m.ctaAi}
-            align="end"
-            side="future"
-          />
-        </div>
-      </section>
+      <HomeHero />
 
       <Surface tone="light" id="featured-albums" className="container-page section-y">
         <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
@@ -219,73 +196,69 @@ export function HomeView() {
   );
 }
 
-/** Four-point spark for the Gold Glow CTA; taller than wide so the 45° hover turn reads as a twinkle. */
-function Spark(props: React.SVGProps<SVGSVGElement>) {
+/**
+ * Full-viewport Home hero: the owner's portrait between real places and imagined worlds, with
+ * live copy on the left (below the camera on phones). It sits under the transparent header.
+ */
+function HomeHero() {
+  const { t } = useT();
+  const m = t.home;
+  preloadHeroImage();
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12 1.5Q13.6 10.4 20 12Q13.6 13.6 12 22.5Q10.4 13.6 4 12Q10.4 10.4 12 1.5Z" />
-    </svg>
-  );
-}
-
-function HeroHalf({
-  img,
-  alt,
-  badge,
-  to,
-  cta,
-  align,
-  side,
-}: {
-  img: string;
-  alt: string;
-  badge: React.ReactNode;
-  to: "/photography" | "/ai-worlds";
-  cta: string;
-  align?: "end";
-  side: "real" | "future";
-}) {
-  const Icon = side === "real" ? Camera : Spark;
-  return (
-    <div data-hero-panel={side} className="relative min-h-[62vh] overflow-hidden md:min-h-[88vh]">
-      <img
-        src={img}
-        alt={alt}
-        width={936}
-        height={1053}
-        loading="eager"
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover object-top"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/25 to-navy/5 md:from-navy/85 md:via-navy/30"
-      />
-      <div
-        className={`relative flex h-full min-h-[62vh] flex-col justify-between p-6 md:min-h-[88vh] md:p-10 ${align === "end" ? "md:items-end" : ""}`}
-      >
-        <span className="eyebrow inline-flex min-h-8 w-fit items-center gap-2 rounded-sm bg-navy/90 px-3 py-1.5 text-navy-foreground shadow-soft">
-          {badge}
-        </span>
-        {/* Cream Print (photography) / Gold Glow (AI); styles live in styles.css. */}
-        <LocaleLink
-          to={to}
-          className={`interaction-special hero-cta hero-cta--${side === "real" ? "print" : "glow"} w-fit`}
-        >
-          <span className="hero-cta-face">
-            {cta}
-            <Icon aria-hidden="true" className="hero-cta-icon" />
-          </span>
-          {side === "future" && (
-            // Same label in navy, revealed together with the gold sweep so each glyph keeps its contrast.
-            <span aria-hidden="true" className="hero-cta-face hero-cta-overlay">
-              {cta}
-              <Icon aria-hidden="true" className="hero-cta-icon" />
-            </span>
-          )}
-        </LocaleLink>
+    <section data-header-theme="dark" className="home-hero surface-dark">
+      {/* While this strip is in view the Home header stays transparent (see SiteHeader). */}
+      <div aria-hidden="true" data-header-sentinel className="home-hero-sentinel" />
+      <picture>
+        <source
+          media={HERO_DESKTOP}
+          type="image/avif"
+          srcSet={HERO_IMAGES.desktop.avif}
+          sizes="100vw"
+          width={1672}
+          height={941}
+        />
+        <source
+          media={HERO_DESKTOP}
+          type="image/webp"
+          srcSet={HERO_IMAGES.desktop.webp}
+          sizes="100vw"
+          width={1672}
+          height={941}
+        />
+        <source type="image/avif" srcSet={HERO_IMAGES.mobile.avif} sizes="100vw" />
+        <img
+          src="/hero/chefo-hero-mobile-941.webp"
+          srcSet={HERO_IMAGES.mobile.webp}
+          sizes="100vw"
+          alt=""
+          width={941}
+          height={1672}
+          fetchPriority="high"
+          decoding="async"
+          className="home-hero-image"
+        />
+      </picture>
+      <div aria-hidden="true" className="home-hero-shade" />
+      <div className="home-hero-content container-page">
+        <div className="home-hero-copy">
+          <p className="eyebrow home-hero-eyebrow">{m.eyebrow}</p>
+          <h1 className="home-hero-title">
+            {m.h1a}
+            <br />
+            <em>{m.h1b}</em>
+          </h1>
+          <p className="home-hero-sub">{m.heroSub}</p>
+          <div className="home-hero-actions">
+            <LocaleLink to="/photography" className={`home-hero-button ${btnPrimary}`}>
+              {m.ctaPhotos}
+              <ArrowRight aria-hidden="true" className="interaction-arrow size-4" />
+            </LocaleLink>
+            <LocaleLink to="/ai-worlds" className={`home-hero-button ${btnOutline}`}>
+              {m.ctaAi}
+            </LocaleLink>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

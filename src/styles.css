@@ -253,208 +253,184 @@
   }
 }
 
-/* Stage F · Wave 2: photographic frames outside published album galleries. */
-/* Home Hero: localized copy treatment; the approved photography remains untouched. */
-.home-hero-copy {
+/*
+ * Home hero: the owner's portrait between real places and imagined worlds, under the transparent
+ * Home header. Phones: the vertical image on top and the copy below the camera. From 900px: the
+ * wide image covers the hero and the copy sits on the left; the gradients darken only the copy
+ * side, the header strip and the bottom edge, never the face.
+ */
+.home-hero {
+  --home-hero-h: clamp(640px, 100svh, 1000px);
+  --home-hero-scrim: 0.6;
   position: relative;
   isolation: isolate;
-  width: fit-content;
-  max-width: calc(100vw - 2.5rem);
-  margin-inline: auto;
+  /* Slides under the sticky 4rem header so the picture starts at the very top. */
+  margin-top: -4rem;
+  overflow: hidden;
 }
-.home-hero-title {
-  isolation: isolate;
-  font-size: 3rem;
-  line-height: 1.02;
-  text-wrap: balance;
+.home-hero-sentinel {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1.5rem;
+  pointer-events: none;
+}
+.home-hero-image {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: -2;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.home-hero-shade {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: -1;
+  aspect-ratio: 941 / 1672;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      oklch(0.21 0.045 262 / 0.8),
+      oklch(0.21 0.045 262 / 0.55) 5%,
+      transparent 10%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 60%,
+      oklch(0.21 0.045 262 / 0.72) 70%,
+      oklch(0.21 0.045 262 / 0.94) 80%,
+      var(--navy) 92%
+    );
+}
+.home-hero-content {
+  /* The copy starts just below the camera (about 71% of the vertical image). */
+  padding-top: 126vw;
+  padding-bottom: 3.5rem;
 }
 .home-hero-eyebrow {
-  z-index: 1;
-  width: fit-content;
-  margin-inline: auto;
-  isolation: isolate;
+  color: var(--gold);
 }
-.home-hero-eyebrow-scrim,
-.home-hero-phrase-scrim {
-  display: none;
+.home-hero-title {
+  margin-top: 1rem;
+  font-size: clamp(38px, 10.8vw, 46px);
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--navy-foreground);
 }
-@media (min-width: 48rem) {
-  .home-hero-copy {
-    max-width: calc(100vw - 6rem);
-    padding: 0.75rem 1.25rem;
+.home-hero-title em {
+  color: var(--gold);
+}
+.home-hero-sub {
+  margin-top: 1.25rem;
+  max-width: 36rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: color-mix(in oklch, var(--navy-foreground) 90%, transparent);
+}
+.home-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.home-hero-button {
+  min-height: 52px;
+  justify-content: center;
+}
+.home-hero .home-hero-button:focus-visible {
+  outline: 2px solid var(--navy-foreground);
+  outline-offset: 2px;
+}
+@media (min-width: 900px) {
+  .home-hero {
+    height: var(--home-hero-h);
   }
-  .home-hero-eyebrow-scrim,
-  .home-hero-phrase-scrim {
+  .home-hero-image {
+    height: 100%;
+    object-fit: cover;
+    object-position: 56% 50%;
+  }
+  .home-hero-shade {
+    inset: 0;
+    aspect-ratio: auto;
+    background:
+      linear-gradient(
+        to bottom,
+        oklch(0.21 0.045 262 / 0.8),
+        oklch(0.21 0.045 262 / 0.55) 7%,
+        transparent 13%
+      ),
+      linear-gradient(to top, var(--navy), transparent 14%),
+      linear-gradient(
+        to right,
+        oklch(0.21 0.045 262 / 0.7),
+        oklch(0.21 0.045 262 / 0.5) 30%,
+        transparent 62%
+      );
+  }
+  .home-hero-content {
+    padding-top: calc(var(--home-hero-h) * 0.27);
+    padding-bottom: 0;
+  }
+  /* Narrow enough to stay clear of the face at every width from 900px. */
+  .home-hero-copy {
+    position: relative;
+    max-width: min(40rem, 40vw);
+  }
+  /* Soft navy panel behind the copy only; it fades out before the face. */
+  .home-hero-copy::before {
+    content: "";
     position: absolute;
     z-index: -1;
-    display: block;
-    border-radius: 999px;
-    background: color-mix(in oklch, var(--navy) 86%, transparent);
-    filter: blur(0.5rem);
+    inset: -3rem -3.5rem;
     pointer-events: none;
+    background: linear-gradient(
+      to right,
+      transparent,
+      oklch(0.21 0.045 262 / var(--home-hero-scrim)) 3.5rem,
+      oklch(0.21 0.045 262 / var(--home-hero-scrim)) calc(100% - 3.5rem),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 3rem,
+      #000 calc(100% - 3rem),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 3rem,
+      #000 calc(100% - 3rem),
+      transparent
+    );
   }
-  .home-hero-eyebrow-scrim {
-    inset: -0.2rem -0.5rem;
-    filter: blur(0.35rem);
-  }
-  .home-hero-phrase {
-    position: relative;
-    display: inline-block;
-  }
-  .home-hero-phrase + .home-hero-phrase {
-    margin-inline-start: 0.14em;
-  }
-  .home-hero-phrase-scrim {
-    inset: -0.08em -0.16em;
+  .home-hero-eyebrow {
+    font-size: 0.8125rem;
   }
   .home-hero-title {
-    font-size: clamp(4rem, 8vw, 4.5rem);
+    font-size: clamp(44px, 5vw, 84px);
   }
-}
-@media (min-width: 64rem) {
-  .home-hero-title {
-    font-size: clamp(4.5rem, 5.56vw, 6rem);
+  .home-hero-sub {
+    font-size: clamp(1.125rem, 0.75rem + 0.6vw, 1.25rem);
   }
-}
-
-/* Home Hero CTAs: Cream Print (photography) and Gold Glow (AI worlds). Decorative motion runs
-   only on fine hover pointers and without reduced motion; geometry never changes. */
-.hero-cta {
-  --hero-cta-focus: color-mix(in oklch, var(--gold) 45%, var(--navy-foreground));
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  min-height: 2.75rem;
-  overflow: hidden;
-  border: 1px solid var(--gold);
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-  -webkit-tap-highlight-color: transparent;
-}
-.hero-cta:focus-visible {
-  outline: 2px solid var(--hero-cta-focus);
-  outline-offset: 3px;
-}
-/* Both label layers share this box model, so their glyphs land on the same pixels. */
-.hero-cta-face {
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-}
-.hero-cta-icon {
-  width: 1rem;
-  height: 1rem;
-  flex: none;
-  transform-origin: 50% 50%;
-}
-
-.hero-cta--print {
-  background-color: var(--navy-foreground);
-  color: var(--navy);
-  box-shadow:
-    0 1px 2px var(--photo-frame-shadow-near),
-    0 10px 22px -14px var(--photo-frame-shadow-far);
-  transition:
-    transform 220ms ease-out,
-    background-color 220ms ease-out,
-    box-shadow 220ms ease-out;
-}
-.hero-cta--glow {
-  --hero-cta-sweep: 350ms cubic-bezier(0.45, 0, 0.25, 1);
-  background-color: color-mix(in oklch, var(--navy) 80%, transparent);
-  color: var(--gold);
-  box-shadow: var(--shadow-soft);
-  transition:
-    transform 200ms ease-out,
-    box-shadow var(--hero-cta-sweep);
-}
-/* The sweep and the navy label cover the same button box and reveal with one clip-path transition. */
-.hero-cta--glow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-color: var(--gold);
-  pointer-events: none;
-}
-.hero-cta-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  color: var(--navy);
-  pointer-events: none;
-  user-select: none;
-}
-.hero-cta--glow::before,
-.hero-cta-overlay {
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path var(--hero-cta-sweep);
-}
-
-@keyframes hero-cta-spark-pulse {
-  0%,
-  42% {
-    transform: scale(1);
+  .home-hero-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px;
   }
-  58% {
-    transform: scale(1.12);
-  }
-  78%,
-  100% {
-    transform: scale(1);
+  .home-hero-button {
+    min-height: 48px;
   }
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .hero-cta--print:hover {
-    background-color: color-mix(in oklch, var(--tint-sand) 80%, var(--gold));
-    box-shadow:
-      0 0 0 3px color-mix(in oklch, var(--gold) 28%, transparent),
-      0 0 18px 2px color-mix(in oklch, var(--gold) 35%, transparent),
-      0 10px 22px -14px var(--photo-frame-shadow-far);
-  }
-  .hero-cta--glow:hover {
-    box-shadow:
-      0 0 0 1px color-mix(in oklch, var(--gold) 40%, transparent),
-      0 0 22px 2px color-mix(in oklch, var(--gold) 45%, transparent);
-  }
-  .hero-cta--glow:hover::before,
-  .hero-cta--glow:hover .hero-cta-overlay {
-    clip-path: inset(0 0 0 0);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-cta--print:hover {
-      transform: translateY(-2px);
-    }
-    .hero-cta--glow:hover .hero-cta-icon {
-      animation: hero-cta-spark-pulse var(--hero-cta-sweep) both;
-    }
-  }
-}
-
-/* Pressed: sand / gold fill appears at once; the scale is motion and respects the preference. */
-.hero-cta--print:active {
-  background-color: color-mix(in oklch, var(--tint-sand) 80%, var(--gold));
-}
-@media (hover: none), (pointer: coarse) {
-  .hero-cta--glow:active::before,
-  .hero-cta--glow:active .hero-cta-overlay {
-    clip-path: inset(0 0 0 0);
-    transition: none;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero-cta:active {
-    transform: scale(0.98);
-  }
-}
-
+/* Stage F · Wave 2: photographic frames outside published album galleries. */
 .photo-frame-print {
   --photo-frame-mat-width: 3px;
   --photo-frame-base-shadow: 0 14px 28px calc(var(--photo-frame-mat-width) - 14px)

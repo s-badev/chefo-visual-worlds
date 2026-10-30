@@ -1,6 +1,6 @@
 // All visitor-facing UI strings. Bulgarian defines the shape; English must match it.
 const bg = {
-  nav: { photography: "Фотографии", ai: "AI светове", about: "За мен", main: "Основна навигация", mobile: "Мобилна навигация", open: "Отвори менюто", close: "Затвори менюто", language: "Език", skip: "Към съдържанието" },
+  nav: { photography: "Фотографии", ai: "AI светове", about: "За мен", main: "Основна навигация", mobile: "Мобилна навигация", open: "Отвори менюто", close: "Затвори менюто", language: "Език", skip: "Към съдържанието", home: "CHEFO — Visual Worlds, начало" },
   footer: { tagline: "Моят свят в кадри и въображение.", rights: "Всички права запазени.", email: "Имейл" },
   common: { all: "Всички", clearFilters: "Изчисти филтрите", backToTop: "Към началото на страницата", aiBadge: "AI генерация", copyPrompt: "Копирай промпта", copyPromptFor: (t: string) => `Копирай промпта за „${t}“`, copied: "Промптът е копиран", copiedShort: "Копирано", copyFailed: "Копирането не успя. Отворете творбата и маркирайте промпта ръчно.", openFullscreen: (t: string) => `Отвори „${t}“ в цял екран` },
   lightbox: { prev: "Предишна снимка", next: "Следваща снимка", close: "Затвори", zoomIn: "Увеличи изображението", zoomOut: "Побери изображението в екрана" },
@@ -9,13 +9,10 @@ const bg = {
   home: {
     metaTitle: "CHEFO — VISUAL WORLDS · Реални места, безкрайни светове",
     metaDesc: "Лична колекция от мобилна фотография и AI визии: Несебър, София, Пловдив и измислени светове.",
-    eyebrow: "Мобилна фотография × AI визии",
-    h1a: "Реални места, ", h1b: "безкрайни светове.",
-    heroPhotoAlt: "Залез над морето с вълни и осветения Слънчев бряг",
-    heroPhotoBadge: "СЛЪНЧЕВ БРЯГ",
-    heroAiAlt: "Футуристична AI визия на крайбрежието на Слънчев бряг с осветени кули, мостове и яхти",
-    heroAiBadge: "AI ГЕНЕРИРАНО",
-    ctaPhotos: "Разгледай фотографиите", ctaAi: "Виж AI световете",
+    eyebrow: "Между кадъра и въображението",
+    h1a: "Реални места,", h1b: "безкрайни светове.",
+    heroSub: "Фотографии от моите пътувания и AI светове, в които се озовавам там, където обективът не стига.",
+    ctaPhotos: "Разгледай фотографиите", ctaAi: "Влез в AI световете",
     photoEyebrow: "Фотография", photoTitle: "През моя обектив", photoText: "Места, светлина и моменти, които съм избрал да запазя.", allAlbums: (n: number) => `Разгледай всички ${n} албума`,
     aiEyebrow: "AI светове", aiTitle: "AI светове", aiText: "Понякога една снимка е само началото.", allAi: "Виж всички AI светове",
     aboutTitle: "За мен",
@@ -118,7 +115,7 @@ const bg = {
 export type Messages = typeof bg;
 
 const en: Messages = {
-  nav: { photography: "Photography", ai: "AI Worlds", about: "About", main: "Main navigation", mobile: "Mobile navigation", open: "Open menu", close: "Close menu", language: "Language", skip: "Skip to content" },
+  nav: { photography: "Photography", ai: "AI Worlds", about: "About", main: "Main navigation", mobile: "Mobile navigation", open: "Open menu", close: "Close menu", language: "Language", skip: "Skip to content", home: "CHEFO — Visual Worlds, home" },
   footer: { tagline: "My world in frames and imagination.", rights: "All rights reserved.", email: "Email" },
   common: { all: "All", clearFilters: "Clear filters", backToTop: "Back to top", aiBadge: "AI generated", copyPrompt: "Copy prompt", copyPromptFor: (t) => `Copy the prompt for “${t}”`, copied: "Prompt copied", copiedShort: "Copied", copyFailed: "Copying failed. Open the artwork and select the prompt manually.", openFullscreen: (t) => `Open “${t}” in full screen` },
   lightbox: { prev: "Previous photo", next: "Next photo", close: "Close", zoomIn: "Zoom image", zoomOut: "Fit image to screen" },
@@ -127,13 +124,10 @@ const en: Messages = {
   home: {
     metaTitle: "CHEFO — VISUAL WORLDS · Real places, endless worlds",
     metaDesc: "A personal collection of mobile photography and AI visions: Nesebar, Sofia, Plovdiv and imagined worlds.",
-    eyebrow: "Mobile photography × AI visions",
-    h1a: "Real places, ", h1b: "endless worlds.",
-    heroPhotoAlt: "Sunset over the sea with waves and the illuminated Sunny Beach skyline",
-    heroPhotoBadge: "SUNNY BEACH",
-    heroAiAlt: "Futuristic AI vision of the Sunny Beach coastline with illuminated towers, bridges and yachts",
-    heroAiBadge: "AI GENERATED",
-    ctaPhotos: "Explore the photography", ctaAi: "See the AI worlds",
+    eyebrow: "Between the frame and the imagination",
+    h1a: "Real places,", h1b: "endless worlds.",
+    heroSub: "Photos from my travels and AI worlds, where I end up in places the lens cannot reach.",
+    ctaPhotos: "Browse the photos", ctaAi: "Enter the AI worlds",
     photoEyebrow: "Photography", photoTitle: "Through My Lens", photoText: "Places, light and moments I chose to keep.", allAlbums: (n) => `Explore All ${n} Albums`,
     aiEyebrow: "AI Worlds", aiTitle: "AI Worlds", aiText: "Sometimes a photo is only the beginning.", allAi: "See all AI worlds",
     aboutTitle: "About me",

@@ -1,25 +1,22 @@
-// Guards the approved homepage Hero and the header that sits on top of it.
-// Checks meaning (copy, images, links, frozen tokens) rather than full markup snapshots.
-import { readdirSync, readFileSync } from "node:fs";
+// Guards the homepage Hero and the header that sits on top of it.
+// Checks meaning (copy, images, links, header states) rather than full markup snapshots.
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getPublishedAlbum } from "@/content/albums";
-import { getPhoto } from "@/content/photos";
 import { SiteHeader } from "@/components/site";
 import { messages } from "@/i18n/messages";
 import { HomeView } from "@/views/home";
 
-const heroPhoto = "/hero/sunny-beach-real-hero.webp";
-const heroAi = "/hero/sunny-beach-ai-future-hero-v2.webp";
-const heroPhotoSource = "/photos/sunny-beach/coastal-sunset-over-the-lit-town.webp";
-
 let activeLocale: "bg" | "en" = "bg";
+let activePath: string | null = null;
 
 vi.mock("@tanstack/react-router", () => ({
   useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
-    select({ location: { pathname: activeLocale === "en" ? "/en" : "/", searchStr: "" } }),
+    select({
+      location: { pathname: activePath ?? (activeLocale === "en" ? "/en" : "/"), searchStr: "" },
+    }),
 }));
 
 vi.mock("@/i18n", async (importOriginal) => {
@@ -33,15 +30,18 @@ vi.mock("@/i18n/link", () => ({
     slug,
     children,
     className,
+    "aria-label": ariaLabel,
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
     className?: string;
+    "aria-label"?: string;
   }) => (
     <a
       href={`${activeLocale === "en" ? "/en" : ""}${slug ? to.replace("$slug", slug) : to}`}
       className={className}
+      aria-label={ariaLabel}
     >
       {children}
     </a>
@@ -53,183 +53,147 @@ vi.mock("@/components/portrait", () => ({ PortraitSwitch: () => <div /> }));
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   activeLocale = "bg";
+  activePath = null;
 });
 
-const FROZEN_COPY = {
+const COPY = {
   bg: {
-    eyebrow: "Мобилна фотография × AI визии",
-    h1a: "Реални места, ",
+    eyebrow: "Между кадъра и въображението",
+    h1a: "Реални места,",
     h1b: "безкрайни светове.",
-    heroPhotoAlt: "Залез над морето с вълни и осветения Слънчев бряг",
-    heroPhotoBadge: "СЛЪНЧЕВ БРЯГ",
-    heroAiAlt:
-      "Футуристична AI визия на крайбрежието на Слънчев бряг с осветени кули, мостове и яхти",
+    sub: "Фотографии от моите пътувания и AI светове, в които се озовавам там, където обективът не стига.",
     ctaPhotos: "Разгледай фотографиите",
-    ctaAi: "Виж AI световете",
-    heroAiBadge: "AI ГЕНЕРИРАНО",
+    ctaAi: "Влез в AI световете",
+    home: "CHEFO — Visual Worlds, начало",
   },
   en: {
-    eyebrow: "Mobile photography × AI visions",
-    h1a: "Real places, ",
+    eyebrow: "Between the frame and the imagination",
+    h1a: "Real places,",
     h1b: "endless worlds.",
-    heroPhotoAlt: "Sunset over the sea with waves and the illuminated Sunny Beach skyline",
-    heroPhotoBadge: "SUNNY BEACH",
-    heroAiAlt:
-      "Futuristic AI vision of the Sunny Beach coastline with illuminated towers, bridges and yachts",
-    ctaPhotos: "Explore the photography",
-    ctaAi: "See the AI worlds",
-    heroAiBadge: "AI GENERATED",
+    sub: "Photos from my travels and AI worlds, where I end up in places the lens cannot reach.",
+    ctaPhotos: "Browse the photos",
+    ctaAi: "Enter the AI worlds",
+    home: "CHEFO — Visual Worlds, home",
   },
 } as const;
 
-describe("homepage Hero (approved, frozen)", () => {
-  it.each(["bg", "en"] as const)("keeps its copy, images and CTAs in %s", (locale) => {
-    activeLocale = locale;
-    const copy = FROZEN_COPY[locale];
-    const m = messages[locale].home;
-    expect({
-      eyebrow: m.eyebrow,
-      h1a: m.h1a,
-      h1b: m.h1b,
-      heroPhotoAlt: m.heroPhotoAlt,
-      heroPhotoBadge: m.heroPhotoBadge,
-      heroAiAlt: m.heroAiAlt,
-      ctaPhotos: m.ctaPhotos,
-      ctaAi: m.ctaAi,
-      heroAiBadge: m.heroAiBadge,
-    }).toEqual(copy);
+/** Minimal IntersectionObserver double: tests decide when the sentinel enters or leaves. */
+class SentinelObserver {
+  static last: SentinelObserver | null = null;
+  target: Element | null = null;
+  constructor(readonly callback: IntersectionObserverCallback) {
+    SentinelObserver.last = this;
+  }
+  observe(target: Element) {
+    this.target = target;
+  }
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+  fire(isIntersecting: boolean) {
+    const entry = { isIntersecting, target: this.target } as IntersectionObserverEntry;
+    this.callback([entry], this as unknown as IntersectionObserver);
+  }
+}
 
+describe("homepage Hero", () => {
+  it.each(["bg", "en"] as const)(
+    "renders one H1 with the localized copy and CTAs in %s",
+    (locale) => {
+      activeLocale = locale;
+      const copy = COPY[locale];
+      const m = messages[locale].home;
+      expect([m.eyebrow, m.h1a, m.h1b, m.heroSub, m.ctaPhotos, m.ctaAi]).toEqual([
+        copy.eyebrow,
+        copy.h1a,
+        copy.h1b,
+        copy.sub,
+        copy.ctaPhotos,
+        copy.ctaAi,
+      ]);
+
+      const { container } = render(<HomeView />);
+      expect(container.querySelectorAll("h1")).toHaveLength(1);
+      const hero = container.querySelector<HTMLElement>("section.home-hero")!;
+      expect(hero).toHaveAttribute("data-header-theme", "dark");
+      const h1 = within(hero).getByRole("heading", { level: 1 });
+      expect(h1).toHaveTextContent(`${copy.h1a}${copy.h1b}`);
+      expect(h1.querySelector("br")).not.toBeNull();
+      expect(h1.querySelector("em")).toHaveTextContent(copy.h1b);
+      expect(within(hero).getByText(copy.eyebrow)).toHaveClass("eyebrow");
+      expect(within(hero).getByText(copy.sub)).toBeInTheDocument();
+
+      const prefix = locale === "en" ? "/en" : "";
+      const ctas = within(hero).getAllByRole("link");
+      expect(ctas.map((a) => a.getAttribute("href"))).toEqual([
+        `${prefix}/photography`,
+        `${prefix}/ai-worlds`,
+      ]);
+      expect(ctas[0]).toHaveAccessibleName(copy.ctaPhotos);
+      expect(ctas[1]).toHaveAccessibleName(copy.ctaAi);
+      expect(ctas[0]!.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+      expect(hero.textContent).not.toMatch(/Слънчев бряг|Sunny Beach|2126/);
+    },
+  );
+
+  it("serves the owner's portrait as the high-priority LCP image with a desktop source", () => {
     const { container } = render(<HomeView />);
-    const hero = container.querySelector("section")!;
-    expect(hero).toHaveAttribute("data-header-theme", "dark");
-
-    const h1 = within(hero).getByRole("heading", { level: 1 });
-    expect(within(hero).getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(h1).toHaveTextContent(`${copy.h1a}${copy.h1b}`);
-    expect(h1.querySelector("em")).toHaveTextContent(copy.h1b);
-    expect(within(hero).getByText(copy.eyebrow)).toBeInTheDocument();
-    expect(hero.querySelector("[data-hero-copy]")).not.toBeNull();
-    expect(hero.querySelectorAll("[data-hero-scrim]")).toHaveLength(3);
-    for (const scrim of hero.querySelectorAll("[data-hero-scrim]")) {
-      expect(scrim).toHaveAttribute("aria-hidden", "true");
-    }
-
-    const images = Array.from(hero.querySelectorAll("img"));
-    expect(images).toHaveLength(2);
-    expect(images.map((img) => [img.getAttribute("src"), img.getAttribute("alt")])).toEqual([
-      [heroPhoto, copy.heroPhotoAlt],
-      [heroAi, copy.heroAiAlt],
-    ]);
-    expect(getPhoto("coastal-sunset-over-the-lit-town")?.image).toBe(heroPhotoSource);
-    expect(
-      getPublishedAlbum("sunny-beach")?.photos.some(
-        ({ photoSlug }) => photoSlug === "coastal-sunset-over-the-lit-town",
-      ),
-    ).toBe(true);
-    for (const image of images) {
-      expect(image).toHaveAttribute("width", "936");
-      expect(image).toHaveAttribute("height", "1053");
-      expect(image).toHaveAttribute("loading", "eager");
-      expect(image).toHaveAttribute("fetchpriority", "high");
-      expect(image.className).toContain("object-cover");
-      expect(image.className).toContain("object-top");
-    }
-    expect(
-      images.map((image) => image.closest("[data-hero-panel]")?.getAttribute("data-hero-panel")),
-    ).toEqual(["real", "future"]);
-
-    expect(within(hero).getByText(copy.heroPhotoBadge)).toBeInTheDocument();
-    expect(within(hero).getByText(copy.heroAiBadge)).toBeInTheDocument();
-    expect(hero.querySelector("[data-hero-separator]")).toHaveAttribute("aria-hidden", "true");
-    expect(hero.querySelector("[data-hero-mobile-separator]")).toHaveAttribute(
-      "aria-hidden",
-      "true",
+    const hero = container.querySelector<HTMLElement>("section.home-hero")!;
+    const picture = hero.querySelector("picture")!;
+    const desktop = [...picture.querySelectorAll("source")].filter(
+      (s) => s.getAttribute("media") === "(min-width: 900px)",
     );
-    expect(hero.textContent).not.toMatch(/\b(?:2025|2026|2126)\b/);
-    expect(images.map((image) => image.getAttribute("src"))).not.toContain(
-      "/src/assets/ai-knight.png",
-    );
-
-    const prefix = locale === "en" ? "/en" : "";
-    // Two semantic links, named by the localized label only (the Gold Glow overlay is decorative).
-    expect(hero.querySelectorAll("a")).toHaveLength(2);
-    const ctas = within(hero).getAllByRole("link");
-    expect(ctas).toHaveLength(2);
-    expect(ctas.map((a) => a.getAttribute("href"))).toEqual([
-      `${prefix}/photography`,
-      `${prefix}/ai-worlds`,
-    ]);
-    expect(ctas[0]).toHaveAccessibleName(copy.ctaPhotos);
-    expect(ctas[1]).toHaveAccessibleName(copy.ctaAi);
-    expect(within(hero).getByRole("link", { name: copy.ctaPhotos })).toBe(ctas[0]);
-    expect(within(hero).getByRole("link", { name: copy.ctaAi })).toBe(ctas[1]);
-    expect(
-      ctas.map((a) => a.closest("[data-hero-panel]")?.getAttribute("data-hero-panel")),
-    ).toEqual(["real", "future"]);
-    expect(ctas[0]).toHaveClass("hero-cta", "hero-cta--print");
-    expect(ctas[1]).toHaveClass("hero-cta", "hero-cta--glow");
-    for (const [cta, label, overlays] of [
-      [ctas[0]!, copy.ctaPhotos, 0],
-      [ctas[1]!, copy.ctaAi, 1],
-    ] as const) {
-      const faces = Array.from(cta.querySelectorAll(".hero-cta-face"));
-      expect(faces).toHaveLength(1 + overlays);
-      expect(faces.filter((f) => !f.closest("[aria-hidden='true']"))).toHaveLength(1);
-      for (const face of faces) expect(face.textContent).toBe(label);
-      const overlay = cta.querySelectorAll(".hero-cta-overlay");
-      expect(overlay).toHaveLength(overlays);
-      for (const o of overlay) expect(o).toHaveAttribute("aria-hidden", "true");
-      const icons = cta.querySelectorAll("svg");
-      expect(icons).toHaveLength(faces.length);
-      for (const icon of icons) expect(icon).toHaveAttribute("aria-hidden", "true");
+    expect(desktop.map((s) => s.getAttribute("type"))).toEqual(["image/avif", "image/webp"]);
+    for (const source of desktop) {
+      expect(source.getAttribute("srcset")).toMatch(
+        /chefo-hero-desktop-1280\.\w+ 1280w, .*chefo-hero-desktop-1672\.\w+ 1672w/,
+      );
     }
-    expect(hero.querySelectorAll("[data-hero-panel] > a")).toHaveLength(0);
+    const mobileAvif = [...picture.querySelectorAll("source")].find(
+      (s) => !s.hasAttribute("media"),
+    )!;
+    expect(mobileAvif).toHaveAttribute("type", "image/avif");
+
+    const img = picture.querySelector("img")!;
+    expect(hero.querySelectorAll("img")).toHaveLength(1);
+    expect(img).toHaveAttribute("src", "/hero/chefo-hero-mobile-941.webp");
+    expect(img).toHaveAttribute("alt", "");
+    expect(img).toHaveAttribute("fetchpriority", "high");
+    expect(img).not.toHaveAttribute("loading", "lazy");
+    expect(img).toHaveAttribute("width", "941");
+    expect(img).toHaveAttribute("height", "1672");
+    expect(hero.querySelector("[data-header-sentinel]")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("only ships optimized derivatives of the hero images", () => {
+    const src = readFileSync(path.resolve(__dirname, "../views/home.tsx"), "utf8");
+    expect(src).not.toMatch(/hero-(desktop|mobile)\.png/);
+    expect(src).not.toMatch(/sunny-beach-(real|ai-future)-hero/);
   });
 });
 
-describe("Hero CTA styles (Cream Print / Gold Glow)", () => {
+describe("Home hero styles", () => {
   const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
+  const hero = css.slice(css.indexOf("/* * Home hero:"), css.indexOf(".photo-frame-print {"));
 
-  it("reveals the gold sweep and the navy label with one shared clip-path transition", () => {
-    expect(css).toContain(
-      ".hero-cta--glow::before, .hero-cta-overlay { clip-path: inset(0 100% 0 0); transition: clip-path var(--hero-cta-sweep); }",
-    );
-    expect(css).toContain(
-      ".hero-cta--glow:hover::before, .hero-cta--glow:hover .hero-cta-overlay { clip-path: inset(0 0 0 0); }",
-    );
-    expect(css).toMatch(/\.hero-cta--glow::before \{ content: ""; position: absolute; inset: 0;/);
-    expect(css).toMatch(
-      /\.hero-cta-overlay \{ position: absolute; inset: 0;[^}]*pointer-events: none;/,
+  it("switches to the wide layout at 900px and keeps the face side free of gradients", () => {
+    expect(hero).toContain("@media (min-width: 900px)");
+    expect(hero).toContain("object-position: 56% 50%");
+    // The left gradient fades out at 62% of the width, before the face.
+    expect(hero).toContain(
+      "to right, oklch(0.21 0.045 262 / 0.7), oklch(0.21 0.045 262 / 0.5) 30%, transparent 62% )",
     );
   });
 
-  it("keeps decorative motion behind hover and motion preferences", () => {
-    const hover = css.slice(css.indexOf("@media (hover: hover) and (pointer: fine) { .hero-cta"));
-    // Body of the motion block nested in the hover block (up to the next at-rule).
-    const motionOpen = "@media (prefers-reduced-motion: no-preference) {";
-    const motion = hover.slice(hover.indexOf(motionOpen) + motionOpen.length);
-    expect(motion).toMatch(/^[^@]*\.hero-cta--print:hover \{ transform: translateY\(-2px\); \}/);
-    expect(motion).toMatch(
-      /^[^@]*\.hero-cta--glow:hover \.hero-cta-icon \{ animation: hero-cta-spark-pulse var\(--hero-cta-sweep\) both; \}/,
+  it("draws a cream focus ring on the hero buttons and adds no hover or motion of its own", () => {
+    expect(hero).toContain(
+      ".home-hero .home-hero-button:focus-visible { outline: 2px solid var(--navy-foreground); outline-offset: 2px; }",
     );
-    expect(css).toContain(
-      "@keyframes hero-cta-spark-pulse { 0%, 42% { transform: scale(1); } 58% { transform: scale(1.12); } 78%, 100% { transform: scale(1); } }",
-    );
-    expect(css).toContain(
-      "@media (prefers-reduced-motion: no-preference) { .hero-cta:active { transform: scale(0.98); } }",
-    );
-    const block = css.slice(css.indexOf("/* Home Hero CTAs"), css.indexOf(".photo-frame-print {"));
-    expect(block).not.toMatch(/hero-cta--print[^}]*hero-cta-icon[^}]*transform/);
-    expect(block).not.toMatch(/hero-cta--glow[^}]*rotate/);
-  });
-
-  it("is only used by the homepage Hero", () => {
-    const src = path.resolve(__dirname, "..");
-    const users = (readdirSync(src, { recursive: true }) as string[])
-      .filter((f) => /\.tsx?$/.test(f) && !f.includes("test"))
-      .filter((f) => readFileSync(path.join(src, f), "utf8").includes("hero-cta"));
-    expect(users.map((f) => f.replaceAll("\\", "/"))).toEqual(["views/home.tsx"]);
+    expect(hero).not.toMatch(/:hover|animation|transition/);
   });
 });
 
@@ -282,9 +246,11 @@ describe("header over the Hero", () => {
   };
 
   it("uses the approved navy tone over dark sections", () => {
+    activePath = "/photography";
     const { container, cleanupMarked } = renderOver("dark");
     const header = container.querySelector("header")!;
     expect(header).toHaveAttribute("data-theme", "dark");
+    expect(header).not.toHaveAttribute("data-transparent");
     for (const cls of ["sticky", "top-0", "bg-navy", "text-navy-foreground", "border-navy-border"])
       expect(header.classList).toContain(cls);
     expect(header.querySelector(".h-16")).not.toBeNull();
@@ -294,26 +260,87 @@ describe("header over the Hero", () => {
     expect(screen.getByRole("button", { name: messages.bg.nav.open }).className).toContain(
       "lg:hidden",
     );
-    // Wordmark dash: white on the dark header, gold-ink on the light one, gold elsewhere (footer).
-    const wordmark = within(header).getByRole("link", { name: "CHEFO — VISUAL WORLDS" });
-    const dash = wordmark.querySelector("span")!;
-    expect(dash).toHaveTextContent(/^—$/);
-    expect(dash.className.split(" ").sort()).toEqual(
-      [
-        "text-gold",
-        "[[data-theme=dark]_&]:text-white",
-        "[[data-theme=light]_&]:text-gold-ink",
-      ].sort(),
-    );
     cleanupMarked();
   });
 
   it("uses the approved cream tone over light sections", async () => {
+    activePath = "/photography";
     const { container, cleanupMarked } = renderOver("light");
     await act(async () => {});
     const header = container.querySelector("header")!;
     expect(header).toHaveAttribute("data-theme", "light");
     expect(header.classList).toContain("bg-background");
     cleanupMarked();
+  });
+
+  it.each(["bg", "en"] as const)(
+    "shows the logo lockup as one labelled home link in %s",
+    (locale) => {
+      activeLocale = locale;
+      activePath = "/photography";
+      const { cleanupMarked } = renderOver("dark");
+      const lockup = screen.getByRole("link", { name: COPY[locale].home });
+      expect(lockup).toHaveAttribute("href", locale === "en" ? "/en/" : "/");
+      const icon = lockup.querySelector("img")!;
+      expect(icon).toHaveAttribute("src", "/brand/chefo-icon.svg");
+      expect(icon).toHaveAttribute("alt", "");
+      expect(icon).toHaveAttribute("width", "44");
+      expect(icon).toHaveAttribute("height", "44");
+      expect(lockup).toHaveClass("min-h-11");
+      expect(lockup).toHaveTextContent(/^CHEFO — Visual Worlds$/);
+      cleanupMarked();
+    },
+  );
+
+  it("is transparent over the Home hero at the top and solid once the sentinel leaves", () => {
+    vi.stubGlobal("IntersectionObserver", SentinelObserver);
+    document.elementsFromPoint = () => [];
+    const { container } = render(
+      <>
+        <SiteHeader />
+        <HomeView />
+      </>,
+    );
+    const header = container.querySelector("header")!;
+    const observer = SentinelObserver.last!;
+    expect(observer.target).toBe(container.querySelector("[data-header-sentinel]"));
+    expect(header).toHaveAttribute("data-transparent");
+    expect(header).toHaveAttribute("data-theme", "dark");
+    expect(header.classList).toContain("bg-transparent");
+    expect(header.classList).not.toContain("bg-navy");
+
+    act(() => observer.fire(false));
+    expect(header).not.toHaveAttribute("data-transparent");
+    expect(header.classList).not.toContain("bg-transparent");
+
+    act(() => observer.fire(true));
+    expect(header).toHaveAttribute("data-transparent");
+  });
+
+  it("keeps every other route on the solid header", () => {
+    vi.stubGlobal("IntersectionObserver", SentinelObserver);
+    activePath = "/ai-worlds";
+    const { container, cleanupMarked } = renderOver("dark");
+    const header = container.querySelector("header")!;
+    expect(header).not.toHaveAttribute("data-transparent");
+    expect(header.classList).toContain("bg-navy");
+    expect(header.classList).not.toContain("bg-transparent");
+    cleanupMarked();
+  });
+
+  it("turns solid while the mobile menu is open", async () => {
+    vi.stubGlobal("IntersectionObserver", SentinelObserver);
+    document.elementsFromPoint = () => [];
+    const { container } = render(
+      <>
+        <SiteHeader />
+        <HomeView />
+      </>,
+    );
+    const header = container.querySelector("header")!;
+    expect(header).toHaveAttribute("data-transparent");
+    await act(async () => screen.getByRole("button", { name: messages.bg.nav.open }).click());
+    expect(header).not.toHaveAttribute("data-transparent");
+    expect(header.classList).toContain("bg-navy");
   });
 });
