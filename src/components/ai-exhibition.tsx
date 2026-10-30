@@ -1,6 +1,6 @@
 // Exhibition building blocks for AI Worlds: collection halls, exhibited works,
 // and the discreet prompt note. Colors follow the dark Surface.
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, Copy, Expand } from "lucide-react";
 import {
   collectionText,
@@ -20,71 +20,29 @@ import { cn } from "@/lib/utils";
 
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 
+/** Each overview hall's own backdrop scene; its look is tuned in styles.css (one place). */
 const collectionBackgrounds = {
-  "historical-eras-rulers": {
-    image: "historical",
-    position: "62% 38%",
-    mobilePosition: "35% 0%",
-    overlay: 0.15,
-    mobileOverlay: 0.12,
-    brightness: 1.35,
-  },
-  "professions-roles": {
-    image: "professions",
-    position: "58% 45%",
-    mobilePosition: "58% 45%",
-    overlay: 0.3,
-    mobileOverlay: 0.3,
-    brightness: 1.25,
-  },
-  "cinema-archetypes": {
-    image: "cinema",
-    position: "72% 32%",
-    mobilePosition: "72% 32%",
-    overlay: 0.07,
-    mobileOverlay: 0.3,
-    brightness: 1.25,
-  },
-  "chefo-around-the-world": {
-    image: "world",
-    position: "68% 38%",
-    mobilePosition: "68% 38%",
-    overlay: 0.45,
-    mobileOverlay: 0.2,
-    brightness: 1.25,
-  },
+  "historical-eras-rulers": "historical",
+  "professions-roles": "professions",
+  "cinema-archetypes": "cinema",
+  "chefo-around-the-world": "world",
 } as const;
 
 type CollectionBackground = (typeof collectionBackgrounds)[keyof typeof collectionBackgrounds];
 
 /** Decorative atmosphere for a collection hall; it never becomes artwork content or a control. */
-function CollectionAtmosphere({ background }: { background: CollectionBackground }) {
-  const style = {
-    "--ai-section-bg-position": background.position,
-    "--ai-section-bg-mobile-position": background.mobilePosition,
-    "--ai-section-bg-overlay": background.overlay,
-    "--ai-section-bg-mobile-overlay": background.mobileOverlay,
-    "--ai-section-bg-brightness": background.brightness,
-  } as CSSProperties;
+function CollectionAtmosphere({ image, eager }: { image: CollectionBackground; eager: boolean }) {
   return (
-    <div
-      aria-hidden="true"
-      data-ai-section-background={background.image}
-      className="ai-section-background"
-      style={style}
-    >
+    <div aria-hidden="true" data-ai-section-background={image} className="ai-section-background">
       <picture aria-hidden="true">
-        <source
-          media="(max-width: 768px)"
-          srcSet={`/background/ai-bg-${background.image}-960.webp`}
-        />
+        <source media="(max-width: 767px)" srcSet={`/background/ai-bg-${image}-960.webp`} />
         <img
           aria-hidden="true"
-          src={`/background/ai-bg-${background.image}-1600.webp`}
+          src={`/background/ai-bg-${image}-1600.webp`}
           alt=""
           width={1600}
           height={900}
-          loading="lazy"
+          loading={eager ? "eager" : "lazy"}
           decoding="async"
         />
       </picture>
@@ -183,69 +141,74 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const title = collectionText(collection.title, locale);
   const background = collectionBackgrounds[collection.slug as keyof typeof collectionBackgrounds];
   return (
-    <li {...reveal(0)}>
-      {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
-      <article
-        onClick={openHall}
-        className="ai-presentation ai-overview-hall relative isolate grid cursor-pointer items-center gap-8 overflow-hidden md:grid-cols-12 md:gap-0"
-      >
-        {background && <CollectionAtmosphere background={background} />}
-        <div
-          className={cn(
-            "ai-presentation-media group relative overflow-hidden rounded-sm md:col-span-6",
-            mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
-          )}
+    // The hall spans the full width so its backdrop reaches both viewport edges; the portrait
+    // and the text are re-centred in their own page container on top of it.
+    <li {...reveal(0)} className="ai-overview-hall relative isolate overflow-hidden py-8 md:py-12">
+      {background && <CollectionAtmosphere image={background} eager={index === 0} />}
+      <div className="container-page">
+        {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
+        <article
+          onClick={openHall}
+          className="ai-presentation relative grid cursor-pointer items-center gap-8 md:grid-cols-12 md:gap-0"
         >
-          {cover ? (
-            <>
-              <ArtImage work={cover} eager={index === 0} />
-              <ArtEdge />
-            </>
-          ) : isAtlas ? (
-            <AtlasCover className="aspect-[4/5]" />
-          ) : (
-            <EmptyCollectionCover className="aspect-[4/3] md:aspect-[4/5]" />
-          )}
-        </div>
-        <div
-          className={cn(
-            "md:col-span-5 md:row-start-1",
-            mirrored ? "md:col-start-1" : "md:col-start-8",
-          )}
-        >
-          <h2 className="ai-presentation-title title-section break-words">{title}</h2>
-          {collection.tagline && (
-            <p className="mt-3 font-serif text-xl italic text-gold">
-              {collectionText(collection.tagline, locale)}
-            </p>
-          )}
-          <p className="lead mt-5 text-muted-foreground">
-            {collectionText(collection.intro, locale)}
-          </p>
-          {finished > 0 && (
-            <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
-          )}
-          <LocaleLink
-            to="/ai-worlds/collections/$slug"
-            slug={collection.slug}
-            aria-label={`${m.exploreCollection}: ${title}`}
-            className="ai-presentation-link mt-8 inline-flex"
+          <div
+            className={cn(
+              "ai-presentation-media group relative overflow-hidden rounded-sm md:col-span-6",
+              mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
+            )}
           >
-            <span className="interaction-primary ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
-              {m.exploreCollection}
-              <ArrowRight className="ai-artwork-action-arrow size-4" />
-            </span>
-          </LocaleLink>
-        </div>
-      </article>
+            {cover ? (
+              <>
+                <ArtImage work={cover} eager={index === 0} />
+                <ArtEdge />
+              </>
+            ) : isAtlas ? (
+              <AtlasCover className="aspect-[4/5]" />
+            ) : (
+              <EmptyCollectionCover className="aspect-[4/3] md:aspect-[4/5]" />
+            )}
+          </div>
+          <div
+            className={cn(
+              "ai-overview-hall-text md:col-span-5 md:row-start-1",
+              mirrored ? "md:col-start-1" : "md:col-start-8",
+            )}
+          >
+            <h2 className="ai-presentation-title title-section break-words">{title}</h2>
+            {collection.tagline && (
+              <p className="mt-3 font-serif text-xl italic text-gold">
+                {collectionText(collection.tagline, locale)}
+              </p>
+            )}
+            <p className="lead mt-5 text-muted-foreground">
+              {collectionText(collection.intro, locale)}
+            </p>
+            {finished > 0 && (
+              <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
+            )}
+            <LocaleLink
+              to="/ai-worlds/collections/$slug"
+              slug={collection.slug}
+              aria-label={`${m.exploreCollection}: ${title}`}
+              className="ai-presentation-link mt-8 inline-flex"
+            >
+              <span className="interaction-primary ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
+                {m.exploreCollection}
+                <ArrowRight className="ai-artwork-action-arrow size-4" />
+              </span>
+            </LocaleLink>
+          </div>
+        </article>
+      </div>
     </li>
   );
 }
 
 export function CollectionHalls() {
   const collections = getAiCollections();
+  // Hall padding (py-8 / md:py-12) plus these gaps keep the previous rhythm between halls.
   return (
-    <ol className="mt-14 space-y-24 md:mt-20 md:space-y-32">
+    <ol className="mt-6 space-y-8 md:mt-8 md:space-y-8">
       {collections.map((collection, index) => (
         <CollectionHall
           key={collection.slug}

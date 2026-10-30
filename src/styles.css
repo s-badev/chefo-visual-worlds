@@ -785,7 +785,58 @@
   display: inline-flex;
 }
 
-/* Atmospheric collection backdrops are decorative and stay behind every interactive/content layer. */
+/*
+ * AI Worlds collection backdrops: the owner's four empty scenes, edge to edge behind each hall.
+ * RETUNE HERE: one line per value and collection ("mobile" = max-width 767px).
+ *   --bg-blur / --bg-blur-mobile          softness; keep it light so the scene stays recognizable
+ *   --bg-saturate / --bg-brightness       colour and light (the art is dark by design)
+ *   --bg-overlay / --bg-overlay-mobile    navy over the whole scene (lower = more visible)
+ *   --bg-scrim / --bg-scrim-mobile        navy behind the text block only (carries readability)
+ *   --bg-position / --bg-position-mobile  which part of the scene stays in view
+ * If a scene is hard to recognize, lower its overlay rather than raising its blur.
+ * Every text over a backdrop was measured at 4.7:1 or more (5th percentile, 360-1920 px).
+ */
+.ai-overview-hall {
+  --bg-blur: 6px;
+  --bg-blur-mobile: 4px;
+  --bg-saturate: 0.9;
+  --bg-brightness: 1.4;
+  --bg-overlay: 0.15;
+  --bg-overlay-mobile: 0.15;
+  --bg-scrim: 0.6;
+  --bg-scrim-mobile: 0.6;
+  --bg-position: 50% 50%;
+  --bg-position-mobile: 50% 50%;
+}
+/* The darkest scene: more light, and a stronger scrim because its torches sit behind the text. */
+.ai-overview-hall:has([data-ai-section-background="historical"]) {
+  --bg-brightness: 1.8;
+  --bg-overlay: 0.08;
+  --bg-overlay-mobile: 0.08;
+  --bg-scrim: 0.85;
+  --bg-scrim-mobile: 0.65;
+  --bg-position-mobile: 78% 50%;
+}
+.ai-overview-hall:has([data-ai-section-background="professions"]) {
+  --bg-overlay: 0.15;
+  --bg-overlay-mobile: 0.15;
+  --bg-position-mobile: 72% 50%;
+}
+.ai-overview-hall:has([data-ai-section-background="cinema"]) {
+  --bg-overlay: 0.04;
+  --bg-overlay-mobile: 0.04;
+  --bg-scrim: 0.7;
+  --bg-position-mobile: 82% 30%;
+}
+.ai-overview-hall:has([data-ai-section-background="world"]) {
+  --bg-overlay: 0.25;
+  --bg-overlay-mobile: 0.25;
+  --bg-scrim: 0.7;
+  --bg-scrim-mobile: 0.75;
+  --bg-position-mobile: 78% 45%;
+}
+
+/* Backdrops are decorative and stay behind every content layer. */
 .ai-overview-hall > :not(.ai-section-background) {
   position: relative;
   z-index: 1;
@@ -796,8 +847,9 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  /* Top and bottom fade into the page navy, so neighbouring halls never meet at a hard line. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
 }
 .ai-section-background picture,
 .ai-section-background img {
@@ -808,112 +860,80 @@
 }
 .ai-section-background img {
   object-fit: cover;
-  object-position: var(--ai-section-bg-position, 70% 35%);
-  filter: blur(20px) saturate(0.75) brightness(var(--ai-section-bg-brightness, 1.25));
-  transform: scale(1.12);
+  object-position: var(--bg-position);
+  filter: blur(var(--bg-blur)) saturate(var(--bg-saturate)) brightness(var(--bg-brightness));
+  /* Hides the soft edge that the blur leaves at the borders. */
+  transform: scale(1.05);
 }
 .ai-section-background::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.55));
+  background: oklch(0.21 0.045 262 / var(--bg-overlay));
 }
 /*
- * Local scrims darken only the text column, so the picture stays visible around the text.
- * Measured on /ai-worlds: every text over a backdrop keeps at least 4.7:1 (5th percentile).
- * Historical and cinema put their text on the right, professions and world on the left.
+ * Local scrim: a soft-edged navy panel behind the text block only. It is strongest under the
+ * text and fades out within 3-4rem, before the portrait and before the viewport edge.
  */
-[data-ai-section-background="historical"] {
-  --ai-section-bg-scrim: 0.5;
-  --ai-section-bg-mobile-scrim: 0.42;
+.ai-overview-hall-text {
+  position: relative;
 }
-[data-ai-section-background="professions"] {
-  --ai-section-bg-scrim: 0.45;
-  --ai-section-bg-mobile-scrim: 0.35;
+.ai-overview-hall-text::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -4rem -3rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    oklch(0.21 0.045 262 / var(--bg-scrim)) 3rem,
+    oklch(0.21 0.045 262 / var(--bg-scrim)) calc(100% - 3rem),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 4rem,
+    #000 calc(100% - 4rem),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 4rem,
+    #000 calc(100% - 4rem),
+    transparent
+  );
 }
-[data-ai-section-background="cinema"] {
-  --ai-section-bg-scrim: 0.6;
-  --ai-section-bg-mobile-scrim: 0.25;
-}
-[data-ai-section-background="world"] {
-  --ai-section-bg-scrim: 0.45;
-  --ai-section-bg-mobile-scrim: 0.62;
-}
-/* md to lg: the text fills most of the column height, so the whole column gets the scrim. */
-@media (min-width: 768px) {
-  [data-ai-section-background="historical"]::after,
-  [data-ai-section-background="cinema"]::after {
-    background:
-      linear-gradient(to right, transparent 46%, oklch(0.21 0.045 262 / var(--ai-section-bg-scrim)) 58%),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.55));
-  }
-  [data-ai-section-background="professions"]::after,
-  [data-ai-section-background="world"]::after {
-    background:
-      linear-gradient(to left, transparent 46%, oklch(0.21 0.045 262 / var(--ai-section-bg-scrim)) 58%),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.55));
-  }
-}
-/* Wide screens: the text block is a band in the middle, so the scrim is an ellipse around it. */
-@media (min-width: 1280px) {
-  [data-ai-section-background="historical"]::after,
-  [data-ai-section-background="cinema"]::after {
-    background:
-      radial-gradient(
-        ellipse 40% 46% at 79% 50%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-scrim)) 60%,
-        transparent 100%
-      ),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.55));
-  }
-  [data-ai-section-background="professions"]::after,
-  [data-ai-section-background="world"]::after {
-    background:
-      radial-gradient(
-        ellipse 40% 46% at 21% 50%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-scrim)) 60%,
-        transparent 100%
-      ),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-overlay, 0.55));
-  }
-}
-/* Mobile backdrop rules end where the md two-column layout (min-width: 768px) begins. */
+/* Mobile rules end where the md two-column layout (min-width: 768px) begins. */
 @media (max-width: 767px) {
   .ai-section-background img {
-    object-position: var(--ai-section-bg-mobile-position, var(--ai-section-bg-position, 70% 35%));
-    filter: blur(10px) saturate(0.75) brightness(var(--ai-section-bg-brightness, 1.25));
+    object-position: var(--bg-position-mobile);
+    filter: blur(var(--bg-blur-mobile)) saturate(var(--bg-saturate))
+      brightness(var(--bg-brightness));
   }
-  /* The text sits under the cover: the scrim starts below the cover and fades at the button row. */
   .ai-section-background::after {
-    background:
-      linear-gradient(
-        to bottom,
-        transparent 45%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-scrim, 0)) 58%
-      ),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-overlay, 0.65));
+    background: oklch(0.21 0.045 262 / var(--bg-overlay-mobile));
   }
-  [data-ai-section-background="historical"]::after {
-    background:
-      linear-gradient(
-        to bottom,
-        transparent 54%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-scrim)) 67%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-scrim)) calc(100% - 144px),
-        transparent calc(100% - 32px)
-      ),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-overlay, 0.65));
-  }
-  [data-ai-section-background="world"]::after {
-    background:
-      linear-gradient(
-        to bottom,
-        transparent 45%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-scrim)) 58%,
-        oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-scrim)) calc(100% - 144px),
-        transparent calc(100% - 32px)
-      ),
-      oklch(0.21 0.045 262 / var(--ai-section-bg-mobile-overlay, 0.65));
+  /* The text sits under the portrait and spans the width, so the panel runs edge to edge. */
+  .ai-overview-hall-text::before {
+    inset: -2.5rem -1.25rem;
+    background: oklch(0.21 0.045 262 / var(--bg-scrim-mobile));
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 2.5rem,
+      #000 calc(100% - 2rem),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 2.5rem,
+      #000 calc(100% - 2rem),
+      transparent
+    );
   }
 }
 

@@ -72,6 +72,22 @@ const openDesktopFilters = (container: HTMLElement) =>
   fireEvent.click(container.querySelector('button[aria-controls="ai-filter-panel"]')!);
 
 describe("AI Worlds overview", () => {
+  it("runs each collection backdrop edge to edge behind a centred content container", () => {
+    const { container } = render(<AiWorldsView />);
+    const halls = [...container.querySelectorAll<HTMLElement>("li.ai-overview-hall")];
+    expect(halls).toHaveLength(4);
+    for (const hall of halls) {
+      // The hall itself is outside every max-width container, so it spans the viewport.
+      expect(hall.closest(".container-page")).toBeNull();
+      const layer = hall.querySelector<HTMLElement>(".ai-section-background")!;
+      expect(layer.parentElement).toBe(hall);
+      const content = hall.querySelector<HTMLElement>(":scope > .container-page")!;
+      expect(content).not.toBeNull();
+      expect(content).toContainElement(hall.querySelector<HTMLElement>(".ai-presentation"));
+      expect(content).not.toContainElement(layer);
+    }
+  });
+
   it.each(["bg", "en"] as const)("opens on the four curated collections in %s", (locale) => {
     activeLocale = locale;
     const { container } = render(<AiWorldsView />);
