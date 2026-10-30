@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import { ArrowRight } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
@@ -9,10 +10,44 @@ import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
+/** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
+const HERO_IMAGES = {
+  desktop: {
+    avif: "/hero/chefo-hero-desktop-1280.avif 1280w, /hero/chefo-hero-desktop-1672.avif 1672w",
+    webp: "/hero/chefo-hero-desktop-1280.webp 1280w, /hero/chefo-hero-desktop-1672.webp 1672w",
+  },
+  mobile: {
+    avif: "/hero/chefo-hero-mobile-640.avif 640w, /hero/chefo-hero-mobile-941.avif 941w",
+    webp: "/hero/chefo-hero-mobile-640.webp 640w, /hero/chefo-hero-mobile-941.webp 941w",
+  },
+} as const;
+const HERO_DESKTOP = "(min-width: 900px)";
+
 export const homeHead = (locale: Locale) => {
   const m = getMessages(locale).home;
   return pageHead(locale, "/", m.metaTitle, m.metaDesc);
 };
+
+/**
+ * React does not preload an <img> inside <picture>, so the hero (the LCP image) would queue
+ * behind the page's other image preloads. A high-priority preload per breakpoint is flushed
+ * first. AVIF only: browsers without it skip the hint and take the WebP source.
+ */
+function preloadHeroImage() {
+  for (const [media, srcSet] of [
+    [HERO_DESKTOP, HERO_IMAGES.desktop.avif],
+    ["(max-width: 899px)", HERO_IMAGES.mobile.avif],
+  ] as const) {
+    preload(srcSet.split(", ").at(-1)!.split(" ")[0]!, {
+      as: "image",
+      type: "image/avif",
+      media,
+      imageSrcSet: srcSet,
+      imageSizes: "100vw",
+      fetchPriority: "high",
+    });
+  }
+}
 
 const FEATURED_ALBUM_SLUGS = ["nessebar", "sofia", "sunny-beach"] as const;
 
@@ -161,19 +196,6 @@ export function HomeView() {
   );
 }
 
-/** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
-const HERO_IMAGES = {
-  desktop: {
-    avif: "/hero/chefo-hero-desktop-1280.avif 1280w, /hero/chefo-hero-desktop-1672.avif 1672w",
-    webp: "/hero/chefo-hero-desktop-1280.webp 1280w, /hero/chefo-hero-desktop-1672.webp 1672w",
-  },
-  mobile: {
-    avif: "/hero/chefo-hero-mobile-640.avif 640w, /hero/chefo-hero-mobile-941.avif 941w",
-    webp: "/hero/chefo-hero-mobile-640.webp 640w, /hero/chefo-hero-mobile-941.webp 941w",
-  },
-} as const;
-const HERO_DESKTOP = "(min-width: 900px)";
-
 /**
  * Full-viewport Home hero: the owner's portrait between real places and imagined worlds, with
  * live copy on the left (below the camera on phones). It sits under the transparent header.
@@ -181,6 +203,7 @@ const HERO_DESKTOP = "(min-width: 900px)";
 function HomeHero() {
   const { t } = useT();
   const m = t.home;
+  preloadHeroImage();
   return (
     <section data-header-theme="dark" className="home-hero surface-dark">
       {/* While this strip is in view the Home header stays transparent (see SiteHeader). */}
