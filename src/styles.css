@@ -825,6 +825,7 @@
 .ai-overview-hall:has([data-ai-section-background="cinema"]) {
   --bg-overlay: 0.04;
   --bg-overlay-mobile: 0.04;
+  --bg-scrim: 0.7;
   --bg-position-mobile: 82% 30%;
 }
 .ai-overview-hall:has([data-ai-section-background="world"]) {
