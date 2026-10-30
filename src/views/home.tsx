@@ -186,7 +186,7 @@ export function HomeView() {
           ))}
           <LocaleLink
             to="/about"
-            className="interaction-link mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold"
+            className="interaction-link interaction-text-button mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold"
           >
             {m.more} <ArrowRight className="size-4" />
           </LocaleLink>

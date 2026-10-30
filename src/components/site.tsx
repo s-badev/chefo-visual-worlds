@@ -391,7 +391,7 @@ export function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "interaction-control min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
+        "interaction-control interaction-text-button min-h-11 shrink-0 whitespace-nowrap rounded-full border py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border hover:border-gold",
@@ -803,6 +803,6 @@ export function Lightbox({
 }
 
 const btnMotion = "transition-colors duration-(--interaction-duration) ease-cinematic";
-export const btnPrimary = `interaction-primary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;
-export const btnOutline = `interaction-secondary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;
-export const btnGold = `interaction-primary inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold tracking-wide ${btnMotion}`;
+export const btnPrimary = `interaction-primary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;
+export const btnOutline = `interaction-secondary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;
+export const btnGold = `interaction-primary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;

@@ -113,7 +113,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view !== "photos"}
           onClick={() => set({ view: undefined })}
-          className={`interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`interaction-control interaction-text-button min-h-11 border-b-2 pb-4 text-sm font-semibold transition-colors ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.albums}
         </button>
@@ -121,7 +121,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view === "photos"}
           onClick={() => set({ view: "photos" })}
-          className={`interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`interaction-control interaction-text-button min-h-11 border-b-2 pb-4 text-sm font-semibold transition-colors ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.allPhotos}
         </button>

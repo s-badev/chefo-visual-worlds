@@ -108,7 +108,7 @@ function FilterGroups({
 }
 
 const triggerClass =
-  "interaction-control inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold aria-expanded:border-gold";
+  "interaction-control interaction-text-button inline-flex min-h-11 items-center gap-2 rounded-full border border-border py-2 text-sm font-semibold aria-expanded:border-gold";
 
 /**
  * Filtering stays secondary to the artwork: one "Filters" control. From md up it unfolds
@@ -195,7 +195,7 @@ export function AiFilterBar({
                 <button
                   type="button"
                   onClick={() => setDraft(EMPTY)}
-                  className="interaction-link px-1 py-2 text-sm font-semibold underline decoration-border underline-offset-4 transition-colors"
+                  className="interaction-link interaction-text-button py-2 text-sm font-semibold underline decoration-border underline-offset-4 transition-colors"
                 >
                   {m.resetFilters}
                 </button>
@@ -205,7 +205,7 @@ export function AiFilterBar({
                     onChange({ ...EMPTY, ...draft });
                     setSheetOpen(false);
                   }}
-                  className="interaction-primary inline-flex items-center rounded-sm px-5 py-3 text-sm font-semibold"
+                  className="interaction-primary inline-flex items-center rounded-sm text-sm font-semibold"
                 >
                   {m.applyFilters(draftCount)}
                 </button>
@@ -235,7 +235,7 @@ export function AiFilterBar({
               type="button"
               onClick={() => onChange({ [chip.key]: undefined })}
               aria-label={m.removeFilter(chip.label)}
-              className="interaction-control inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-raised px-3 py-1 text-xs font-semibold"
+              className="interaction-control interaction-text-button inline-flex min-h-11 items-center gap-1.5 rounded-full bg-surface-raised py-1 text-xs font-semibold"
             >
               {chip.label}
               <X aria-hidden="true" className="size-3" />
@@ -244,7 +244,7 @@ export function AiFilterBar({
           <button
             type="button"
             onClick={() => onChange(EMPTY)}
-            className="interaction-link min-h-11 px-2 py-1 text-xs font-semibold text-muted-foreground underline underline-offset-4 transition-colors"
+            className="interaction-link interaction-text-button min-h-11 py-1 text-xs font-semibold text-muted-foreground underline underline-offset-4 transition-colors"
           >
             {m.resetFilters}
           </button>

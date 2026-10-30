@@ -135,7 +135,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
               <span>{items.find((photo) => photo.slug === cover.slug)?.title ?? cover.title}</span>
             )}
           </div>
-          <a href="#editorial-album-all" className="interaction-link editorial-album-jump">
+          <a href="#editorial-album-all" className="interaction-link interaction-text-button editorial-album-jump">
             {t.photos.allPhotos} <ArrowRight size={16} aria-hidden="true" />
           </a>
         </div>
