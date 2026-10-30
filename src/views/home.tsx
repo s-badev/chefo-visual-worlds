@@ -239,17 +239,20 @@ function HomeHero() {
         />
       </picture>
       <div aria-hidden="true" className="home-hero-shade" />
-      <div className="home-hero-content container-page">
-        <div className="home-hero-copy">
+      <div className="home-hero-content">
+        <div className="home-hero-copy" data-home-hero-copy>
           <p className="eyebrow home-hero-eyebrow">{m.eyebrow}</p>
           <h1 className="home-hero-title">
-            {m.h1a}
+            <span className="home-hero-title-primary">{m.h1a}</span>
             <br />
             <em>{m.h1b}</em>
           </h1>
           <p className="home-hero-sub">{m.heroSub}</p>
           <div className="home-hero-actions">
-            <LocaleLink to="/photography" className={`home-hero-button ${btnPrimary}`}>
+            <LocaleLink
+              to="/photography"
+              className={`home-hero-button ${btnPrimary}`}
+            >
               {m.ctaPhotos}
               <ArrowRight aria-hidden="true" className="interaction-arrow size-4" />
             </LocaleLink>

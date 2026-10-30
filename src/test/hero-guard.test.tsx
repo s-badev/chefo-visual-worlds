@@ -182,10 +182,10 @@ describe("Home hero styles", () => {
 
   it("switches to the wide layout at 900px and keeps the face side free of gradients", () => {
     expect(hero).toContain("@media (min-width: 900px)");
-    expect(hero).toContain("object-position: 56% 50%");
-    // The left gradient fades out at 62% of the width, before the face.
+    expect(hero).toContain("object-position: 40% 50%");
+    // The shifted copy gradient fades out at 48% of the width, before the face.
     expect(hero).toContain(
-      "to right, oklch(0.21 0.045 262 / 0.7), oklch(0.21 0.045 262 / 0.5) 30%, transparent 62% )",
+      "to right, oklch(0.21 0.045 262 / 0.7), oklch(0.21 0.045 262 / 0.58) 26%, transparent 48% )",
     );
   });
 
@@ -194,6 +194,12 @@ describe("Home hero styles", () => {
       ".home-hero .home-hero-button:focus-visible { outline: 2px solid var(--navy-foreground); outline-offset: 2px; }",
     );
     expect(hero).not.toMatch(/:hover|animation|transition/);
+  });
+
+  it("uses one Home gutter for the header logo and every Hero copy element", () => {
+    expect(css).toContain("--home-gutter: clamp(20px, 5.5vw, 112px)");
+    expect(css).toContain(".home-header-row { width: 100%; padding-inline: var(--home-gutter); }");
+    expect(css).toMatch(/\.home-hero-content \{ .*padding-inline: var\(--home-gutter\);/);
   });
 });
 
@@ -302,6 +308,7 @@ describe("header over the Hero", () => {
       </>,
     );
     const header = container.querySelector("header")!;
+    expect(header.querySelector("[data-home-header-row]")).toHaveClass("home-header-row");
     const observer = SentinelObserver.last!;
     expect(observer.target).toBe(container.querySelector("[data-header-sentinel]"));
     expect(header).toHaveAttribute("data-transparent");
