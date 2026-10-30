@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import {
   RouterProvider,
@@ -18,7 +18,8 @@ import {
   getCollectionWorks,
 } from "@/content/ai-collections";
 import { messages } from "@/i18n/messages";
-import { AiCollectionView } from "@/views/ai-worlds";
+import { aiWorks } from "@/content/ai-works";
+import { AiCollectionView, AiDetailView } from "@/views/ai-worlds";
 
 // Renders a view inside a real router at `path`, so links and locale are the real ones.
 const renderAt = async (path: string, view: () => ReactNode) => {
@@ -141,6 +142,59 @@ describe("AI Worlds overview halls", () => {
       });
     },
   );
+
+  it("adds one inert responsive atmosphere to each overview hall only", async () => {
+    const expected = ["historical", "professions", "cinema", "world"];
+    const { container, unmount } = await renderAt("/ai-worlds", () => <CollectionHalls />);
+    const halls = [...container.querySelectorAll<HTMLElement>(".ai-overview-hall")];
+    expect(halls).toHaveLength(4);
+    halls.forEach((hall, index) => {
+      const name = expected[index]!;
+      const layer = hall.querySelector<HTMLElement>(`[data-ai-section-background="${name}"]`)!;
+      expect(layer).toHaveAttribute("aria-hidden", "true");
+      expect(layer).toHaveClass("ai-section-background");
+      expect(layer.closest("a, button")).toBeNull();
+      const source = layer.querySelector("source")!;
+      expect(source).toHaveAttribute("media", "(max-width: 768px)");
+      expect(source).toHaveAttribute("srcset", `/background/ai-bg-${name}-960.webp`);
+      const image = layer.querySelector("img")!;
+      expect(image).toHaveAttribute("src", `/background/ai-bg-${name}-1600.webp`);
+      expect(image).toHaveAttribute("alt", "");
+      expect(image).toHaveAttribute("aria-hidden", "true");
+      expect(image).toHaveAttribute("loading", "lazy");
+      expect(image).toHaveAttribute("decoding", "async");
+      expect(image).toHaveAttribute("width", "1600");
+      expect(image).toHaveAttribute("height", "900");
+    });
+    unmount();
+
+    const collection = aiCollections[0]!;
+    const collectionView = await renderAt(`/ai-worlds/collections/${collection.slug}`, () => (
+      <AiCollectionView collection={collection} />
+    ));
+    expect(collectionView.container.querySelector(".ai-section-background")).toBeNull();
+    collectionView.unmount();
+
+    const work = aiWorks[0]!;
+    const detailView = await renderAt(`/ai-worlds/${work.slug}`, () => (
+      <AiDetailView work={work} />
+    ));
+    expect(detailView.container.querySelector(".ai-section-background")).toBeNull();
+    detailView.unmount();
+  });
+
+  it("ships exactly the eight WebP derivatives and no PNG source", () => {
+    expect(readdirSync(path.resolve(__dirname, "../../public/background")).sort()).toEqual([
+      "ai-bg-cinema-1600.webp",
+      "ai-bg-cinema-960.webp",
+      "ai-bg-historical-1600.webp",
+      "ai-bg-historical-960.webp",
+      "ai-bg-professions-1600.webp",
+      "ai-bg-professions-960.webp",
+      "ai-bg-world-1600.webp",
+      "ai-bg-world-960.webp",
+    ]);
+  });
 });
 
 describe("AI Worlds overview hall clicks", () => {
