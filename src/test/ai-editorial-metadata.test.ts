@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getAiCollection, getCollectionWorkSlugs } from "@/content/ai-collections";
-import { getAiWork } from "@/content/ai-works";
+import { aiWorks, getAiWork } from "@/content/ai-works";
 import { Route as BgWorkRoute } from "@/routes/ai-worlds.$slug";
 import { Route as EnWorkRoute } from "@/routes/en.ai-worlds.$slug";
 
@@ -58,6 +58,16 @@ describe("AI Worlds editorial metadata", () => {
     }
     expect(actualTitles).toHaveLength(64);
     expect(new Set(actualTitles).size).toBe(64);
+  });
+
+  it("never opens a description sentence with a personal pronoun", () => {
+    const pronoun = /(?:^|[.!?…]\s+)(Той|Тя|Те|He|She|They)(?=[\s,;:.!?]|$)/u;
+    expect(aiWorks.length).toBeGreaterThanOrEqual(64);
+    for (const work of aiWorks) {
+      for (const description of [work.description, work.en?.description ?? ""]) {
+        expect(description, work.slug).not.toMatch(pronoun);
+      }
+    }
   });
 
   it("uses distinct bilingual micro-stories without unsupported landmark names", () => {

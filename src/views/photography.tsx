@@ -113,7 +113,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view !== "photos"}
           onClick={() => set({ view: undefined })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.albums}
         </button>
@@ -121,7 +121,7 @@ export function PhotographyView() {
           type="button"
           aria-pressed={view === "photos"}
           onClick={() => set({ view: "photos" })}
-          className={`border-b-2 pb-4 text-sm font-semibold transition-colors hover:text-terracotta-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
+          className={`interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
         >
           {m.allPhotos}
         </button>
@@ -203,7 +203,7 @@ export function AlbumNotFoundView() {
   return (
     <div className="px-5 py-32 text-center">
       <h1 className="text-4xl">{t.photos.albumNotFound}</h1>
-      <LocaleLink to="/photography" className="mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink to="/photography" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
         {t.photos.backToAlbums}
       </LocaleLink>
     </div>
@@ -232,7 +232,7 @@ function StandardAlbumView({ album }: { album: Album }) {
       <nav aria-label={m.backToAlbums} className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
-            <LocaleLink to="/photography" className="hover:text-terracotta-ink">
+            <LocaleLink to="/photography" className="interaction-link">
               {m.title}
             </LocaleLink>
           </li>
@@ -244,7 +244,7 @@ function StandardAlbumView({ album }: { album: Album }) {
       </nav>
       <LocaleLink
         to="/photography"
-        className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
+        className="interaction-link mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold"
       >
         <ArrowLeft className="size-4" /> {m.backToAlbums}
       </LocaleLink>
@@ -263,7 +263,7 @@ function StandardAlbumView({ album }: { album: Album }) {
             <button
               type="button"
               onClick={() => setLightbox(0)}
-              className="block w-full overflow-hidden rounded-md bg-secondary text-left shadow-soft"
+              className="interaction-media block w-full overflow-hidden rounded-md bg-secondary text-left shadow-soft"
               aria-label={t.common.openFullscreen(items[0]!.title)}
             >
               <img
@@ -293,7 +293,7 @@ function StandardAlbumView({ album }: { album: Album }) {
                   <button
                     type="button"
                     onClick={() => setLightbox(i + 1)}
-                    className="block w-full overflow-hidden rounded-md bg-muted text-left shadow-soft"
+                    className="interaction-media block w-full overflow-hidden rounded-md bg-muted text-left shadow-soft"
                     aria-label={t.common.openFullscreen(photo.title)}
                   >
                     <img
@@ -336,7 +336,7 @@ function StandardAlbumView({ album }: { album: Album }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={next.slug}
-            className="group inline-flex items-center gap-5 hover:text-terracotta-ink"
+            className="interaction-link group inline-flex items-center gap-5"
           >
             <span>
               <span className="eyebrow block text-muted-foreground">{m.nextAlbum}</span>
@@ -369,7 +369,7 @@ export function PhotoNotFoundView() {
   return (
     <div className="py-32 text-center">
       <h1 className="text-4xl">{t.notFound.photo}</h1>
-      <LocaleLink to="/photography" className="mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink to="/photography" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
         {t.notFound.toPhotos}
       </LocaleLink>
     </div>
@@ -410,14 +410,14 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
           <LocaleLink
             to="/photography/albums/$slug"
             slug={album.slug}
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
+            className="interaction-link inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbum}: {albumText(album.title, locale)}
           </LocaleLink>
         ) : (
           <LocaleLink
             to="/photography"
-            className="inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold hover:text-terracotta-ink"
+            className="interaction-link inline-flex items-center gap-2 border-b border-gold pb-1 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> {m.backToAlbums}
           </LocaleLink>
@@ -456,7 +456,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={prev.slug}
-          className="group flex items-center gap-3 hover:text-terracotta-ink"
+          className="interaction-link group flex items-center gap-3"
         >
           <ArrowLeft className="size-4" />{" "}
           <span>
@@ -467,7 +467,7 @@ export function PhotoDetailView({ photo: raw }: { photo: Photo }) {
         <LocaleLink
           to="/photography/$slug"
           slug={next.slug}
-          className="group flex items-center gap-3 text-right hover:text-terracotta-ink"
+          className="interaction-link group flex items-center gap-3 text-right"
         >
           <span>
             <span className="eyebrow block text-muted-foreground">{m.next}</span>

@@ -75,7 +75,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
       >
         <div className="photography-editorial-index-heading">
           <h2 id="photography-albums-title">{t.photos.albums}</h2>
-          <button type="button" onClick={onAllPhotos} className="photography-editorial-all-photos">
+          <button type="button" onClick={onAllPhotos} className="interaction-link photography-editorial-all-photos">
             {t.photos.allPhotos} <ArrowRight aria-hidden="true" size={18} />
           </button>
         </div>

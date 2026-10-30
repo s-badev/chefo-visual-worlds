@@ -61,6 +61,7 @@ function FullGallery({
             <figure>
               <button
                 type="button"
+                className="interaction-media"
                 data-album-photo-slug={photo.slug}
                 data-full-index={index}
                 aria-label={t.common.openFullscreen(photo.title)}
@@ -191,7 +192,7 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
       </div>
       <div className="container-page unified-album-mast">
         <nav aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="back-pill unified-album-back">
+          <LocaleLink to="/photography" className="interaction-control back-pill unified-album-back">
             <span className="back-pill-badge" aria-hidden="true">
               <ArrowLeft size={18} />
             </span>
@@ -220,6 +221,7 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
             >
               <button
                 type="button"
+                className="interaction-media"
                 data-highlight-photo-slug={photo.slug}
                 data-full-index={index}
                 aria-label={t.common.openFullscreen(photo.title)}

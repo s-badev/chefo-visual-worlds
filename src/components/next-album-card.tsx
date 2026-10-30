@@ -49,7 +49,7 @@ export function NextAlbumCard({
     <LocaleLink
       to="/photography/albums/$slug"
       slug={album.slug}
-      className={`next-album-card next-album-card--${direction} ${cover ? "next-album-card--image" : "next-album-card--fallback"}`}
+      className={`interaction-card next-album-card next-album-card--${direction} ${cover ? "next-album-card--image" : "next-album-card--fallback"}`}
       aria-label={`${label}: ${albumText(album.title, locale)}`}
     >
       {cover && (

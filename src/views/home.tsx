@@ -169,7 +169,7 @@ export function HomeView() {
             {m.allAlbums(getAlbums().length)}
             <ArrowRight
               aria-hidden="true"
-              className="size-4 transition-transform motion-safe:group-hover:translate-x-1 motion-reduce:transition-none"
+              className="interaction-arrow size-4"
             />
           </LocaleLink>
         </div>
@@ -180,7 +180,7 @@ export function HomeView() {
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <SectionHeading eyebrow={m.aiEyebrow} title={m.aiTitle} text={m.aiText} />
             <LocaleLink to="/ai-worlds" className={btnOutline}>
-              {m.allAi} <ArrowRight className="size-4" />
+              {m.allAi} <ArrowRight className="interaction-arrow size-4" />
             </LocaleLink>
           </div>
           <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
@@ -209,7 +209,7 @@ export function HomeView() {
           ))}
           <LocaleLink
             to="/about"
-            className="mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold hover:text-terracotta-ink"
+            className="interaction-link mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold"
           >
             {m.more} <ArrowRight className="size-4" />
           </LocaleLink>
@@ -271,7 +271,7 @@ function HeroHalf({
         {/* Cream Print (photography) / Gold Glow (AI); styles live in styles.css. */}
         <LocaleLink
           to={to}
-          className={`hero-cta hero-cta--${side === "real" ? "print" : "glow"} w-fit`}
+          className={`interaction-special hero-cta hero-cta--${side === "real" ? "print" : "glow"} w-fit`}
         >
           <span className="hero-cta-face">
             {cta}

@@ -77,6 +77,29 @@ function EmptyCollectionCover({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Pointer users can open a hall from anywhere on it; keyboard and screen-reader users reach the
+ * same place through its one link. The click is handed to that link (modifier keys included), so
+ * the router and "open in new tab" behave as if the link itself was clicked.
+ */
+function openHall(event: React.MouseEvent<HTMLElement>) {
+  const link = event.currentTarget.querySelector<HTMLAnchorElement>(".ai-presentation-link");
+  if (!link || event.defaultPrevented || link.contains(event.target as Node)) return;
+  // Selecting the curatorial text is not a request to leave the page.
+  if (window.getSelection()?.type === "Range") return;
+  link.dispatchEvent(
+    new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      button: event.button,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+    }),
+  );
+}
+
 /** One collection on the AI Worlds landing page: cover and curatorial label, mirrored per row. */
 function CollectionHall({ collection, index }: { collection: AiCollection; index: number }) {
   const { t, locale } = useT();
@@ -85,12 +108,17 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const finished = getCollectionWorkSlugs(collection).length;
   const isAtlas = collection.kind === "destinations";
   const mirrored = index % 2 === 1;
+  const title = collectionText(collection.title, locale);
   return (
     <li {...reveal(0)}>
-      <article className="group relative grid items-center gap-8 md:grid-cols-12 md:gap-0">
+      {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
+      <article
+        onClick={openHall}
+        className="ai-presentation relative grid cursor-pointer items-center gap-8 md:grid-cols-12 md:gap-0"
+      >
         <div
           className={cn(
-            "relative overflow-hidden rounded-sm md:col-span-6",
+            "ai-presentation-media group relative overflow-hidden rounded-sm md:col-span-6",
             mirrored ? "md:col-start-7 md:row-start-1" : "md:col-start-1",
           )}
         >
@@ -111,16 +139,7 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
             mirrored ? "md:col-start-1" : "md:col-start-8",
           )}
         >
-          <h2 className="title-section break-words">
-            {/* The stretched link makes the whole hall one target with one accessible name. */}
-            <LocaleLink
-              to="/ai-worlds/collections/$slug"
-              slug={collection.slug}
-              className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
-            >
-              {collectionText(collection.title, locale)}
-            </LocaleLink>
-          </h2>
+          <h2 className="ai-presentation-title title-section break-words">{title}</h2>
           {collection.tagline && (
             <p className="mt-3 font-serif text-xl italic text-gold">
               {collectionText(collection.tagline, locale)}
@@ -132,13 +151,17 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
           {finished > 0 && (
             <p className="mt-6 text-sm text-muted-foreground">{m.count(finished)}</p>
           )}
-          <span
-            aria-hidden="true"
-            className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border border-gold/60 bg-gold/5 px-4 py-2.5 text-sm font-semibold text-gold transition-[background-color,border-color,color] duration-(--dur-base) group-hover:border-gold group-hover:bg-gold/10 group-focus-within:outline-2 group-focus-within:outline-offset-4 group-focus-within:outline-gold"
+          <LocaleLink
+            to="/ai-worlds/collections/$slug"
+            slug={collection.slug}
+            aria-label={`${m.exploreCollection}: ${title}`}
+            className="ai-presentation-link mt-8 inline-flex"
           >
-            {m.exploreCollection}
-            <ArrowRight className="size-4 transition-transform duration-(--dur-base) ease-cinematic motion-safe:group-hover:translate-x-1" />
-          </span>
+            <span className="interaction-primary ai-artwork-action ai-artwork-action-primary text-sm font-semibold">
+              {m.exploreCollection}
+              <ArrowRight className="ai-artwork-action-arrow size-4" />
+            </span>
+          </LocaleLink>
         </div>
       </article>
     </li>
@@ -188,7 +211,7 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
           <LocaleLink
             to="/ai-worlds/$slug"
             slug={work.slug}
-            className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-gold"
+            className="transition-colors duration-(--dur-base) after:absolute after:inset-0 group-hover:text-interaction-gold"
           >
             {work.title}
           </LocaleLink>
@@ -261,10 +284,11 @@ export function ExhibitionWall({
         return (
           // The scroll margin keeps a linked work clear of the sticky header.
           <li key={work.slug} id={artworkAnchor(work.slug)} className="scroll-mt-20" {...reveal()}>
-            <article className="grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
+            {/* The title and "view" light up together; the link and the button stay independent. */}
+            <article className="ai-presentation grid items-end gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-0">
               <figure
                 className={cn(
-                  "group relative overflow-hidden rounded-sm lg:col-span-7",
+                  "ai-presentation-media group relative overflow-hidden rounded-sm lg:col-span-7",
                   mirrored ? "lg:col-start-6 lg:row-start-1" : "lg:col-start-1",
                 )}
               >
@@ -272,7 +296,7 @@ export function ExhibitionWall({
                   type="button"
                   onClick={(event) => onOpen(index, event.currentTarget)}
                   aria-label={t.common.openFullscreen(work.title)}
-                  className="block w-full cursor-zoom-in"
+                  className="interaction-media block w-full cursor-zoom-in"
                 >
                   <ArtImage work={work} eager={index === 0} />
                 </button>
@@ -285,12 +309,8 @@ export function ExhibitionWall({
                 )}
               >
                 <div data-exhibit-copy-content className="lg:row-start-2">
-                  <h2 className="title-section break-words">
-                    <LocaleLink
-                      to="/ai-worlds/$slug"
-                      slug={work.slug}
-                      className="transition-colors hover:text-gold"
-                    >
+                  <h2 className="ai-presentation-title title-section break-words">
+                    <LocaleLink to="/ai-worlds/$slug" slug={work.slug}>
                       {work.title}
                     </LocaleLink>
                   </h2>
@@ -299,7 +319,7 @@ export function ExhibitionWall({
                     <LocaleLink
                       to="/ai-worlds/$slug"
                       slug={work.slug}
-                      className="ai-artwork-action ai-artwork-action-primary group/link w-full sm:w-auto"
+                      className="interaction-primary ai-artwork-action ai-artwork-action-primary group/link w-full sm:w-auto"
                       aria-label={`${m.viewWork}: ${work.title}`}
                     >
                       {m.viewWork}
@@ -308,7 +328,7 @@ export function ExhibitionWall({
                     <button
                       type="button"
                       onClick={(event) => onOpen(index, event.currentTarget)}
-                      className="ai-artwork-action ai-artwork-action-secondary w-full sm:w-auto"
+                      className="interaction-secondary ai-artwork-action ai-artwork-action-secondary w-full sm:w-auto"
                     >
                       <Expand aria-hidden="true" className="size-4" /> {m.fullscreen}
                     </button>
@@ -360,7 +380,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
             onClick={handleCopy}
             disabled={copying}
             className={cn(
-              "inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-wait",
+              "interaction-control inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs font-semibold disabled:cursor-wait",
               copied
                 ? "border-gold bg-gold text-navy"
                 : "border-gold/60 bg-navy text-gold hover:border-gold hover:bg-surface-raised",
@@ -403,7 +423,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
           aria-expanded={expanded}
           aria-controls="prompt-text"
           onClick={() => setExpanded((e) => !e)}
-          className="mt-2 text-xs font-semibold underline decoration-border underline-offset-4 transition-colors hover:text-gold"
+          className="interaction-link mt-2 text-xs font-semibold underline decoration-border underline-offset-4 transition-colors"
         >
           {expanded ? m.showLessPrompt : m.showFullPrompt}
         </button>

@@ -82,7 +82,7 @@ export function LanguageSwitcher({
                 if (!active) router.navigate({ href });
               }}
               className={cn(
-                "rounded-sm px-1.5 py-1 transition-colors",
+                "interaction-link rounded-sm px-1.5 py-1 transition-colors",
                 active
                   ? // On the cream header, gold text needs the deeper ink for contrast.
                     "text-gold underline decoration-gold underline-offset-4 [[data-theme=light]_&]:text-gold-ink [[data-theme=light]_&]:decoration-gold-ink"

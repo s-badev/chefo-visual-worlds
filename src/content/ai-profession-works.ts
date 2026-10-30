@@ -51,8 +51,8 @@ const rows: ProfessionRow[] = [
     image: beachBartender,
     title: ["Барман на морето", "Seaside Bartender"],
     description: [
-      "Той подава напитката преди залеза. Историите, заради които хората остават, започват малко по-късно.",
-      "He serves the drink before sunset. The stories that make people stay begin a little later.",
+      "Оранжевият коктейл е готов малко преди залеза. Историите, заради които хората остават, идват по-късно.",
+      "The orange cocktail is ready just before sunset. The stories that keep people here arrive a little later.",
     ],
     alt: [
       "Барман подава оранжев коктейл в бар край морето по залез",
@@ -66,8 +66,8 @@ const rows: ProfessionRow[] = [
     image: ticketInspector,
     title: ["Билетен инспектор", "Ticket Inspector"],
     description: [
-      "По тази линия всеки бърза за някъде. Той знае, че билетът разказва само малка част от пътуването.",
-      "Everyone on this route is heading somewhere. He knows a ticket tells only a small part of the journey.",
+      "По тази линия всеки бърза за някъде. На билета се побира само малка част от пътуването.",
+      "Everyone on this route is heading somewhere. Only a small part of the journey fits on a ticket.",
     ],
     alt: [
       "Билетен инспектор проверява билет в автобус или трамвай",
@@ -96,8 +96,8 @@ const rows: ProfessionRow[] = [
     image: econtCourier,
     title: ["Куриер на Еконт", "Econt Courier"],
     description: [
-      "За него това е още една спирка. За човека зад вратата може да е нещото, което чака цяла седмица.",
-      "For him, it is another stop. For the person behind the door, it may be what they have waited for all week.",
+      "В маршрута на куриера това е още една спирка. Зад вратата някой може да чака този кашон цяла седмица.",
+      "On the courier's route, this is just one more stop. Behind the door, someone may have waited all week for this box.",
     ],
     alt: [
       "Куриер на Еконт държи кашон до служебен бус",
@@ -126,8 +126,8 @@ const rows: ProfessionRow[] = [
     image: acTechnician,
     title: ["Майстор на климатици", "Air Conditioning Technician"],
     description: [
-      "Градът си спомня за него, когато жегата стане нетърпима. Той пристига с инструменти и с повече търпение от всички останали.",
-      "The city remembers him when the heat becomes unbearable. He arrives with tools and more patience than anyone else.",
+      "Градът си спомня за него, когато жегата стане нетърпима. Пристига с винтоверт и с повече търпение от всички останали.",
+      "The city remembers him when the heat becomes unbearable. Help arrives with a cordless screwdriver and more patience than anyone else.",
     ],
     alt: [
       "Техник с винтоверт работи до външно тяло на климатик",
@@ -171,8 +171,8 @@ const rows: ProfessionRow[] = [
     image: fisherman,
     title: ["Рибар на пристанището", "Harbor Fisherman"],
     description: [
-      "Морето не обещава улов. Той пак излиза, защото някои сутрини си струват и без гаранция.",
-      "The sea never promises a catch. He goes out anyway; some mornings are worth it without a guarantee.",
+      "Морето не обещава улов. Лодката пак излиза, защото някои сутрини си струват и без гаранция.",
+      "The sea never promises a catch. The boat goes out anyway, because some mornings are worth it without a guarantee.",
     ],
     alt: [
       "Рибар държи риба на пристанище с лодки зад него",
@@ -186,8 +186,8 @@ const rows: ProfessionRow[] = [
     image: marketVendor,
     title: ["Продавач на пазара", "Market Vendor"],
     description: [
-      "Той знае кой избира внимателно и кой идва само да поговори. И за двамата намира време.",
-      "He knows who takes their time choosing and who came just to talk. He makes time for both.",
+      "Продавачът отдалеч познава кой избира внимателно и кой идва само да поговори. И за двамата има време.",
+      "From a distance, the vendor can tell who chooses with care and who came just to talk. Both get his time.",
     ],
     alt: [
       "Продавач държи ябълка пред сергия с плодове и зеленчуци",
@@ -201,8 +201,8 @@ const rows: ProfessionRow[] = [
     image: autoMechanic,
     title: ["Квартален автомонтьор", "Neighborhood Auto Mechanic"],
     description: [
-      "Колата пристига с шум, който собственикът не може да опише. Той го чува и вече знае откъде да започне.",
-      "The car arrives with a noise its owner cannot describe. He hears it and knows where to begin.",
+      "Колата пристига с шум, който собственикът не може да опише. Майсторът го чува веднъж и вече знае откъде да започне.",
+      "The car arrives with a noise its owner cannot describe. One listen, and the mechanic knows where to begin.",
     ],
     alt: [
       "Автомонтьор с гаечен ключ до отворен двигател в сервиз",
@@ -217,8 +217,8 @@ const rows: ProfessionRow[] = [
     role: "sanitation-worker",
     title: ["Боклукджия на сутрешна смяна", "Sanitation Worker on an Early Shift"],
     description: [
-      "Градът още спи, когато смяната му започва. Работата му остава незабелязана точно когато е свършена добре.",
-      "The city is still asleep when his shift begins. His work goes unnoticed precisely when he has done it well.",
+      "Градът още спи, когато смяната започва. Тази работа остава незабелязана точно когато е свършена добре.",
+      "The city is still asleep when the shift begins. This is work that goes unnoticed precisely when it is done well.",
     ],
     alt: [
       "Работник в светлоотразителна жилетка държи кафе до служебен автомобил",
@@ -232,8 +232,8 @@ const rows: ProfessionRow[] = [
     image: baker,
     title: ["Сутрин в пекарната", "Morning at the Bakery"],
     description: [
-      "Първите хора влизат, преди денят да е започнал истински. За него най-хубавата част е започнала още преди изгрев.",
-      "The first customers arrive before the day has properly begun. His favourite part started before sunrise.",
+      "Първите хора влизат, преди денят да е започнал истински. Най-хубавата част в пекарната обаче започва още преди изгрев.",
+      "The first customers arrive before the day has properly begun. The best part of the bakery's day starts well before sunrise.",
     ],
     alt: [
       "Пекар подава парче баница над витрина с печива",

@@ -37,13 +37,15 @@ vi.mock("@/i18n/link", () => ({
     slug,
     children,
     className,
+    "aria-label": ariaLabel,
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
     className?: string;
+    "aria-label"?: string;
   }) => (
-    <a href={slug ? to.replace("$slug", slug) : to} className={className}>
+    <a href={slug ? to.replace("$slug", slug) : to} className={className} aria-label={ariaLabel}>
       {children}
     </a>
   ),
@@ -81,10 +83,15 @@ describe("AI Worlds overview", () => {
       "/ai-worlds/collections/chefo-around-the-world",
     ]);
     expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
+    // Each hall is entered through its one visible action, named after the collection.
     const collectionActions = screen.getAllByText(messages[locale].ai.exploreCollection);
     expect(collectionActions).toHaveLength(4);
     for (const action of collectionActions) {
-      expect(action).toHaveClass("min-h-11", "rounded-sm", "border");
+      const link = action.closest("a")!;
+      const title = within(link.closest("article")!).getByRole("heading", { level: 2 });
+      expect(link).toHaveAccessibleName(
+        `${messages[locale].ai.exploreCollection}: ${title.textContent}`,
+      );
     }
     // The collection uses its own taxi portrait as cover.
     const professions = links[1]!.closest("article")!;

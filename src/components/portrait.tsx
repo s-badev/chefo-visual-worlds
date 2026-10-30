@@ -63,7 +63,7 @@ export function PortraitSwitch({
               type="button"
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
-              className={cn("min-h-11 rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors", mode === m ? "bg-primary text-primary-foreground" : "hover:text-terracotta-ink")}
+              className={cn("interaction-control min-h-11 rounded-sm border border-transparent px-3 py-1.5 text-xs font-semibold", mode === m ? "border-primary bg-primary text-primary-foreground" : "")}
             >
               {m === "real" ? t.portrait.real : t.portrait.ai}
             </button>

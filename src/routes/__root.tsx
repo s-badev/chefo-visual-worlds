@@ -26,7 +26,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl">404</h1>
         <p className="mt-4 text-muted-foreground">{t.notFound.page}</p>
-        <LocaleLink to="/" className="mt-6 inline-block border-b border-gold pb-1">
+        <LocaleLink to="/" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
           {t.notFound.home}
         </LocaleLink>
       </div>
@@ -51,7 +51,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             router.invalidate();
             reset();
           }}
-          className="mt-6 rounded-sm bg-primary px-4 py-2 text-sm text-primary-foreground"
+          className="interaction-primary mt-6 rounded-sm px-4 py-2 text-sm"
         >
           {t.error.retry}
         </button>

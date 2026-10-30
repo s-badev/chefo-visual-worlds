@@ -68,6 +68,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
       >
         <button
           type="button"
+          className="interaction-media"
           data-curated-photo-slug={photo.slug}
           data-full-index={index}
           aria-label={t.common.openFullscreen(photo.title)}
@@ -115,7 +116,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
       </div>
       <div className="container-page editorial-album-mast">
         <nav className="editorial-album-breadcrumb" aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="back-pill editorial-album-back">
+          <LocaleLink to="/photography" className="interaction-control back-pill editorial-album-back">
             <span className="back-pill-badge" aria-hidden="true">
               <ArrowLeft size={18} />
             </span>
@@ -134,7 +135,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
               <span>{items.find((photo) => photo.slug === cover.slug)?.title ?? cover.title}</span>
             )}
           </div>
-          <a href="#editorial-album-all" className="editorial-album-jump">
+          <a href="#editorial-album-all" className="interaction-link editorial-album-jump">
             {t.photos.allPhotos} <ArrowRight size={16} aria-hidden="true" />
           </a>
         </div>
@@ -172,6 +173,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
               <figure>
                 <button
                   type="button"
+                  className="interaction-media"
                   data-album-photo-slug={photo.slug}
                   data-full-index={index}
                   aria-label={t.common.openFullscreen(photo.title)}
@@ -191,7 +193,7 @@ export function EditorialAlbumView({ album }: { album: Album }) {
                   </span>
                 </button>
                 <figcaption>
-                  <LocaleLink to="/photography/$slug" slug={photo.slug}>
+                  <LocaleLink to="/photography/$slug" slug={photo.slug} className="interaction-link">
                     {photo.caption ?? photo.title}
                   </LocaleLink>
                 </figcaption>
