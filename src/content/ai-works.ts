@@ -266,7 +266,7 @@ export const aiWorks: AiWork[] = [
     image: worldCuba, width: 1024, height: 1536,
     prompt: "Using the uploaded reference photograph as the identity source, create a photorealistic vertical street portrait of the same person standing on a colourful Cuban city street. Preserve the person's recognizable facial identity, natural facial proportions, skin tone and individual features from the reference photograph. They wear a textured white short-sleeved open-collar shirt, with their torso visible, arms relaxed and a composed direct gaze. Position a vintage blue car on the street beside them, warm painted colonial facades and a palm behind them, and a domed building farther down the road. Use bright but soft tropical daylight, realistic urban depth, vivid yet credible colours and a waist-up to mid-thigh camera distance. Keep the portrait grounded and documentary in feel; avoid caricature, malformed hands and text overlays.",
     alt: "AI портрет на Чефо с бяла риза пред цветни фасади и ретро автомобил",
-    description: "В Хавана плановете се променят още на първия ъгъл. Сред цветните фасади така се опознава градът.",
+    description: "В Хавана плановете се променят още на първия ъгъл. Сред цветните фасади точно така се опознава градът.",
     en: {
       title: "Streets of Cuba",
       alt: "AI portrait of Chefo in a white shirt before colourful façades and a vintage car",

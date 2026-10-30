@@ -127,7 +127,7 @@ const rows: ProfessionRow[] = [
     title: ["Майстор на климатици", "Air Conditioning Technician"],
     description: [
       "Градът си спомня за него, когато жегата стане нетърпима. Пристига с винтоверт и с повече търпение от всички останали.",
-      "The city remembers him when the heat becomes unbearable. Help arrives with a cordless screwdriver and more patience than anyone else.",
+      "The city remembers him when the heat becomes unbearable. The technician arrives with a cordless drill and more patience than anyone else.",
     ],
     alt: [
       "Техник с винтоверт работи до външно тяло на климатик",
@@ -171,8 +171,8 @@ const rows: ProfessionRow[] = [
     image: fisherman,
     title: ["Рибар на пристанището", "Harbor Fisherman"],
     description: [
-      "Морето не обещава улов. Лодката пак излиза, защото някои сутрини си струват и без гаранция.",
-      "The sea never promises a catch. The boat goes out anyway, because some mornings are worth it without a guarantee.",
+      "Морето не обещава улов. Рибарят пак е на кея, защото някои сутрини си струват и без гаранция.",
+      "The sea never promises a catch. The fisherman is on the pier anyway, because some mornings are worth it without a guarantee.",
     ],
     alt: [
       "Рибар държи риба на пристанище с лодки зад него",
