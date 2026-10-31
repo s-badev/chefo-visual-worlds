@@ -167,7 +167,7 @@ export function DestinationIndex() {
                 </div>
                 <ArrowRight
                   aria-hidden="true"
-                  className="mt-1 size-4 shrink-0 text-gold opacity-0 transition-[opacity,translate] duration-(--dur-base) ease-cinematic group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
+                  className="mt-1 size-4 shrink-0 text-interaction-gold opacity-0 transition-[opacity,translate] duration-(--dur-base) ease-cinematic group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
                 />
               </article>
             </li>
@@ -269,7 +269,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
                 className="interaction-media block w-full cursor-zoom-in"
               >
                 <ArtImage work={work} eager className="object-contain motion-safe:group-hover:scale-100" />
-                <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
+                <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-interaction-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
                   <Expand aria-hidden="true" className="size-3.5" /> {m.fullscreen}
                 </span>
               </button>

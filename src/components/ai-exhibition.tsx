@@ -55,7 +55,7 @@ export function ArtEdge() {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/35 group-focus-within:ring-gold/60"
+      className="pointer-events-none absolute inset-0 rounded-sm ring-1 ring-inset ring-interaction-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-interaction-gold/35 group-focus-within:ring-interaction-gold/60"
     />
   );
 }
@@ -255,7 +255,7 @@ export function ExhibitWork({ work, index }: { work: AiWork; index: number }) {
         </h3>
         <ArrowRight
           aria-hidden="true"
-          className="size-4 shrink-0 text-gold opacity-0 transition-[opacity,translate] duration-(--dur-base) ease-cinematic group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
+          className="size-4 shrink-0 text-interaction-gold opacity-0 transition-[opacity,translate] duration-(--dur-base) ease-cinematic group-hover:opacity-100 motion-safe:-translate-x-1 motion-safe:group-hover:translate-x-0"
         />
       </div>
       {provider && (
@@ -420,7 +420,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
               "interaction-control interaction-text-button inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border py-2 text-xs font-semibold disabled:cursor-wait",
               copied
                 ? "border-gold bg-gold text-navy"
-                : "border-gold/60 bg-navy text-gold hover:border-gold hover:bg-surface-raised",
+                : "border-gold/60 bg-navy text-gold hover:border-interaction-gold hover:bg-surface-raised",
             )}
           >
             {copied ? (

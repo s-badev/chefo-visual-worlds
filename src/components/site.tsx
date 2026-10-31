@@ -397,7 +397,7 @@ export function Chip({
         "interaction-control interaction-text-button min-h-11 shrink-0 whitespace-nowrap rounded-full border py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border hover:border-gold",
+          : "border-border hover:border-interaction-gold",
       )}
     >
       {children}
@@ -578,7 +578,7 @@ export function AiCard({
           />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/40 group-focus-within:ring-gold/60"
+            className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-interaction-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-interaction-gold/40 group-focus-within:ring-interaction-gold/60"
           />
           <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
             {t.common.aiBadge}
