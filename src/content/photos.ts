@@ -18,6 +18,7 @@ import { sunnyBeachPhotos } from "./sunny-beach-photos";
 import { fourAlbumAdditions } from "./four-album-additions";
 import { fourNewAlbumPhotos } from "./four-new-album-photos";
 import { svetiVlasAdditions } from "./sveti-vlas-additions";
+import { burgasPhotos } from "./burgas-photos";
 import type { Locale } from "@/i18n";
 
 export const PHOTO_CATEGORIES = ["Море", "Град", "Залези", "Пътувания"] as const;
@@ -33,6 +34,7 @@ export const PHOTO_LOCATIONS = [
   "Лион",
   "Истанбул",
   "Бодрум",
+  "Бургас",
 ] as const;
 export type PhotoCategory = (typeof PHOTO_CATEGORIES)[number];
 export const PHOTO_THEMES = ["sea", "city", "sunsets", "nature", "architecture", "travel"] as const;
@@ -439,6 +441,7 @@ export const photos: Photo[] = [
   ...sunnyBeachPhotos,
   ...fourAlbumAdditions,
   ...svetiVlasAdditions,
+  ...burgasPhotos,
 ];
 
 export const getPhoto = (slug: string) => photos.find((p) => p.slug === slug);
@@ -461,6 +464,7 @@ const LOCATION_EN: Record<string, string> = {
   Лион: "Lyon",
   Истанбул: "Istanbul",
   Бодрум: "Bodrum",
+  Бургас: "Burgas",
   Неуточнено: "Unspecified",
 };
 

@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -28,16 +28,18 @@ import { plovdivAdditions } from "@/content/plovdiv-additions";
 import { edirneAdditions } from "@/content/edirne-additions";
 import { fourAlbumAdditions } from "@/content/four-album-additions";
 import { svetiVlasAdditions } from "@/content/sveti-vlas-additions";
+import { burgasPhotos } from "@/content/burgas-photos";
 import { routeTree } from "@/routeTree.gen";
 import { validatePhotoSearch } from "@/views/photography";
 
 describe("photography albums", () => {
-  it("has twelve stable locations and publishes only populated albums", () => {
+  it("has thirteen stable locations and publishes only populated albums", () => {
     expect(albums.map((album) => album.slug)).toEqual([
       "sofia",
       "sunny-beach",
       "sveti-vlas",
       "nessebar",
+      "burgas",
       "plovdiv",
       "rila",
       "tunisia",
@@ -48,7 +50,7 @@ describe("photography albums", () => {
       "bodrum",
     ]);
     expect(new Set(albums.map((album) => album.id)).size).toBe(albums.length);
-    expect(photos).toHaveLength(400);
+    expect(photos).toHaveLength(426);
     expect(
       albums.every((album) =>
         existsSync(join(process.cwd(), "public", "photos", album.slug, ".gitkeep")),
@@ -59,6 +61,7 @@ describe("photography albums", () => {
       "sunny-beach",
       "sveti-vlas",
       "nessebar",
+      "burgas",
       "plovdiv",
       "rila",
       "tunisia",
@@ -71,6 +74,17 @@ describe("photography albums", () => {
     expect(getPublishedAlbum("paris")?.status).toBe("published");
     expect(getPublishedAlbum("lyon")?.status).toBe("published");
     expect(getPublishedAlbum("edirne")?.status).toBe("published");
+    expect(getPublishedAlbum("burgas")?.status).toBe("published");
+    expect(getAlbum("burgas")).toMatchObject({
+      id: "burgas",
+      title: { bg: "Бургас", en: "Burgas" },
+      description: {
+        bg: "Морето, плажовете, кеят и крайбрежният парк на Бургас.",
+        en: "The sea, beaches, pier and seaside park of Burgas.",
+      },
+      coverPhotoSlug: "burgas-017",
+      status: "published",
+    });
     expect(getAlbum("edirne")).toMatchObject({
       id: "edirne",
       title: { bg: "Одрин", en: "Edirne" },
@@ -129,6 +143,8 @@ describe("photography albums", () => {
     }
     expect(getAlbumForPhoto("patyat-na-yug")).toBeUndefined();
     expect(getNextPublishedAlbum(sofia)?.slug).toBe("sunny-beach");
+    expect(getNextAlbum(getAlbum("nessebar")!)?.slug).toBe("burgas");
+    expect(getNextAlbum(getAlbum("burgas")!)?.slug).toBe("plovdiv");
     expect(getNextAlbum(getAlbum("paris")!)?.slug).toBe("lyon");
     expect(getNextAlbum(getAlbum("lyon")!)?.slug).toBe("istanbul");
     expect(getNextAlbum(getAlbum("istanbul")!)?.slug).toBe("edirne");
@@ -416,6 +432,47 @@ describe("photography albums", () => {
     expect(getAlbumCover(getAlbum("edirne")!)?.image).toBe("/photos/edirne/edirne-006.webp");
   });
 
+  it("publishes 26 Burgas WebPs in source order with a real cover and cover card", () => {
+    const album = getPublishedAlbum("burgas")!;
+    const bg = getAlbumPhotos(album, "bg");
+    const en = getAlbumPhotos(album, "en");
+    const numbered = Array.from(
+      { length: 26 },
+      (_, index) => `burgas-${String(index + 1).padStart(3, "0")}`,
+    );
+    expect(burgasPhotos.map((photo) => photo.slug)).toEqual(numbered);
+    expect(bg.map((photo) => photo.slug)).toEqual(numbered);
+    expect(en).toHaveLength(26);
+    expect(album.coverPhotoSlug).toBe("burgas-017");
+    expect(getAlbumCover(album)?.image).toBe("/photos/burgas/burgas-017.webp");
+    expect(en[0]?.location).toBe("Burgas");
+    expect(bg[0]?.location).toBe("Бургас");
+    // Every file in the folder is registered, and every registered photo is on disk.
+    expect(readdirSync(join(process.cwd(), "public", "photos", "burgas")).sort()).toEqual(
+      [".gitkeep", ...numbered.map((slug) => `${slug}.webp`), "burgas-cover-card.webp"].sort(),
+    );
+    for (const photo of burgasPhotos) {
+      expect(photo.image).toBe(`/photos/burgas/${photo.slug}.webp`);
+      expect(getAlbumForPhoto(photo.slug)?.slug).toBe("burgas");
+      expect(photo.title && photo.alt && photo.en?.title && photo.en?.alt).toBeTruthy();
+      const bytes = readFileSync(join(process.cwd(), "public", photo.image.slice(1)));
+      expect(bytes.toString("ascii", 0, 4)).toBe("RIFF");
+      expect(bytes.toString("ascii", 8, 16)).toBe("WEBPVP8X");
+      expect(photo.width).toBe(1 + bytes.readUIntLE(24, 3));
+      expect(photo.height).toBe(1 + bytes.readUIntLE(27, 3));
+      expect(Math.max(photo.width, photo.height)).toBeLessThanOrEqual(2000);
+      expect(bytes.includes(Buffer.from("EXIF"))).toBe(false);
+      expect(bytes.includes(Buffer.from("XMP "))).toBe(false);
+    }
+    const card = readFileSync(
+      join(process.cwd(), "public", "photos", "burgas", "burgas-cover-card.webp"),
+    );
+    expect(card.toString("ascii", 8, 16)).toBe("WEBPVP8X");
+    expect([1 + card.readUIntLE(24, 3), 1 + card.readUIntLE(27, 3)]).toEqual([720, 405]);
+    expect(card.includes(Buffer.from("EXIF"))).toBe(false);
+    expect(card.includes(Buffer.from("XMP "))).toBe(false);
+  });
+
   it("publishes 24 unique Lyon WebPs with bilingual metadata and a real cover", () => {
     const album = getPublishedAlbum("lyon")!;
     const bg = getAlbumPhotos(album, "bg");
@@ -503,7 +560,7 @@ describe("photography albums", () => {
 
   it("routes BG and EN albums while retaining legacy photo URLs", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
-    for (const slug of batchAlbumSlugs) {
+    for (const slug of [...batchAlbumSlugs, "burgas"]) {
       expect(router.matchRoutes(`/photography/albums/${slug}`).at(-1)?.routeId).toBe(
         "/photography/albums/$slug",
       );

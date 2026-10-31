@@ -2,7 +2,7 @@
 
 ### Real places. Endless worlds.
 
-![Photography](https://img.shields.io/badge/Photography-10%20Albums-1B2832?style=for-the-badge)
+![Photography](https://img.shields.io/badge/Photography-13%20Albums-1B2832?style=for-the-badge)
 ![AI Worlds](https://img.shields.io/badge/AI%20Worlds-4%20Collections%20%7C%2064%20Works-B38A58?style=for-the-badge)
 ![Languages](https://img.shields.io/badge/Languages-BG%20%2F%20EN-34514C?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Pre--launch-555555?style=for-the-badge)
@@ -14,7 +14,7 @@
 ## ✨ Highlights
 
 - 🌅 **Sunny Beach 2025 / 2126** — a real coastal view meets an imagined future.
-- 🌍 **Photography** — 10 albums built around places, moments, and visual rhythm.
+- 🌍 **Photography** — 13 albums built around places, moments, and visual rhythm.
 - 🎭 **AI Worlds** — 4 collections with 16 works each.
 - 🇧🇬 🇬🇧 **Bulgarian and English** throughout the experience.
 - 🖼️ **Lightbox** for viewing photography and AI artworks at a larger scale.
@@ -36,7 +36,7 @@
 
 ## 📷 Photography
 
-Ten albums present real places as photographic stories. Each album has its own cover, image sequence, and viewing experience.
+Thirteen albums present real places as photographic stories. Each album has its own cover, image sequence, and viewing experience.
 
 **Paris** and **Istanbul** are among the featured albums. The photographs remain the focus; text adds context without describing what the viewer can already see.
 

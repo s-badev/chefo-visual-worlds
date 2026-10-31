@@ -50,7 +50,8 @@ afterEach(() => {
 const originalPilotSlugs = ["sunny-beach", "sofia", "sveti-vlas", "rila"] as const;
 const waveASlugs = ["lyon", "bodrum", "nessebar"] as const;
 const waveBSlugs = ["tunisia", "edirne", "plovdiv"] as const;
-const pilotSlugs = [...originalPilotSlugs, ...waveASlugs, ...waveBSlugs] as const;
+const waveCSlugs = ["burgas"] as const;
+const pilotSlugs = [...originalPilotSlugs, ...waveASlugs, ...waveBSlugs, ...waveCSlugs] as const;
 const canonicalHashes: Record<string, string> = {
   sofia: "4577f4086abe28dcc1eafe33feb1c9fc7c05804e11526da89b5005027b251daa",
   "sunny-beach": "14dbb180ebd3ba6402a8b2e7a562225d28a34eeb069243bc4017362d49cda216",
@@ -64,10 +65,11 @@ const canonicalHashes: Record<string, string> = {
   istanbul: "784f42088e71ad61a41d7a550a7e6899888cbba888ede5c4b81a7650561b02a0",
   edirne: "2d509dffb51cc13bd00535291a07012e7bbcc7837b657870393868bc18e65a73",
   bodrum: "3d496ed5d38d6a628516e19c1799098cc1d7d6561a69f8bc34466905e2eff35a",
+  burgas: "9a5cd146982c2118b5c4fcfd91751e866415cb648aca41a9b8de0e6908389b42",
 };
 
-it("preserves all twelve committed canonical photo sequences", () => {
-  expect(getAlbums()).toHaveLength(12);
+it("preserves all thirteen committed canonical photo sequences", () => {
+  expect(getAlbums()).toHaveLength(13);
   for (const album of getAlbums()) {
     const slugs = getAlbumPhotos(album, "bg").map((photo) => photo.slug);
     expect(createHash("sha256").update(JSON.stringify(slugs)).digest("hex")).toBe(
@@ -76,7 +78,7 @@ it("preserves all twelve committed canonical photo sequences", () => {
   }
 });
 
-it("configures exactly ten unified albums with published cover-first, unique highlights", () => {
+it("configures exactly eleven unified albums with published cover-first, unique highlights", () => {
   expect(editorial.pilotAlbums.map((album) => album.albumSlug)).toEqual(pilotSlugs);
   for (const slug of pilotSlugs) {
     const album = getAlbum(slug)!;
@@ -163,6 +165,7 @@ const expectedStacks = {
   tunisia: { mobile: 3, smallTablet: 2, mediumTablet: 1, tablet: 1, desktop: 2 },
   edirne: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 0, desktop: 0 },
   plovdiv: { mobile: 1, smallTablet: 1, mediumTablet: 1, tablet: 1, desktop: 0 },
+  burgas: { mobile: 4, smallTablet: 4, mediumTablet: 1, tablet: 2, desktop: 4 },
 } as const;
 
 it.each(pilotSlugs)("keeps the explicit per-breakpoint stack contract for %s", (slug) => {
@@ -176,7 +179,7 @@ it.each(pilotSlugs)("keeps the explicit per-breakpoint stack contract for %s", (
   }
 });
 
-it.each([...waveASlugs, ...waveBSlugs] as const)(
+it.each([...waveASlugs, ...waveBSlugs, ...waveCSlugs] as const)(
   "moves %s to the shared unified album view",
   (slug) => {
     const { container } = render(<AlbumView album={getAlbum(slug)!} view="all" />);
