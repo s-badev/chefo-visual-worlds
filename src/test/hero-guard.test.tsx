@@ -66,7 +66,7 @@ const COPY = {
     sub: "Фотографии от моите пътувания и\u00a0AI светове, в\u00a0които се озовавам там, където обективът не стига.",
     ctaPhotos: "Разгледай фотографиите",
     ctaAi: "Влез в AI световете",
-    home: "CHEFO — Visual Worlds, начало",
+    home: "CHEFO Visual Worlds, начало",
   },
   en: {
     eyebrow: "Between the frame and the imagination",
@@ -75,7 +75,7 @@ const COPY = {
     sub: "Photos from my travels and AI worlds, where I end up in places the lens cannot reach.",
     ctaPhotos: "Browse the photos",
     ctaAi: "Enter the AI worlds",
-    home: "CHEFO — Visual Worlds, home",
+    home: "CHEFO Visual Worlds, home",
   },
 } as const;
 
@@ -309,17 +309,25 @@ describe("header over the Hero", () => {
       expect(icon).toHaveAttribute("width", "44");
       expect(icon).toHaveAttribute("height", "44");
       expect(lockup).toHaveClass("min-h-11");
+      // Hover and focus draw one underline under the whole wordmark (see styles.css).
+      expect(lockup).toHaveClass("interaction-link", "brand-lockup");
+      expect(lockup.querySelector(":scope > span")).toHaveClass("brand-lockup-text");
       // Dash-free wordmark: bold CHEFO, regular VISUAL WORLDS (from md), no separator glyph.
       expect(lockup).toHaveTextContent(/^CHEFO Visual Worlds$/);
       expect(lockup.textContent).not.toMatch(/[—–\-·|/]/);
+      expect(lockup.getAttribute("aria-label")).not.toMatch(/[—–]/);
+      // One inline text run: no flex gap between the words, so both gaps are one word space
+      // and the link's underline is continuous.
       const text = lockup.querySelector("span")!;
-      expect(text.className).toContain("gap-[0.7em]");
+      expect(text.className).not.toMatch(/\b(inline-)?flex\b|\bgap-/);
       expect(text.className).toContain("whitespace-nowrap");
       expect(text.className).toContain("uppercase");
+      expect(text.textContent).toBe("CHEFO Visual Worlds");
       const [brand, rest] = Array.from(text.querySelectorAll("span"));
-      expect(brand).toHaveTextContent(/^CHEFO$/);
+      expect(brand!.textContent).toBe("CHEFO");
       expect(brand!.className).toBe("font-bold");
-      expect(rest).toHaveTextContent(/^Visual Worlds$/);
+      // The single word space lives in the md+ span, so phones show "CHEFO" with nothing after it.
+      expect(rest!.textContent).toBe(" Visual Worlds");
       expect(rest!.className.split(" ").sort()).toEqual(["font-normal", "hidden", "md:inline"]);
       cleanupMarked();
     },

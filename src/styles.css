@@ -731,6 +731,20 @@
   border-bottom-color: var(--interaction-gold-bright);
   box-shadow: 0 1px 0 var(--interaction-gold-bright);
 }
+/* Header brand lockup: its hover/focus underline is painted once under the whole wordmark,
+   not once per word, so it never splits or seams where bold CHEFO meets the regular words.
+   Same colour, 2px thickness and offset as .interaction-link: 0.28rem below the baseline,
+   which sits 1em below the top of the wordmark's 1.4 line box. */
+.brand-lockup-text {
+  background: linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))
+    no-repeat 0 calc(1em + 0.28rem) / 100% 0;
+}
+.interaction-link.brand-lockup:focus-visible {
+  text-decoration-line: none;
+}
+.brand-lockup:focus-visible .brand-lockup-text {
+  background-size: 100% 2px;
+}
 .interaction-media:focus-visible {
   box-shadow:
     inset 0 0 0 3px var(--interaction-gold-bright),
@@ -784,6 +798,12 @@
   }
   .interaction-media:hover {
     box-shadow: inset 0 0 0 3px var(--interaction-gold-bright);
+  }
+  .interaction-link.brand-lockup:hover {
+    text-decoration-line: none;
+  }
+  .brand-lockup:hover .brand-lockup-text {
+    background-size: 100% 2px;
   }
   /* An inset outline paints above card content (covers), unlike an inset shadow. */
   .interaction-card:hover {

@@ -1,6 +1,6 @@
 // All visitor-facing UI strings. Bulgarian defines the shape; English must match it.
 const bg = {
-  nav: { photography: "Фотографии", ai: "AI светове", about: "За мен", main: "Основна навигация", mobile: "Мобилна навигация", open: "Отвори менюто", close: "Затвори менюто", language: "Език", skip: "Към съдържанието", home: "CHEFO — Visual Worlds, начало" },
+  nav: { photography: "Фотографии", ai: "AI светове", about: "За мен", main: "Основна навигация", mobile: "Мобилна навигация", open: "Отвори менюто", close: "Затвори менюто", language: "Език", skip: "Към съдържанието", home: "CHEFO Visual Worlds, начало" },
   footer: { tagline: "Моят свят в кадри и въображение.", rights: "Всички права запазени.", email: "Имейл" },
   common: { all: "Всички", clearFilters: "Изчисти филтрите", backToTop: "Към началото на страницата", aiBadge: "AI генерация", copyPrompt: "Копирай промпта", copyPromptFor: (t: string) => `Копирай промпта за „${t}“`, copied: "Промптът е копиран", copiedShort: "Копирано", copyFailed: "Копирането не успя. Отворете творбата и маркирайте промпта ръчно.", openFullscreen: (t: string) => `Отвори „${t}“ в цял екран`, ogImageAlt: "Логото CHEFO Visual Worlds с портретната икона и мотото „Real Places. Infinite Worlds.“" },
   lightbox: { prev: "Предишна снимка", next: "Следваща снимка", close: "Затвори", zoomIn: "Увеличи изображението", zoomOut: "Побери изображението в екрана" },
@@ -115,7 +115,7 @@ const bg = {
 export type Messages = typeof bg;
 
 const en: Messages = {
-  nav: { photography: "Photography", ai: "AI Worlds", about: "About", main: "Main navigation", mobile: "Mobile navigation", open: "Open menu", close: "Close menu", language: "Language", skip: "Skip to content", home: "CHEFO — Visual Worlds, home" },
+  nav: { photography: "Photography", ai: "AI Worlds", about: "About", main: "Main navigation", mobile: "Mobile navigation", open: "Open menu", close: "Close menu", language: "Language", skip: "Skip to content", home: "CHEFO Visual Worlds, home" },
   footer: { tagline: "My world in frames and imagination.", rights: "All rights reserved.", email: "Email" },
   common: { all: "All", clearFilters: "Clear filters", backToTop: "Back to top", aiBadge: "AI generated", copyPrompt: "Copy prompt", copyPromptFor: (t) => `Copy the prompt for “${t}”`, copied: "Prompt copied", copiedShort: "Copied", copyFailed: "Copying failed. Open the artwork and select the prompt manually.", openFullscreen: (t) => `Open “${t}” in full screen`, ogImageAlt: "CHEFO Visual Worlds logo with the portrait icon and the tagline “Real Places. Infinite Worlds.”" },
   lightbox: { prev: "Previous photo", next: "Next photo", close: "Close", zoomIn: "Zoom image", zoomOut: "Fit image to screen" },

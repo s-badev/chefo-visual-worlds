@@ -544,12 +544,39 @@ describe("AI Worlds view switch", () => {
   });
 });
 
+describe("Brand lockup underline", () => {
+  it("paints one 2px bright-gold line under the whole wordmark on hover and focus", () => {
+    const line = rule(".brand-lockup-text")!.body;
+    expect(line).toContain(
+      "linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))",
+    );
+    // Same offset as .interaction-link (0.28em of the 16px link), below the 1em baseline.
+    expect(line).toContain("0 calc(1em + 0.28rem) / 100% 0");
+    expect(rule(".interaction-link")!.body).toContain("text-underline-offset: 0.28em");
+    for (const [state, context] of [
+      [":hover", POINTER],
+      [":focus-visible", ""],
+    ] as const) {
+      // The per-word text underline is off, so it cannot split between CHEFO and VISUAL.
+      expect(rule(`.interaction-link.brand-lockup${state}`, context)!.body).toBe(
+        "text-decoration-line: none;",
+      );
+      expect(rule(`.brand-lockup${state} .brand-lockup-text`, context)!.body).toBe(
+        "background-size: 100% 2px;",
+      );
+    }
+  });
+});
+
 describe("Dash-free wordmark", () => {
   it.each(["bg", "en"] as const)("names the %s brand link Chefo Visual Worlds", async (locale) => {
     await renderAt(`${prefix[locale]}/`, () => <Wordmark />);
     const link = screen.getByRole("link", { name: "Chefo Visual Worlds" });
     expect(link).toHaveAttribute("href", locale === "en" ? "/en" : "/");
     expect(link.textContent).not.toMatch(/[—–\-·|/]/);
-    expect(link.textContent?.replace(/\s+/g, " ").trim()).toBe("CHEFO VISUAL WORLDS");
+    expect(link.textContent).toBe("CHEFO VISUAL WORLDS");
+    // One inline run with a real word space: no flex gap that would widen the first gap.
+    expect(link.className).not.toMatch(/\b(inline-)?flex\b|\bgap-/);
+    expect(link.querySelector(".font-bold")!.textContent).toBe("CHEFO");
   });
 });
