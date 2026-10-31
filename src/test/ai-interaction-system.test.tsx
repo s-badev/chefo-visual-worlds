@@ -19,7 +19,8 @@ import {
 } from "@/content/ai-collections";
 import { messages } from "@/i18n/messages";
 import { aiWorks } from "@/content/ai-works";
-import { AiCollectionView, AiDetailView } from "@/views/ai-worlds";
+import { AiCollectionView, AiDetailView, AiWorldsView } from "@/views/ai-worlds";
+import { Wordmark } from "@/components/site";
 
 // Renders a view inside a real router at `path`, so links and locale are the real ones.
 const renderAt = async (path: string, view: () => ReactNode) => {
@@ -413,5 +414,79 @@ describe("Design A interaction system", () => {
     const dialog = await screen.findByRole("dialog");
     fireEvent.keyDown(dialog, { key: "Escape" });
     await waitFor(() => expect(document.activeElement).toBe(opener));
+  });
+});
+
+describe("AI Worlds view switch", () => {
+  it.each(["bg", "en"] as const)(
+    "keeps the %s group and pressed semantics as one segmented switch",
+    async (locale) => {
+      await renderAt(`${prefix[locale]}/ai-worlds`, () => <AiWorldsView />);
+      const group = screen.getByRole("group", { name: messages[locale].ai.view });
+      expect(group).toHaveClass("ai-view-switch");
+      expect(group.className).not.toMatch(/border-b/);
+      const [collections, works] = within(group).getAllByRole("button");
+      expect(collections).toHaveTextContent(messages[locale].ai.collections);
+      expect(works).toHaveTextContent(messages[locale].ai.allWorks);
+      expect(collections).toHaveAttribute("aria-pressed", "true");
+      expect(works).toHaveAttribute("aria-pressed", "false");
+      for (const tab of [collections!, works!]) {
+        expect(tab.className).toBe("ai-view-switch-tab");
+        // The old flat gold block and underline came from these classes.
+        expect(tab.className).not.toMatch(/interaction-control|border-b|border-gold/);
+      }
+    },
+  );
+
+  it("paints rest, selected, hover and focus with the approved values", () => {
+    const container = rule(".ai-view-switch")!.body;
+    expect(container).toContain("border-radius: 999px");
+    expect(container).toContain("padding: 5px");
+    expect(container).toContain("gap: 4px");
+    expect(container).toContain("border: 1px solid rgb(244 238 225 / 0.22)");
+    expect(container).toContain("background-color: rgb(244 238 225 / 0.04)");
+    const tab = rule(".ai-view-switch-tab")!.body;
+    expect(tab).toContain("min-height: 44px");
+    expect(tab).toContain("border-radius: 999px");
+    expect(tab).toContain("background-color: transparent");
+    expect(tab).toContain("color: #cfcabd");
+    expect(tab).not.toMatch(/border-bottom|inset/);
+    const selected = rule('.ai-view-switch-tab[aria-pressed="true"]')!.body;
+    expect(selected).toContain("background-color: var(--interaction-cream)");
+    expect(selected).toContain("color: var(--interaction-ink-on-gold)");
+    const hover = rule(".ai-view-switch-tab:hover", POINTER)!.body;
+    expect(hover).toContain("background-color: var(--interaction-gold-bright)");
+    expect(hover).toContain("color: var(--interaction-ink-on-gold)");
+    const focus = rule(".ai-view-switch-tab:focus-visible")!.body;
+    expect(focus).toContain("outline: 2px solid var(--interaction-gold-bright)");
+    expect(focus).toContain("outline-offset: 3px");
+  });
+
+  it("keeps the switch hover pointer-only and its movement optional", () => {
+    const own = rules.filter((r) => r.selector.includes("ai-view-switch"));
+    expect(own.some((r) => r.selector.includes(":hover"))).toBe(true);
+    for (const r of own) {
+      if (r.selector.includes(":hover")) expect(r.context).toContain(POINTER);
+      if (/translate: 0 -1px|scale: 0\.98/.test(r.body)) {
+        expect(r.context).toContain("(prefers-reduced-motion: no-preference)");
+      }
+    }
+  });
+
+  it("keeps switch text readable in every state (WCAG >= 4.5:1)", () => {
+    // Rest: #cfcabd over the 4% cream wash on navy (#162134).
+    expect(contrast("#cfcabd", "#162134")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(INK, GOLD)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe("Dash-free wordmark", () => {
+  it.each(["bg", "en"] as const)("names the %s brand link Chefo Visual Worlds", async (locale) => {
+    await renderAt(`${prefix[locale]}/`, () => <Wordmark />);
+    const link = screen.getByRole("link", { name: "Chefo Visual Worlds" });
+    expect(link).toHaveAttribute("href", locale === "en" ? "/en" : "/");
+    expect(link.textContent).not.toMatch(/[—–\-·|/]/);
+    expect(link.textContent?.replace(/\s+/g, " ").trim()).toBe("CHEFO VISUAL WORLDS");
   });
 });

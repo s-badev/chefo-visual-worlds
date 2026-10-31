@@ -33,15 +33,18 @@ vi.mock("@/i18n/link", () => ({
     slug,
     children,
     className,
+    "aria-label": ariaLabel,
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
     className?: string;
+    "aria-label"?: string;
   }) => (
     <a
       href={`${activeLocale === "en" ? "/en" : ""}${slug ? to.replace("$slug", slug) : to}`}
       className={className}
+      aria-label={ariaLabel}
     >
       {children}
     </a>
@@ -294,17 +297,16 @@ describe("header over the Hero", () => {
     expect(screen.getByRole("button", { name: messages.bg.nav.open }).className).toContain(
       "lg:hidden",
     );
-    // Wordmark dash: white on the dark header, gold-ink on the light one, gold elsewhere (footer).
-    const wordmark = within(header).getByRole("link", { name: "CHEFO — VISUAL WORLDS" });
-    const dash = wordmark.querySelector("span")!;
-    expect(dash).toHaveTextContent(/^—$/);
-    expect(dash.className.split(" ").sort()).toEqual(
-      [
-        "text-gold",
-        "[[data-theme=dark]_&]:text-white",
-        "[[data-theme=light]_&]:text-gold-ink",
-      ].sort(),
-    );
+    // Wordmark: bold CHEFO, regular VISUAL WORLDS, no separator glyph, dash-free accessible name.
+    const wordmark = within(header).getByRole("link", { name: "Chefo Visual Worlds" });
+    expect(wordmark.textContent).not.toMatch(/[—–\-·|/]/);
+    const [brand, rest] = Array.from(wordmark.querySelectorAll("span"));
+    expect(brand).toHaveTextContent(/^CHEFO$/);
+    expect(brand!.className).toBe("font-bold");
+    expect(rest).toHaveTextContent(/^VISUAL WORLDS$/);
+    expect(rest!.className).toBe("font-normal");
+    expect(wordmark.className).toContain("gap-[0.7em]");
+    expect(wordmark.className).toContain("whitespace-nowrap");
     cleanupMarked();
   });
 

@@ -780,6 +780,73 @@
   }
 }
 
+/* AI Worlds view switch (Collections / All artworks): one segmented control on the dark surface.
+   Selected is cream like the primary button at rest; hover turns any segment bright gold. */
+.ai-view-switch {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid rgb(244 238 225 / 0.22);
+  border-radius: 999px;
+  background-color: rgb(244 238 225 / 0.04);
+}
+.ai-view-switch-tab {
+  min-height: 44px;
+  padding-inline: 22px;
+  border-radius: 999px;
+  background-color: transparent;
+  color: #cfcabd;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--interaction-duration) var(--motion-ease),
+    color var(--interaction-duration) var(--motion-ease),
+    box-shadow var(--interaction-duration) var(--motion-ease),
+    translate var(--interaction-duration) var(--motion-ease),
+    scale var(--interaction-duration) var(--motion-ease);
+}
+.ai-view-switch-tab[aria-pressed="true"] {
+  background-color: var(--interaction-cream);
+  color: var(--interaction-ink-on-gold);
+}
+.ai-view-switch-tab:focus-visible {
+  outline: 2px solid var(--interaction-gold-bright);
+  outline-offset: 3px;
+}
+/* Narrow phones: two equal segments fill the row instead of wrapping or overflowing. */
+@media (max-width: 400px) {
+  .ai-view-switch {
+    display: flex;
+  }
+  .ai-view-switch-tab {
+    flex: 1 1 0;
+    padding-inline: 12px;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-view-switch-tab:hover {
+    background-color: var(--interaction-gold-bright);
+    color: var(--interaction-ink-on-gold);
+    box-shadow:
+      0 0 0 4px rgb(226 177 78 / 0.25),
+      0 8px 22px rgb(226 177 78 / 0.25);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ai-view-switch-tab:hover {
+    translate: 0 -1px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ai-view-switch-tab:active {
+    translate: 0 0;
+    scale: 0.98;
+  }
+}
+
 /* AI artwork actions: collection presentations and the AI Worlds overview entries. */
 .ai-artwork-action {
   display: inline-flex;

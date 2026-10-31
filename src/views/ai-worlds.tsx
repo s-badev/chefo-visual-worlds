@@ -91,24 +91,19 @@ export function AiWorldsView() {
     });
   const items = filterAiWorks(aiWorks, filters).map((w) => localizeAiWork(w, locale));
 
-  const tab = (active: boolean) =>
-    cn(
-      "interaction-control min-h-11 border-b-2 px-2 pb-4 text-sm font-semibold transition-colors duration-(--dur-fast)",
-      active ? "border-gold text-foreground" : "border-transparent text-muted-foreground",
-    );
-
   return (
     <>
       <Surface tone="dark" as="div">
         <div className="container-page section-y">
           <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
-          <div role="group" aria-label={m.view} className="mt-12 flex gap-8 border-b border-border">
+          {/* Segmented switch; selected and hover states live in styles.css (.ai-view-switch). */}
+          <div role="group" aria-label={m.view} className="ai-view-switch mt-12">
             <button
               type="button"
               aria-pressed={view === "collections"}
               onClick={() => set({ view: undefined, ...NO_FILTERS })}
-              className={tab(view === "collections")}
+              className="ai-view-switch-tab"
             >
               {m.collections}
             </button>
@@ -116,7 +111,7 @@ export function AiWorldsView() {
               type="button"
               aria-pressed={view === "works"}
               onClick={() => set({ view: "works" })}
-              className={tab(view === "works")}
+              className="ai-view-switch-tab"
             >
               {m.allWorks}
             </button>

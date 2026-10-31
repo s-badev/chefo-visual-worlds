@@ -20,18 +20,19 @@ const NAV = [
   { to: "/about", key: "about" },
 ] as const;
 
+/** Bold CHEFO and regular VISUAL WORLDS separated by space only; no separator glyph. */
 export function Wordmark({ className, onClick }: { className?: string; onClick?: () => void }) {
   return (
     <LocaleLink
       to="/"
       onClick={onClick}
-      className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
+      aria-label="Chefo Visual Worlds"
+      className={cn(
+        "inline-flex items-baseline gap-[0.7em] font-serif text-lg tracking-[0.18em] whitespace-nowrap",
+        className,
+      )}
     >
-      CHEFO{" "}
-      <span className="text-gold [[data-theme=dark]_&]:text-white [[data-theme=light]_&]:text-gold-ink">
-        —
-      </span>{" "}
-      VISUAL WORLDS
+      <span className="font-bold">CHEFO</span> <span className="font-normal">VISUAL WORLDS</span>
     </LocaleLink>
   );
 }
@@ -174,7 +175,7 @@ export function SiteHeader() {
               className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-navy text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden"
             >
               <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
-              {/* Dark header state inside the menu overlay (white wordmark dash). */}
+              {/* Dark header state inside the menu overlay. */}
               <div
                 data-theme="dark"
                 className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
