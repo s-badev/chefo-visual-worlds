@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { albumText, getAlbum, getAlbumCover, getAlbumForPhoto, getAlbums } from "@/content/albums";
-import { editorial } from "@/content/editorial";
-import { getPhoto, localizePhoto, type Photo } from "@/content/photos";
+import { albumText, getAlbum, getAlbumCover, getAlbums } from "@/content/albums";
+import {
+  photographyCover,
+  photographyCoverAlt,
+  photographyCoverCaption,
+} from "@/content/photography-cover";
+import { localizePhoto } from "@/content/photos";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-
-const requiredPhoto = (slug: string): Photo => {
-  const photo = getPhoto(slug);
-  if (!photo) throw new Error(`Missing published editorial photograph: ${slug}`);
-  return photo;
-};
 
 /** P1 presentation. Published copy and covers remain in the production registries. */
 export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void }) {
@@ -24,14 +22,10 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
     );
     if (focused?.dataset["albumSlug"]) setSelectedSlug(focused.dataset["albumSlug"]);
   }, []);
-  const opening = localizePhoto(requiredPhoto(editorial.photography.opening.photoSlug), locale);
-  const openingAlbum = getAlbumForPhoto(opening.slug);
   const selectedAlbum = getAlbum(selectedSlug) ?? albums[0]!;
   const selectedCover = getAlbumCover(selectedAlbum);
   const headingWords = t.home.photoTitle.split(" ");
   const headingLastWord = headingWords.pop();
-
-  if (!openingAlbum) throw new Error("Missing editorial album");
 
   return (
     <div className="photography-editorial">
@@ -42,14 +36,15 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
       >
         <figure className="photography-editorial-opening-photo" data-photo-opening>
           <img
-            src={opening.image}
-            alt={opening.alt}
-            width={opening.width}
-            height={opening.height}
+            src={photographyCover.image}
+            srcSet={photographyCover.srcSet}
+            alt={photographyCoverAlt(locale)}
+            width={photographyCover.width}
+            height={photographyCover.height}
             fetchPriority="high"
             decoding="async"
             sizes="100vw"
-            style={{ objectPosition: editorial.photography.opening.objectPosition }}
+            style={{ objectPosition: photographyCover.objectPosition }}
           />
         </figure>
         <div className="container-page photography-editorial-mast">
@@ -61,9 +56,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
           </div>
           <div className="photography-editorial-lead">
             <p>{t.home.photoText}</p>
-            <span>
-              {opening.title} · {albumText(openingAlbum.title, locale)}
-            </span>
+            <span>{photographyCoverCaption(locale)}</span>
           </div>
         </div>
       </Surface>

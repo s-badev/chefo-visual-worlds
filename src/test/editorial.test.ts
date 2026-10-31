@@ -17,18 +17,12 @@ const unique = (values: readonly string[]) => new Set(values).size === values.le
 describe("optional editorial presentation data", () => {
   it("uses registered photographs for every selection", () => {
     const selected = [
-      editorial.photography.opening.photoSlug,
       ...editorial.albums.flatMap((album) =>
         album.chapters.flatMap((chapter) => chapter.images.map((image) => image.photoSlug)),
       ),
       ...editorial.about.photoSlugs,
     ];
     expect(selected.every((slug) => getPhoto(slug))).toBe(true);
-    expect(
-      getAlbum("paris")?.photos.some(
-        (item) => item.photoSlug === editorial.photography.opening.photoSlug,
-      ),
-    ).toBe(true);
   });
 
   it("keeps each album layout within its own album", () => {
