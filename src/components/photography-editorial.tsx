@@ -4,7 +4,7 @@ import { albumText, getAlbum, getAlbumCover, getAlbums } from "@/content/albums"
 import {
   photographyCover,
   photographyCoverAlt,
-  photographyCoverCaption,
+  photographyCoverPlaces,
 } from "@/content/photography-cover";
 import { localizePhoto } from "@/content/photos";
 import { Surface } from "@/components/surface";
@@ -56,7 +56,13 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
           </div>
           <div className="photography-editorial-lead">
             <p>{t.home.photoText}</p>
-            <span>{photographyCoverCaption(locale)}</span>
+            <span className="photography-cover-caption">
+              <span>
+                {photographyCoverPlaces(locale).map((place) => (
+                  <span key={place}>{place}</span>
+                ))}
+              </span>
+            </span>
           </div>
         </div>
       </Surface>

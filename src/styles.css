@@ -588,12 +588,47 @@
   font-size: 0.95rem;
   line-height: 1.5;
 }
+/*
+ * Cover caption "София · Париж · …": every place carries a leading "·" (as wide as " · "), and the
+ * list is pulled left by that width and clipped, so the dot opening each line is hidden. Lines
+ * therefore break only between places, never start or end on a dot, and stay balanced.
+ */
+.photography-cover-caption {
+  overflow: hidden;
+}
+.photography-cover-caption > span {
+  display: block;
+  margin-left: -0.63em;
+  text-wrap: balance;
+}
+.photography-cover-caption > span > span {
+  display: inline-block;
+  white-space: nowrap;
+}
+.photography-cover-caption > span > span::before {
+  content: "·";
+  display: inline-block;
+  width: 0.63em;
+  text-align: center;
+}
 @media (min-width: 900px) {
   .photography-editorial-mast {
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
     align-items: end;
     column-gap: 4rem;
     padding-bottom: 4rem;
+  }
+}
+/* Room for the one-line caption: a wider lead column up to 1535px (the heading keeps its lines),
+ * then the caption runs on into the page margin, which is wide enough from 1536px. */
+@media (min-width: 900px) and (max-width: 1535px) {
+  .photography-editorial-mast {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 25rem);
+  }
+}
+@media (min-width: 1536px) {
+  .photography-cover-caption {
+    width: max-content;
   }
 }
 @media (min-width: 1200px) {

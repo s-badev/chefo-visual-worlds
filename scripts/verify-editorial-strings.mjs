@@ -74,7 +74,15 @@ const forbiddenNew = forbidden.flatMap((value) =>
 const titleSource = matches[publishedTitle].filter((match) => match.group === "source");
 const publishedTitlePreserved =
   titleSource.length === 1 && titleSource[0].file === "src/content/four-new-album-photos.ts";
-const pass = forbiddenNew.length === 0 && publishedTitlePreserved;
+// The master file of the Photography cover never ships: only its WebP versions do.
+const coverMaster = /^photography-journey-cover.*\.(png|jpe?g|tiff?|bmp|psd)$/i;
+const coverMastersInOutput = sourceOnly
+  ? []
+  : (await walk(path.join(root, ".output"), [""]))
+      .filter((file) => coverMaster.test(path.basename(file)))
+      .map((file) => path.relative(root, file).replaceAll("\\", "/"));
+const pass =
+  forbiddenNew.length === 0 && publishedTitlePreserved && coverMastersInOutput.length === 0;
 const report = {
   status: pass ? "PASS" : "FAIL",
   baselineCommit,
@@ -86,6 +94,7 @@ const report = {
   matches,
   forbiddenNew,
   publishedTitlePreserved,
+  coverMastersInOutput,
 };
 if (reportPath) await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
 console.log(
@@ -95,6 +104,7 @@ console.log(
       scannedFiles,
       counts: Object.fromEntries([...targets].map((value) => [value, matches[value].length])),
       publishedTitlePreserved,
+      coverMastersInOutput,
     },
     null,
     2,
