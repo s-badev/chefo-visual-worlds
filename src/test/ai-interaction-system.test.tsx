@@ -145,7 +145,7 @@ describe("AI Worlds overview halls", () => {
     },
   );
 
-  it("adds one inert responsive atmosphere to each overview hall only", async () => {
+  it("adds one inert responsive atmosphere to each overview hall, never to an artwork page", async () => {
     const expected = ["historical", "professions", "cinema", "world"];
     const { container, unmount } = await renderAt("/ai-worlds", () => <CollectionHalls />);
     const halls = [...container.querySelectorAll<HTMLElement>(".ai-overview-hall")];
@@ -171,13 +171,6 @@ describe("AI Worlds overview halls", () => {
     });
     unmount();
 
-    const collection = aiCollections[0]!;
-    const collectionView = await renderAt(`/ai-worlds/collections/${collection.slug}`, () => (
-      <AiCollectionView collection={collection} />
-    ));
-    expect(collectionView.container.querySelector(".ai-section-background")).toBeNull();
-    collectionView.unmount();
-
     const work = aiWorks[0]!;
     const detailView = await renderAt(`/ai-worlds/${work.slug}`, () => (
       <AiDetailView work={work} />
@@ -197,6 +190,88 @@ describe("AI Worlds overview halls", () => {
       "ai-bg-world-1600.webp",
       "ai-bg-world-960.webp",
     ]);
+  });
+});
+
+describe("AI collection page atmosphere", () => {
+  const scenes = {
+    "historical-eras-rulers": "historical",
+    "professions-roles": "professions",
+    "cinema-archetypes": "cinema",
+    "chefo-around-the-world": "world",
+  } as const;
+
+  it.each(["bg", "en"] as const)(
+    "shows each %s collection page its own overview scene behind the whole page",
+    async (locale) => {
+      expect(aiCollections.map((c) => c.slug)).toEqual(Object.keys(scenes));
+      for (const collection of aiCollections) {
+        const name = scenes[collection.slug as keyof typeof scenes];
+        const { container, unmount } = await renderAt(
+          `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
+          () => <AiCollectionView collection={collection} />,
+        );
+        const page = container.querySelector<HTMLElement>("article.ai-collection-page")!;
+        expect(page).toHaveClass("surface-dark");
+        const layers = page.querySelectorAll<HTMLElement>(".ai-section-background");
+        expect(layers).toHaveLength(1);
+        const layer = layers[0]!;
+        // First in the page, a sibling of the content, so everything else paints over it.
+        expect(page.firstElementChild).toBe(layer);
+        expect(layer).toHaveAttribute("data-ai-section-background", name);
+        expect(layer).toHaveClass("ai-section-background", "ai-section-background--page");
+        expect(layer).toHaveAttribute("aria-hidden", "true");
+        expect(layer.querySelector(INTERACTIVE)).toBeNull();
+        // The same two files as the overview hall, so they come from the browser cache.
+        expect(layer.querySelector("source")).toHaveAttribute(
+          "srcset",
+          `/background/ai-bg-${name}-960.webp`,
+        );
+        const image = layer.querySelector("img")!;
+        expect(image).toHaveAttribute("src", `/background/ai-bg-${name}-1600.webp`);
+        expect(image).toHaveAttribute("alt", "");
+        expect(image).toHaveAttribute("loading", "eager");
+        expect(image).toHaveAttribute("width", "1600");
+        expect(image).toHaveAttribute("height", "900");
+        // Title block and works sit on top, with the local text scrim behind the title block.
+        expect(page.querySelector(":scope > header")).toHaveClass("ai-collection-copy");
+        expect(page.querySelectorAll("[data-exhibit-copy-content]").length).toBeGreaterThan(0);
+        unmount();
+      }
+    },
+    20_000,
+  );
+
+  it("reads every scene's look from the overview's tokens and stays behind the content", () => {
+    const shared = ":is(.ai-overview-hall, .ai-collection-page)";
+    expect(rule(shared)!.body).toContain("--bg-blur: 6px");
+    for (const name of Object.values(scenes)) {
+      expect(rule(`${shared}:has([data-ai-section-background="${name}"])`)).toBeDefined();
+    }
+    // The backdrop spans the article; its viewport-tall scene is sticky inside it, so it stops
+    // at the end of the article (never over the footer), and clip keeps sticky working.
+    expect(rule(".ai-section-background--page")!.body).toContain("overflow: clip");
+    const scene = rule(".ai-section-background--page picture")!.body;
+    expect(scene).toContain("position: sticky");
+    expect(scene).toContain("top: 0");
+    expect(scene).toContain("height: 100lvh");
+    expect(
+      rules.some(
+        (r) => r.selector === ".ai-collection-page" && r.body.includes("overflow-x: clip"),
+      ),
+    ).toBe(true);
+    expect(rule(".ai-collection-page > :not(.ai-section-background)")!.body).toContain(
+      "z-index: 1",
+    );
+    // Collection text blocks never get a lighter scrim than 0.8, and the overview keeps its own.
+    expect(
+      rules.some(
+        (r) =>
+          r.selector === ".ai-collection-page" &&
+          r.body.includes("--bg-scrim-text: max(var(--bg-scrim), 0.8)"),
+      ),
+    ).toBe(true);
+    expect(rule(".ai-overview-hall")).toBeUndefined();
   });
 });
 

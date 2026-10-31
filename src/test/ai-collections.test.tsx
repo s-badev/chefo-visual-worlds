@@ -254,10 +254,11 @@ describe("AI collection page", () => {
     const { container } = render(
       <AiCollectionView collection={getAiCollection("professions-roles")!} />,
     );
-    // Neighbouring-collection thumbnails are outside the exhibition wall.
+    // Neighbouring-collection thumbnails and the decorative backdrop are not exhibited works.
     const imagesOutsideNav = Array.from(container.querySelectorAll("img")).filter(
-      (img) => !img.closest("nav"),
+      (img) => !img.closest("nav, .ai-section-background"),
     );
+    expect(container.querySelectorAll(".ai-section-background img")).toHaveLength(1);
     expect(imagesOutsideNav).toHaveLength(16);
     expect(screen.getByRole("heading", { level: 1, name: "Професии и роли" })).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(16);

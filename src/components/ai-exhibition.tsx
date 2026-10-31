@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 
-/** Each overview hall's own backdrop scene; its look is tuned in styles.css (one place). */
+/** Each collection's own backdrop scene (overview hall and collection page); its look is tuned
+ * in styles.css (one place). */
 const collectionBackgrounds = {
   "historical-eras-rulers": "historical",
   "professions-roles": "professions",
@@ -30,10 +31,30 @@ const collectionBackgrounds = {
 
 type CollectionBackground = (typeof collectionBackgrounds)[keyof typeof collectionBackgrounds];
 
-/** Decorative atmosphere for a collection hall; it never becomes artwork content or a control. */
-function CollectionAtmosphere({ image, eager }: { image: CollectionBackground; eager: boolean }) {
+const getCollectionBackground = (collection: AiCollection): CollectionBackground | undefined =>
+  collectionBackgrounds[collection.slug as keyof typeof collectionBackgrounds];
+
+/**
+ * Decorative atmosphere for a collection; it never becomes artwork content or a control.
+ * "page" keeps the scene behind a whole collection page while the works scroll over it.
+ */
+export function CollectionAtmosphere({
+  collection,
+  eager,
+  page = false,
+}: {
+  collection: AiCollection;
+  eager: boolean;
+  page?: boolean;
+}) {
+  const image = getCollectionBackground(collection);
+  if (!image) return null;
   return (
-    <div aria-hidden="true" data-ai-section-background={image} className="ai-section-background">
+    <div
+      aria-hidden="true"
+      data-ai-section-background={image}
+      className={cn("ai-section-background", page && "ai-section-background--page")}
+    >
       <picture aria-hidden="true">
         <source media="(max-width: 767px)" srcSet={`/background/ai-bg-${image}-960.webp`} />
         <img
@@ -139,12 +160,11 @@ function CollectionHall({ collection, index }: { collection: AiCollection; index
   const isAtlas = collection.kind === "destinations";
   const mirrored = index % 2 === 1;
   const title = collectionText(collection.title, locale);
-  const background = collectionBackgrounds[collection.slug as keyof typeof collectionBackgrounds];
   return (
     // The hall spans the full width so its backdrop reaches both viewport edges; the portrait
     // and the text are re-centred in their own page container on top of it.
     <li {...reveal(0)} className="ai-overview-hall relative isolate overflow-hidden py-8 md:py-12">
-      {background && <CollectionAtmosphere image={background} eager={index === 0} />}
+      <CollectionAtmosphere collection={collection} eager={index === 0} />
       <div className="container-page">
         {/* Only the title and the button light up; the photo answers with its own slight zoom. */}
         <article
