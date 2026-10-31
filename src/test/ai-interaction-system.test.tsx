@@ -71,11 +71,12 @@ const contrast = (a: string, b: string) => {
   return (lighter + 0.05) / (darker + 0.05);
 };
 const CREAM = "#f4eee1";
-const GOLD = "#e2b14e";
+// The one calm hover gold and its darker pressed shade.
+const GOLD = "#c9a46b";
+const PRESSED = "#b8935a";
 const INK = "#1b1610";
-// Muted golds that must never paint an interactive hover, focus or pressed state: PR #13's
-// hover/pressed fills and the decorative --gold / --accent tokens.
-const MUTED_GOLDS = ["#c9a46b", "#b8935a", "oklch(0.7 0.095 78)", "oklch(0.72 0.095 78)"];
+// The bright amber-orange that the hover gold replaced (assembled so this file never contains it).
+const ORANGE = ["e2b1" + "4e", "226 177 " + "78", "226, 177, " + "78"];
 // --navy, oklch(0.21 0.045 262), and the light --background, oklch(0.965 0.017 85), in sRGB.
 const NAVY = "#0d182d";
 const LIGHT_PAGE = "#f9f3e7";
@@ -344,13 +345,13 @@ describe("AI collection presentations", () => {
 describe("Design A interaction system", () => {
   it("defines the exact owner-approved tokens", () => {
     expect(css).toContain(`--interaction-cream: ${CREAM};`);
-    expect(css).toContain(`--interaction-gold-bright: ${GOLD};`);
     expect(css).toContain(`--interaction-ink-on-gold: ${INK};`);
-    // The shared button hover tokens point at the bright gold and its ink.
-    expect(css).toContain("--btn-hover-bg: var(--interaction-gold-bright);");
+    // One hover gold (the single source), a darker pressed gold, and the dark ink on both.
+    expect(css).toContain(`--btn-hover-bg: ${GOLD};`);
+    expect(css).toContain(`--btn-active-bg: ${PRESSED};`);
     expect(css).toContain("--btn-hover-fg: var(--interaction-ink-on-gold);");
-    expect(css).toContain("--btn-hover-border: var(--interaction-gold-bright);");
-    expect(css).toContain("--btn-active-bg: var(--interaction-gold-bright);");
+    expect(css).toContain("--btn-hover-border: var(--btn-hover-bg);");
+    expect(css).toContain("--interaction-gold: var(--btn-hover-bg);");
   });
 
   it("keeps rest cream and hover gold apart (OKLab distance x100 >= 18)", () => {
@@ -360,8 +361,36 @@ describe("Design A interaction system", () => {
   it("keeps every text pair readable (WCAG >= 4.5:1)", () => {
     expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(INK, GOLD)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(INK, PRESSED)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(CREAM, NAVY)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("presses into a darker gold, never brighter than hover and without movement", () => {
+    expect(luminance(PRESSED)).toBeLessThan(luminance(GOLD));
+    const pressed = rules.find((r) => r.selector.includes(".ai-view-switch-tab:active"))!;
+    for (const part of [
+      ".interaction-primary:active",
+      "a.back-pill:active",
+      ".surface-dark a.back-pill:active",
+    ]) {
+      expect(pressed.selector).toContain(part);
+    }
+    // It comes after every hover fill, so a more specific hover never hides the pressed gold.
+    const at = rules.indexOf(pressed);
+    for (const hover of [
+      ".ai-view-switch-tab:hover",
+      "a.back-pill:hover",
+      ".surface-dark a.back-pill:hover",
+    ]) {
+      expect(rules.findIndex((r) => r.selector === hover)).toBeLessThan(at);
+    }
+    expect(pressed.body).toContain("background-color: var(--btn-active-bg)");
+    expect(pressed.body).toContain("color: var(--btn-hover-fg)");
+    expect(pressed.body).toContain("box-shadow: none");
+    for (const r of rules.filter((r) => r.selector.includes(":active"))) {
+      expect(r.body, r.selector).not.toMatch(/scale|translate/);
+    }
   });
 
   it("fills the primary action with cream at rest, never a dark outline", () => {
@@ -382,9 +411,8 @@ describe("Design A interaction system", () => {
     expect(hover).toContain("background-color: var(--btn-hover-bg)");
     expect(hover).toContain("border-color: var(--btn-hover-border)");
     expect(hover).toContain("color: var(--btn-hover-fg)");
-    expect(hover).toContain(
-      "box-shadow: 0 0 0 6px var(--interaction-ring), 0 12px 32px var(--interaction-halo)",
-    );
+    // A calm fill change: no glow around the button.
+    expect(hover).toContain("box-shadow: none");
     expect(
       rule(
         ".ai-presentation-title:hover, .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title",
@@ -432,7 +460,7 @@ describe("Design A interaction system", () => {
 
   it("lights title and button together on keyboard focus", () => {
     expect(rule(".interaction-primary:focus-visible")!.body).toContain(
-      "background-color: var(--interaction-gold-bright)",
+      "background-color: var(--interaction-gold)",
     );
     const focused = rules.find(
       (r) =>
@@ -440,7 +468,7 @@ describe("Design A interaction system", () => {
         r.selector.endsWith(".ai-presentation-title"),
     )!;
     expect(focused.selector).toContain(":focus-visible");
-    expect(focused.body).toBe("color: var(--interaction-gold-bright);");
+    expect(focused.body).toBe("color: var(--interaction-gold);");
   });
 
   it("never paints the description or the count with the title", () => {
@@ -470,7 +498,7 @@ describe("Design A interaction system", () => {
   it("draws a dark focus ring on light surfaces and a gold one on dark surfaces", () => {
     expect(css).toContain("--interaction-focus-ring: var(--interaction-ink-on-gold);");
     expect(rule('.surface-dark, [data-theme="dark"]')!.body).toContain(
-      "--interaction-focus-ring: var(--interaction-gold-bright)",
+      "--interaction-focus-ring: var(--interaction-gold)",
     );
     const shared = rules.find((r) => r.selector.endsWith(".interaction-special:focus-visible"))!;
     expect(shared.body).toContain("outline: 2px solid var(--interaction-focus-ring)");
@@ -481,7 +509,7 @@ describe("Design A interaction system", () => {
     expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(3);
   });
 
-  it("never paints an interactive hover, focus or pressed state with a muted gold", () => {
+  it("never paints an interactive hover, focus or pressed state with the old orange", () => {
     // Custom properties as declared on :root and on dark surfaces (dark wins where both exist).
     const tokens = (selector: string) =>
       new Map(
@@ -511,17 +539,28 @@ describe("Design A interaction system", () => {
         const painted =
           /^(color|background(-color)?|border(-\w+)*-color|border|outline(-color)?|box-shadow|text-decoration-color)$/;
         if (!painted.test(name)) continue;
-        // Text on light pages may use the dark --gold-ink; fills, borders and rings may not.
-        const scopes = name === "color" ? [light] : [light, dark];
-        for (const scope of scopes) {
-          const value = resolve(rest.join(":").trim(), scope);
-          for (const muted of MUTED_GOLDS) {
-            expect(value, `${r.selector} { ${name} }`).not.toContain(muted);
+        for (const scope of [light, dark]) {
+          const value = resolve(rest.join(":").trim(), scope).toLowerCase();
+          for (const orange of ORANGE) {
+            expect(value, `${r.selector} { ${name} }`).not.toContain(orange);
           }
         }
       }
     }
-    // Tailwind state utilities in components use the bright interaction gold, never --gold.
+    // No source file brings the orange back, in any spelling.
+    const everything = readdirSync(path.resolve(__dirname, ".."), {
+      recursive: true,
+      withFileTypes: true,
+    })
+      .filter(
+        (f) => f.isFile() && /\.(css|tsx?|mjs)$/.test(f.name) && f.name !== "routeTree.gen.ts",
+      )
+      .map((f) => [f.name, readFileSync(path.join(f.parentPath, f.name), "utf8").toLowerCase()]);
+    expect(everything.length).toBeGreaterThan(50);
+    for (const [name, source] of everything) {
+      for (const orange of ORANGE) expect(source, name).not.toContain(orange);
+    }
+    // Tailwind state utilities in components use the interaction gold, never the decorative --gold.
     const sources = ["components", "views", "i18n", "routes"].flatMap((dir) =>
       readdirSync(path.resolve(__dirname, "..", dir), { recursive: true, withFileTypes: true })
         .filter((f) => f.isFile() && f.name.endsWith(".tsx"))
@@ -603,10 +642,11 @@ describe("AI Worlds view switch", () => {
     expect(selected).toContain("background-color: var(--interaction-cream)");
     expect(selected).toContain("color: var(--interaction-ink-on-gold)");
     const hover = rule(".ai-view-switch-tab:hover", POINTER)!.body;
-    expect(hover).toContain("background-color: var(--interaction-gold-bright)");
-    expect(hover).toContain("color: var(--interaction-ink-on-gold)");
+    expect(hover).toContain("background-color: var(--btn-hover-bg)");
+    expect(hover).toContain("color: var(--btn-hover-fg)");
+    expect(hover).not.toContain("box-shadow");
     const focus = rule(".ai-view-switch-tab:focus-visible")!.body;
-    expect(focus).toContain("outline: 2px solid var(--interaction-gold-bright)");
+    expect(focus).toContain("outline: 2px solid var(--interaction-gold)");
     expect(focus).toContain("outline-offset: 3px");
   });
 
@@ -632,9 +672,7 @@ describe("AI Worlds view switch", () => {
 describe("Brand lockup underline", () => {
   it("paints one 2px bright-gold line under the whole wordmark on hover and focus", () => {
     const line = rule(".brand-lockup-text")!.body;
-    expect(line).toContain(
-      "linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))",
-    );
+    expect(line).toContain("linear-gradient(var(--interaction-gold), var(--interaction-gold))");
     // Same offset as .interaction-link (0.28em of the 16px link), below the 1em baseline.
     expect(line).toContain("0 calc(1em + 0.28rem) / 100% 0");
     expect(rule(".interaction-link")!.body).toContain("text-underline-offset: 0.28em");

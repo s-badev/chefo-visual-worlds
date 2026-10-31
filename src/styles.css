@@ -95,33 +95,34 @@
   /* Shared Home alignment: only the Home header row and Hero copy consume this gutter. */
   --home-gutter: clamp(20px, 5.5vw, 112px);
 
-  /* Unified text-button sizing and hover language (Design A): every hover and pressed fill is the
-     bright interaction gold defined below. Focus rings keep their existing tokens below. */
+  /* Unified text-button sizing and hover language: ONE calm muted gold for every hover fill,
+     border and gold text, and a slightly darker gold when pressed (never brighter than hover).
+     Every other interaction gold below derives from --btn-hover-bg. */
   --btn-pad-x: 28px;
-  --btn-hover-bg: var(--interaction-gold-bright);
+  --btn-hover-bg: #c9a46b;
   --btn-hover-fg: var(--interaction-ink-on-gold);
-  --btn-hover-border: var(--interaction-gold-bright);
-  --btn-active-bg: var(--interaction-gold-bright);
+  --btn-hover-border: var(--btn-hover-bg);
+  --btn-active-bg: #b8935a;
   --btn-hover-duration: 200ms;
 
-  /* Design A interaction system: exact owner-approved values. Muted --gold stays for passive
-     editorial decoration; every interactive hover/focus state uses the bright gold. */
+  /* Design A interaction system. Muted --gold stays for passive editorial decoration; every
+     interactive hover/focus state uses the interaction gold, which is the hover gold above. */
   --interaction-cream: #f4eee1;
-  --interaction-gold-bright: #e2b14e;
+  --interaction-gold: var(--btn-hover-bg);
   --interaction-ink-on-gold: #1b1610;
-  --interaction-ring: rgb(226 177 78 / 0.35);
-  --interaction-halo: rgb(226 177 78 / 0.35);
-  --interaction-card-ring: rgb(226 177 78 / 0.25);
-  --interaction-tint: rgb(226 177 78 / 0.18);
-  --interaction-icon-tint: rgb(226 177 78 / 0.24);
+  --interaction-ring: color-mix(in srgb, var(--interaction-gold) 35%, transparent);
+  --interaction-halo: color-mix(in srgb, var(--interaction-gold) 35%, transparent);
+  --interaction-card-ring: color-mix(in srgb, var(--interaction-gold) 25%, transparent);
+  --interaction-tint: color-mix(in srgb, var(--interaction-gold) 18%, transparent);
+  --interaction-icon-tint: color-mix(in srgb, var(--interaction-gold) 24%, transparent);
   --interaction-duration: var(--btn-hover-duration);
   /* Light surfaces: cream actions keep a dark boundary; text stays dark, gold only underlines. */
   --interaction-primary-border: var(--interaction-ink-on-gold);
   --interaction-secondary-text: var(--interaction-ink-on-gold);
   --interaction-secondary-border: var(--interaction-ink-on-gold);
   --interaction-secondary-hover-bg: var(--interaction-tint);
-  --interaction-secondary-hover-border: var(--interaction-gold-bright);
-  --interaction-link-hover: var(--btn-hover-bg);
+  --interaction-secondary-hover-border: var(--interaction-gold);
+  --interaction-link-hover: var(--gold-ink);
   --interaction-icon-hover: var(--interaction-ink-on-gold);
   --interaction-control-hover: var(--interaction-ink-on-gold);
   --interaction-focus-ring: var(--interaction-ink-on-gold);
@@ -174,9 +175,9 @@
   --interaction-secondary-hover-bg: rgb(244 238 225 / 0.18);
   --interaction-secondary-hover-border: var(--interaction-cream);
   --interaction-link-hover: var(--btn-hover-bg);
-  --interaction-icon-hover: var(--interaction-gold-bright);
+  --interaction-icon-hover: var(--interaction-gold);
   --interaction-control-hover: var(--interaction-cream);
-  --interaction-focus-ring: var(--interaction-gold-bright);
+  --interaction-focus-ring: var(--interaction-gold);
 }
 
 @keyframes reveal-up {
@@ -222,7 +223,7 @@
   [data-header-theme="dark"] :focus-visible,
   header[data-theme="dark"] :focus-visible,
   [role="dialog"] :focus-visible {
-    outline-color: var(--interaction-gold-bright);
+    outline-color: var(--interaction-gold);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -689,7 +690,7 @@
 }
 .interaction-primary:focus-visible {
   border-color: var(--btn-hover-border);
-  background-color: var(--interaction-gold-bright);
+  background-color: var(--interaction-gold);
   color: var(--interaction-ink-on-gold);
   box-shadow:
     0 0 0 6px var(--interaction-ring),
@@ -702,8 +703,8 @@
 /* A 1px inset shadow doubles the 1px border to 2px without moving the layout. Selected,
    pressed and expanded controls keep their own fill; only the boundary lights up. */
 .interaction-control:focus-visible {
-  border-color: var(--interaction-gold-bright);
-  box-shadow: inset 0 0 0 1px var(--interaction-gold-bright);
+  border-color: var(--interaction-gold);
+  box-shadow: inset 0 0 0 1px var(--interaction-gold);
 }
 .interaction-control:focus-visible:not([aria-pressed="true"]) {
   background-color: var(--interaction-tint);
@@ -711,14 +712,14 @@
 }
 /* The tint is layered over the icon's own (often navy) fill instead of replacing it. */
 .interaction-icon:focus-visible {
-  border-color: var(--interaction-gold-bright);
+  border-color: var(--interaction-gold);
   background-image: linear-gradient(var(--interaction-icon-tint), var(--interaction-icon-tint));
   color: var(--interaction-icon-hover);
 }
 .interaction-link:focus-visible {
   color: var(--interaction-link-hover);
   text-decoration-line: underline;
-  text-decoration-color: var(--interaction-gold-bright);
+  text-decoration-color: var(--interaction-gold);
   text-decoration-thickness: 2px;
 }
 /* Links that already draw a bottom border light that border instead of adding a second line. */
@@ -728,16 +729,16 @@
     .photography-editorial-all-photos
   ):focus-visible {
   text-decoration-line: none;
-  border-bottom-color: var(--interaction-gold-bright);
-  box-shadow: 0 1px 0 var(--interaction-gold-bright);
+  border-bottom-color: var(--interaction-gold);
+  box-shadow: 0 1px 0 var(--interaction-gold);
 }
 /* Header brand lockup: its hover/focus underline is painted once under the whole wordmark,
    not once per word, so it never splits or seams where bold CHEFO meets the regular words.
    Same colour, 2px thickness and offset as .interaction-link: 0.28rem below the baseline,
    which sits 1em below the top of the wordmark's 1.4 line box. */
 .brand-lockup-text {
-  background: linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))
-    no-repeat 0 calc(1em + 0.28rem) / 100% 0;
+  background: linear-gradient(var(--interaction-gold), var(--interaction-gold)) no-repeat 0
+    calc(1em + 0.28rem) / 100% 0;
 }
 .interaction-link.brand-lockup:focus-visible {
   text-decoration-line: none;
@@ -747,12 +748,12 @@
 }
 .interaction-media:focus-visible {
   box-shadow:
-    inset 0 0 0 3px var(--interaction-gold-bright),
+    inset 0 0 0 3px var(--interaction-gold),
     0 0 0 6px var(--interaction-ring);
 }
 .interaction-card:focus-visible {
   box-shadow:
-    inset 0 0 0 2px var(--interaction-gold-bright),
+    inset 0 0 0 2px var(--interaction-gold),
     0 0 0 6px var(--interaction-card-ring);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -760,9 +761,7 @@
     border-color: var(--btn-hover-border);
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-fg);
-    box-shadow:
-      0 0 0 6px var(--interaction-ring),
-      0 12px 32px var(--interaction-halo);
+    box-shadow: none;
   }
   .interaction-secondary:hover {
     border-color: var(--btn-hover-border);
@@ -784,7 +783,7 @@
   .interaction-link:hover {
     color: var(--interaction-link-hover);
     text-decoration-line: underline;
-    text-decoration-color: var(--interaction-gold-bright);
+    text-decoration-color: var(--interaction-gold);
     text-decoration-thickness: 2px;
   }
   .interaction-link:is(
@@ -793,11 +792,11 @@
       .photography-editorial-all-photos
     ):hover {
     text-decoration-line: none;
-    border-bottom-color: var(--interaction-gold-bright);
-    box-shadow: 0 1px 0 var(--interaction-gold-bright);
+    border-bottom-color: var(--interaction-gold);
+    box-shadow: 0 1px 0 var(--interaction-gold);
   }
   .interaction-media:hover {
-    box-shadow: inset 0 0 0 3px var(--interaction-gold-bright);
+    box-shadow: inset 0 0 0 3px var(--interaction-gold);
   }
   .interaction-link.brand-lockup:hover {
     text-decoration-line: none;
@@ -807,22 +806,10 @@
   }
   /* An inset outline paints above card content (covers), unlike an inset shadow. */
   .interaction-card:hover {
-    outline: 2px solid var(--interaction-gold-bright);
+    outline: 2px solid var(--interaction-gold);
     outline-offset: -2px;
     box-shadow: 0 0 0 6px var(--interaction-card-ring);
   }
-}
-/* Pressed paint is shared on mouse, keyboard and touch; movement remains motion-conditional. */
-.interaction-primary:active,
-.interaction-secondary:active,
-.interaction-control:active,
-.interaction-icon:active,
-:is(a, button).action-pill:active {
-  border-color: var(--btn-active-bg);
-  background-color: var(--btn-active-bg);
-  background-image: none;
-  color: var(--btn-hover-fg);
-  box-shadow: none;
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .interaction-primary:hover {
@@ -830,17 +817,6 @@
   }
   .interaction-primary:hover :is(.interaction-arrow, .ai-artwork-action-arrow) {
     translate: 6px 0;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .interaction-primary:active,
-  .interaction-secondary:active,
-  .interaction-control:active,
-  .interaction-icon:active,
-  .interaction-card:active,
-  .interaction-special:active {
-    translate: 0 0;
-    scale: 0.98;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -854,14 +830,15 @@
   .interaction-special,
   .interaction-arrow,
   .ai-artwork-action-arrow,
-  .ai-presentation-title {
+  .ai-presentation-title,
+  .ai-view-switch-tab {
     transition-duration: 0s !important;
     translate: none !important;
     scale: none !important;
   }
 }
 /* AI Worlds view switch (Collections / All artworks): one segmented control on the dark surface.
-   Selected is cream like the primary button at rest; hover turns any segment bright gold. */
+   Selected is cream like the primary button at rest; hover turns any segment the hover gold. */
 .ai-view-switch {
   display: inline-flex;
   max-width: 100%;
@@ -884,16 +861,14 @@
   transition:
     background-color var(--interaction-duration) var(--motion-ease),
     color var(--interaction-duration) var(--motion-ease),
-    box-shadow var(--interaction-duration) var(--motion-ease),
-    translate var(--interaction-duration) var(--motion-ease),
-    scale var(--interaction-duration) var(--motion-ease);
+    translate var(--interaction-duration) var(--motion-ease);
 }
 .ai-view-switch-tab[aria-pressed="true"] {
   background-color: var(--interaction-cream);
   color: var(--interaction-ink-on-gold);
 }
 .ai-view-switch-tab:focus-visible {
-  outline: 2px solid var(--interaction-gold-bright);
+  outline: 2px solid var(--interaction-gold);
   outline-offset: 3px;
 }
 /* Narrow phones: two equal segments fill the row instead of wrapping or overflowing. */
@@ -908,22 +883,13 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .ai-view-switch-tab:hover {
-    background-color: var(--interaction-gold-bright);
-    color: var(--interaction-ink-on-gold);
-    box-shadow:
-      0 0 0 4px rgb(226 177 78 / 0.25),
-      0 8px 22px rgb(226 177 78 / 0.25);
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .ai-view-switch-tab:hover {
     translate: 0 -1px;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .ai-view-switch-tab:active {
-    translate: 0 0;
-    scale: 0.98;
   }
 }
 
@@ -1184,7 +1150,7 @@
 }
 .ai-presentation-link:focus-visible .ai-artwork-action-primary {
   border-color: var(--btn-hover-border);
-  background-color: var(--interaction-gold-bright);
+  background-color: var(--interaction-gold);
   box-shadow:
     0 0 0 6px var(--interaction-ring),
     0 12px 32px var(--interaction-halo);
@@ -1203,11 +1169,11 @@
       :is(.ai-presentation-link, .ai-artwork-action-primary, .ai-presentation-title a):focus-visible
     )
     .ai-presentation-title {
-    color: var(--interaction-gold-bright);
+    color: var(--interaction-gold);
   }
   .ai-presentation:has(.ai-presentation-title a:focus-visible) .ai-artwork-action-primary {
     border-color: var(--btn-hover-border);
-    background-color: var(--interaction-gold-bright);
+    background-color: var(--interaction-gold);
     box-shadow:
       0 0 0 6px var(--interaction-ring),
       0 12px 32px var(--interaction-halo);
@@ -1223,9 +1189,7 @@
     border-color: var(--btn-hover-border);
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-fg);
-    box-shadow:
-      0 0 0 6px var(--interaction-ring),
-      0 12px 32px var(--interaction-halo);
+    box-shadow: none;
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -1237,11 +1201,6 @@
   }
   .ai-presentation-media:hover img {
     scale: 1.03;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .ai-presentation-link:active .ai-artwork-action {
-    scale: 0.98;
   }
 }
 
@@ -2073,9 +2032,6 @@ a.next-album-card.next-album-card--fallback .next-album-card-arrow {
   transition-duration: var(--dur-fast);
   transition-timing-function: var(--motion-ease);
 }
-a.next-album-card:active {
-  transform: translateY(1px);
-}
 @media (min-width: 768px) {
   .next-album-card {
     min-height: 180px;
@@ -2089,7 +2045,7 @@ a.next-album-card:focus-visible {
   outline-offset: 3px;
 }
 .surface-dark a.back-pill:focus-visible {
-  border-color: var(--interaction-gold-bright);
+  border-color: var(--interaction-gold);
   outline-color: var(--interaction-focus-ring);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -2126,12 +2082,30 @@ a.next-album-card:focus-visible {
     color: var(--btn-hover-fg);
   }
 }
+/*
+ * Pressed paint is shared on mouse, keyboard and touch: a calm darker gold, no movement. It sits
+ * after every hover fill so it wins over the more specific back-pill and view-switch hovers.
+ */
+.interaction-primary:active,
+.interaction-secondary:active,
+.interaction-control:active,
+.interaction-icon:active,
+:is(a, button).action-pill:active,
+.ai-view-switch-tab:active,
+a.back-pill:active,
+.surface-dark a.back-pill:active {
+  border-color: var(--btn-active-bg);
+  background-color: var(--btn-active-bg);
+  background-image: none;
+  color: var(--btn-hover-fg);
+  box-shadow: none;
+}
 a.next-album-card:focus-visible .next-album-card-name {
-  color: var(--interaction-gold-bright);
+  color: var(--interaction-gold);
 }
 a.next-album-card:focus-visible .next-album-card-arrow {
-  border-color: var(--interaction-gold-bright);
-  background: var(--interaction-gold-bright);
+  border-color: var(--interaction-gold);
+  background: var(--interaction-gold);
   color: var(--interaction-ink-on-gold);
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
