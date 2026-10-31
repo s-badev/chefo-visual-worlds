@@ -28,6 +28,7 @@ import {
   ArtEdge,
   ArtImage,
   artworkAnchor,
+  CollectionAtmosphere,
   CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
@@ -179,8 +180,10 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
   return (
-    <Surface tone="dark" as="article">
-      <header className="container-page pt-10 md:pt-14">
+    // The same scene as this collection's hall on the overview stays behind the page.
+    <Surface tone="dark" as="article" className="ai-collection-page">
+      <CollectionAtmosphere collection={collection} eager page />
+      <header className="ai-collection-copy container-page pt-10 md:pt-14">
         <AiBackLink to="/ai-worlds" label={m.backToAiWorlds} />
         <div className="mt-10 grid gap-6 md:grid-cols-12 md:items-end">
           <div className="min-w-0 md:col-span-8">

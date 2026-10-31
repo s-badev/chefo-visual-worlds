@@ -933,7 +933,8 @@
 }
 
 /*
- * AI Worlds collection backdrops: the owner's four empty scenes, edge to edge behind each hall.
+ * AI Worlds collection backdrops: the owner's four empty scenes, edge to edge behind each hall
+ * of the overview and behind each collection's own page.
  * RETUNE HERE: one line per value and collection ("mobile" = max-width 767px).
  *   --bg-blur / --bg-blur-mobile          softness; keep it light so the scene stays recognizable
  *   --bg-saturate / --bg-brightness       colour and light (the art is dark by design)
@@ -943,7 +944,7 @@
  * If a scene is hard to recognize, lower its overlay rather than raising its blur.
  * Every text over a backdrop was measured at 4.7:1 or more (5th percentile, 360-1920 px).
  */
-.ai-overview-hall {
+:is(.ai-overview-hall, .ai-collection-page) {
   --bg-blur: 6px;
   --bg-blur-mobile: 4px;
   --bg-saturate: 0.9;
@@ -956,7 +957,7 @@
   --bg-position-mobile: 50% 50%;
 }
 /* The darkest scene: more light, and a stronger scrim because its torches sit behind the text. */
-.ai-overview-hall:has([data-ai-section-background="historical"]) {
+:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="historical"]) {
   --bg-brightness: 1.8;
   --bg-overlay: 0.08;
   --bg-overlay-mobile: 0.08;
@@ -964,18 +965,18 @@
   --bg-scrim-mobile: 0.65;
   --bg-position-mobile: 78% 50%;
 }
-.ai-overview-hall:has([data-ai-section-background="professions"]) {
+:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="professions"]) {
   --bg-overlay: 0.15;
   --bg-overlay-mobile: 0.15;
   --bg-position-mobile: 72% 50%;
 }
-.ai-overview-hall:has([data-ai-section-background="cinema"]) {
+:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="cinema"]) {
   --bg-overlay: 0.04;
   --bg-overlay-mobile: 0.04;
   --bg-scrim: 0.7;
   --bg-position-mobile: 82% 30%;
 }
-.ai-overview-hall:has([data-ai-section-background="world"]) {
+:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="world"]) {
   --bg-overlay: 0.25;
   --bg-overlay-mobile: 0.25;
   --bg-scrim: 0.7;
@@ -1019,13 +1020,90 @@
   background: oklch(0.21 0.045 262 / var(--bg-overlay));
 }
 /*
+ * Collection page: the backdrop spans the whole article (like a hall's), and inside it one
+ * viewport-tall scene is sticky, so it stays put while the works scroll over it and stops at the
+ * end of the article, never over the footer. The last half viewport fades into the page navy,
+ * so the article meets the footer without a line. overflow: clip (not hidden) keeps the sticky
+ * scene working and stops the text panels from widening the page on phones.
+ */
+.ai-collection-page {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+.ai-collection-page > :not(.ai-section-background) {
+  position: relative;
+  z-index: 1;
+}
+/* Its text blocks pass over more of the scene than a hall's (a long page over a scene that stays
+   put), so their local scrim is never lighter than 0.8; the scene stays open around them. */
+.ai-collection-page {
+  --bg-scrim-text: max(var(--bg-scrim), 0.8);
+  --bg-scrim-text-mobile: max(var(--bg-scrim-mobile), 0.8);
+}
+/* Previous/next collection cards: the same soft panel (seam-top already uses ::before). */
+.ai-collection-page > nav::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 -3rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    oklch(0.21 0.045 262 / var(--bg-scrim-text)) 3rem,
+    oklch(0.21 0.045 262 / var(--bg-scrim-text)) calc(100% - 3rem),
+    transparent
+  );
+  /* Soft top and bottom, fully dark again where the cards begin (the nav has 2.5rem padding). */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 2.5rem,
+    #000 calc(100% - 2.5rem),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 2.5rem,
+    #000 calc(100% - 2.5rem),
+    transparent
+  );
+}
+.ai-section-background--page {
+  overflow: clip;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.ai-section-background--page picture {
+  position: sticky;
+  inset: auto;
+  top: 0;
+  display: block;
+  height: 100vh;
+  height: 100lvh;
+}
+.ai-section-background--page::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0;
+  height: 50vh;
+  background: linear-gradient(to bottom, transparent, var(--navy));
+}
+/*
  * Local scrim: a soft-edged navy panel behind the text block only. It is strongest under the
  * text and fades out within 3-4rem, before the portrait and before the viewport edge.
  */
-.ai-overview-hall-text {
+.ai-overview-hall-text,
+.ai-collection-copy,
+.ai-collection-page [data-exhibit-copy-content] {
   position: relative;
 }
-.ai-overview-hall-text::before {
+.ai-overview-hall-text::before,
+.ai-collection-copy::before,
+.ai-collection-page [data-exhibit-copy-content]::before {
   content: "";
   position: absolute;
   z-index: -1;
@@ -1034,8 +1112,8 @@
   background: linear-gradient(
     to right,
     transparent,
-    oklch(0.21 0.045 262 / var(--bg-scrim)) 3rem,
-    oklch(0.21 0.045 262 / var(--bg-scrim)) calc(100% - 3rem),
+    oklch(0.21 0.045 262 / var(--bg-scrim-text, var(--bg-scrim))) 3rem,
+    oklch(0.21 0.045 262 / var(--bg-scrim-text, var(--bg-scrim))) calc(100% - 3rem),
     transparent
   );
   -webkit-mask-image: linear-gradient(
@@ -1063,10 +1141,16 @@
   .ai-section-background::after {
     background: oklch(0.21 0.045 262 / var(--bg-overlay-mobile));
   }
+  .ai-collection-page > nav::after {
+    inset: 0 -1.25rem;
+    background: oklch(0.21 0.045 262 / var(--bg-scrim-text-mobile));
+  }
   /* The text sits under the portrait and spans the width, so the panel runs edge to edge. */
-  .ai-overview-hall-text::before {
+  .ai-overview-hall-text::before,
+  .ai-collection-copy::before,
+  .ai-collection-page [data-exhibit-copy-content]::before {
     inset: -2.5rem -1.25rem;
-    background: oklch(0.21 0.045 262 / var(--bg-scrim-mobile));
+    background: oklch(0.21 0.045 262 / var(--bg-scrim-text-mobile, var(--bg-scrim-mobile)));
     -webkit-mask-image: linear-gradient(
       to bottom,
       transparent,
