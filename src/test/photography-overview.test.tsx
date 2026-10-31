@@ -82,6 +82,7 @@ describe("Photography album overview", () => {
         "Слънчев бряг",
         "Свети Влас",
         "Несебър",
+        "Бургас",
         "Пловдив",
         "Рила",
         "Тунис",
@@ -99,6 +100,7 @@ describe("Photography album overview", () => {
         "Sunny Beach",
         "Sveti Vlas",
         "Nessebar",
+        "Burgas",
         "Plovdiv",
         "Rila",
         "Tunisia",
@@ -109,14 +111,14 @@ describe("Photography album overview", () => {
         "Bodrum",
       ],
     ],
-  ] as const)("renders twelve unique %s destination cards", (locale, names) => {
+  ] as const)("renders thirteen unique %s destination cards", (locale, names) => {
     activeLocale = locale;
     const { container } = render(<PhotographyView />);
     const index = container.querySelector(".photography-editorial-destination-list")!;
     const links = Array.from(index.querySelectorAll('a[href^="/photography/albums/"]'));
 
-    expect(links).toHaveLength(12);
-    expect(new Set(links.map((link) => link.getAttribute("href"))).size).toBe(12);
+    expect(links).toHaveLength(13);
+    expect(new Set(links.map((link) => link.getAttribute("href"))).size).toBe(13);
     expect(links.every((link) => link.querySelector("img") !== null)).toBe(true);
     expect(links.every((link) => !link.textContent?.match(/^\s*\d{2}\b/))).toBe(true);
     expect(
@@ -194,7 +196,7 @@ describe("Photography album overview", () => {
     );
     expect(
       container.querySelectorAll(".photography-editorial-thumb.photo-frame-keyline"),
-    ).toHaveLength(12);
+    ).toHaveLength(13);
     expect(container.querySelector(".photography-editorial-reportage")).toBeNull();
     expect(container.querySelector(".photography-editorial-panorama")).toBeNull();
   });
@@ -307,7 +309,7 @@ describe("Photography album overview", () => {
     const view = render(<PhotographyView />);
     fireEvent.click(screen.getByRole("button", { name: "Всички снимки" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("400 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("426 кадъра")).toBeInTheDocument();
     expect(view.container.querySelectorAll('a[href^="/photography/albums/"]')).toHaveLength(0);
 
     fireEvent.click(
@@ -353,6 +355,6 @@ describe("Photography album overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Изчисти филтрите" }));
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("400 кадъра")).toBeInTheDocument();
+    expect(screen.getByText("426 кадъра")).toBeInTheDocument();
   });
 });

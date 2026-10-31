@@ -210,6 +210,22 @@ export const albums: Album[] = [
     status: "published",
   },
   {
+    id: "burgas",
+    slug: "burgas",
+    title: title("Бургас", "Burgas"),
+    description: title(
+      "Морето, плажовете, кеят и крайбрежният парк на Бургас.",
+      "The sea, beaches, pier and seaside park of Burgas.",
+    ),
+    coverPhotoSlug: "burgas-017",
+    photos: batchEntries(
+      "burgas",
+      Array.from({ length: 26 }, (_, index) => index + 1),
+    ),
+    displayOrder: 4.5,
+    status: "published",
+  },
+  {
     id: "plovdiv",
     slug: "plovdiv",
     title: title("Пловдив", "Plovdiv"),

@@ -11,9 +11,9 @@ import { PHOTO_THEMES } from "@/content/photos";
 describe("photography filters", () => {
   const items = getAllGalleryPhotos("bg");
 
-  it("shows each existing photo once and derives twelve destinations from albums", () => {
-    expect(items).toHaveLength(400);
-    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(400);
+  it("shows each existing photo once and derives thirteen destinations from albums", () => {
+    expect(items).toHaveLength(426);
+    expect(new Set(items.map(({ photo }) => photo.slug)).size).toBe(426);
     for (const slug of [
       "nesebar-vyatarnata-melnitsa",
       "nesebar-hram-pantokrator",
@@ -23,7 +23,7 @@ describe("photography filters", () => {
     ]) {
       expect(items.some(({ photo }) => photo.slug === slug)).toBe(false);
     }
-    expect(getPhotoLocations()).toHaveLength(12);
+    expect(getPhotoLocations()).toHaveLength(13);
     expect(items.find(({ photo }) => photo.slug === "patyat-na-yug")?.albumSlug).toBeNull();
     expect(PHOTO_THEMES).toEqual(["sea", "city", "sunsets", "nature", "architecture", "travel"]);
   });
@@ -57,6 +57,7 @@ describe("photography filters", () => {
     expect(filterGalleryPhotos(items, { location: "paris" })).toHaveLength(57);
     expect(filterGalleryPhotos(items, { location: "lyon" })).toHaveLength(24);
     expect(filterGalleryPhotos(items, { location: "edirne" })).toHaveLength(21);
+    expect(filterGalleryPhotos(items, { location: "burgas" })).toHaveLength(26);
     expect(
       filterGalleryPhotos(items, { theme: "architecture", location: "edirne" }).length,
     ).toBeGreaterThan(0);

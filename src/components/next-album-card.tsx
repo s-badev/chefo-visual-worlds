@@ -17,6 +17,7 @@ const albumCardCovers: Record<string, { image: string; width: number; height: nu
     height: 405,
   },
   nessebar: { image: "/photos/nessebar/nessebar-cover-card.webp", width: 720, height: 405 },
+  burgas: { image: "/photos/burgas/burgas-cover-card.webp", width: 720, height: 405 },
   plovdiv: { image: "/photos/plovdiv/plovdiv-cover-card.webp", width: 720, height: 480 },
   rila: { image: "/photos/rila/rila-cover-card.webp", width: 720, height: 405 },
   tunisia: { image: "/photos/tunisia/tunisia-cover-card.webp", width: 720, height: 405 },

@@ -152,8 +152,8 @@ describe("homepage featured albums", () => {
   });
 
   it.each([
-    ["bg", ["Несебър", "София", "Слънчев бряг"], "Разгледай всички 12 албума"],
-    ["en", ["Nessebar", "Sofia", "Sunny Beach"], "Explore All 12 Albums"],
+    ["bg", ["Несебър", "София", "Слънчев бряг"], "Разгледай всички 13 албума"],
+    ["en", ["Nessebar", "Sofia", "Sunny Beach"], "Explore All 13 Albums"],
   ] as const)("shows three album covers in %s", (locale, names, cta) => {
     activeLocale = locale;
     render(<HomeView />);

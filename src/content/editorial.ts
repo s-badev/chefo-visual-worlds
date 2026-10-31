@@ -321,6 +321,18 @@ export const editorial = {
         { photoSlug: "plovdiv-016", role: "portrait" },
       ],
     },
+    {
+      albumSlug: "burgas",
+      variant: "coast",
+      highlights: [
+        { photoSlug: "burgas-017", role: "wide" },
+        { photoSlug: "burgas-004", role: "portrait" },
+        { photoSlug: "burgas-010", role: "landscape" },
+        { photoSlug: "burgas-023", role: "wide" },
+        { photoSlug: "burgas-021", role: "portrait" },
+        { photoSlug: "burgas-026", role: "landscape" },
+      ],
+    },
   ],
   about: {
     photoSlugs: ["sveti-vlas-005", "istanbul-037", "paris-048"],
