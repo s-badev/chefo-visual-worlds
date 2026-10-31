@@ -12,24 +12,16 @@ export const photographyCover = {
   width: 2000,
   height: 673,
   objectPosition: "50% 50%",
-  places: ["София", "Париж", "Слънчев бряг", "Бодрум", "Тунис"],
-  alt: "Колаж от мои снимки от София, Париж, Слънчев бряг, Бодрум и Тунис, обединени в една панорама.",
+  places: ["София", "Париж", "Бургас", "Слънчев бряг", "Бодрум", "Тунис"],
+  alt: "Колаж от мои снимки от София, Париж, Бургас, Слънчев бряг, Бодрум и Тунис, обединени в една панорама.",
   en: {
-    alt: "Collage of my photos from Sofia, Paris, Sunny Beach, Bodrum and Tunisia, merged into one panorama.",
+    alt: "Collage of my photos from Sofia, Paris, Burgas, Sunny Beach, Bodrum and Tunisia, merged into one panorama.",
   },
 } as const;
 
 export const photographyCoverAlt = (locale: Locale) =>
   locale === "en" ? photographyCover.en.alt : photographyCover.alt;
 
-/**
- * "София · Париж · …": a line may only break after a separator, never inside a place name, and
- * the last two places stay together so a wrapped caption never ends on a lone word.
- */
-export const photographyCoverCaption = (locale: Locale) => {
-  const labels = photographyCover.places.map((place) =>
-    locationLabel(place, locale).replaceAll(" ", "\u00a0"),
-  );
-  const last = labels.pop();
-  return `${labels.join("\u00a0· ")}\u00a0·\u00a0${last}`;
-};
+/** Caption places in order; styles.css draws the "·" between them (.photography-cover-caption). */
+export const photographyCoverPlaces = (locale: Locale) =>
+  photographyCover.places.map((place) => locationLabel(place, locale));

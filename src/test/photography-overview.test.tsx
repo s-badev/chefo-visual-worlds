@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -163,17 +163,21 @@ describe("Photography album overview", () => {
   it.each([
     [
       "bg",
-      "Колаж от мои снимки от София, Париж, Слънчев бряг, Бодрум и Тунис, обединени в една панорама.",
-      "София · Париж · Слънчев бряг · Бодрум · Тунис",
+      "Колаж от мои снимки от София, Париж, Бургас, Слънчев бряг, Бодрум и Тунис, обединени в една панорама.",
+      "София · Париж · Бургас · Слънчев бряг · Бодрум · Тунис",
+      "Места и моменти, които съм избрал да запазя.",
+      /светлин/i,
     ],
     [
       "en",
-      "Collage of my photos from Sofia, Paris, Sunny Beach, Bodrum and Tunisia, merged into one panorama.",
-      "Sofia · Paris · Sunny Beach · Bodrum · Tunisia",
+      "Collage of my photos from Sofia, Paris, Burgas, Sunny Beach, Bodrum and Tunisia, merged into one panorama.",
+      "Sofia · Paris · Burgas · Sunny Beach · Bodrum · Tunisia",
+      "Places and moments I chose to keep.",
+      /\blight\b/i,
     ],
   ] as const)(
-    "opens on the owner's collage cover with its own %s alt and caption",
-    (locale, alt, caption) => {
+    "opens on the owner's collage cover with its own %s alt, caption and intro line",
+    (locale, alt, caption, intro, light) => {
       activeLocale = locale;
       const { container } = render(<PhotographyView />);
       const figure = container.querySelector<HTMLElement>("[data-photo-opening]")!;
@@ -187,31 +191,83 @@ describe("Photography album overview", () => {
       expect(cover).toHaveAttribute("width", "2000");
       expect(cover).toHaveAttribute("height", "673");
       expect(cover).toHaveAttribute("alt", alt);
+      expect(cover.alt).toContain(locale === "bg" ? "Бургас" : "Burgas");
       expect(cover).toHaveAttribute("fetchpriority", "high");
       expect(cover).not.toHaveAttribute("loading", "lazy");
       // Not an album photograph: no link, button or lightbox on the cover.
       expect(figure.closest("a, button")).toBeNull();
       expect(figure.querySelector("a, button")).toBeNull();
-      const captionText = container.querySelector(".photography-editorial-lead span")!.textContent!;
-      expect(captionText.replace(/\u00a0/g, " ")).toBe(caption);
-      // Lines may only break after a separator: never inside a place name, before a dot or
-      // between the last two places (no lone word on a wrapped last line).
-      expect(captionText).not.toMatch(/[^\u00a0]·|\S \S+ \S/);
-      expect(captionText).toMatch(/\u00a0·\u00a0[^ ]+$/);
+      // One element per place, so a line can only break between places; CSS draws the dots.
+      const places = [
+        ...container.querySelectorAll(".photography-cover-caption > span > span"),
+      ].map((place) => place.textContent);
+      expect(places.join(" · ")).toBe(caption);
+      expect(places).toContain(locale === "bg" ? "Бургас" : "Burgas");
+      expect(places.every((place) => place && !place.includes("·"))).toBe(true);
+      // The intro line under the heading, here and on Home, without "light".
+      const lead = container.querySelector(".photography-editorial-lead p")!;
+      expect(lead).toHaveTextContent(intro);
+      expect(lead.textContent).not.toMatch(light);
+      expect(messages[locale].home.photoText).toBe(intro);
       // The Paris photograph that used to open the page is no longer used here.
       expect(container.querySelector('img[src*="paris-005"]')).toBeNull();
     },
   );
 
-  it("ships the collage cover as two budgeted WebP files at its own ratio, without the PNG", () => {
+  it("keeps the caption on one line from 768px and wraps it only between places on phones", () => {
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\s+/g, " ");
+    const rule = (selector: string) =>
+      css.match(
+        new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
+      )?.[1] ?? "";
+    // Each place is unbreakable and opens with a dot as wide as " · "; the list is pulled left by
+    // that width and clipped, so no line starts or ends on a dot.
+    expect(rule(".photography-cover-caption > span > span")).toContain("white-space: nowrap");
+    const dot = rule(".photography-cover-caption > span > span::before");
+    expect(dot).toContain('content: "·"');
+    expect(dot).toContain("width: 0.63em");
+    const list = rule(".photography-cover-caption > span");
+    expect(list).toContain("margin-left: -0.63em");
+    expect(list).toContain("text-wrap: balance");
+    expect(rule(".photography-cover-caption")).toContain("overflow: hidden");
+    // Room for one line: a wider lead column up to 1535px, then the caption runs into the margin.
+    expect(css).toContain(
+      "@media (min-width: 900px) and (max-width: 1535px) { .photography-editorial-mast { grid-template-columns: minmax(0, 1fr) minmax(16rem, 25rem); } }",
+    );
+    expect(css).toContain(
+      "@media (min-width: 1536px) { .photography-cover-caption { width: max-content; } }",
+    );
+  });
+
+  it("ships the collage cover as budgeted WebP files and never its master file", () => {
     const covers = path.resolve(__dirname, "../../public/covers");
-    expect(readdirSync(covers).sort()).toEqual([
-      "photography-journey-cover-1200.webp",
-      "photography-journey-cover-2000.webp",
-    ]);
-    const size = (file: string) => statSync(path.join(covers, file)).size;
-    expect(size("photography-journey-cover-2000.webp")).toBeLessThanOrEqual(260 * 1024);
-    expect(size("photography-journey-cover-1200.webp")).toBeLessThanOrEqual(140 * 1024);
+    const cover = (file: string) => path.join(covers, file);
+    expect(existsSync(cover("photography-journey-cover-2000.webp"))).toBe(true);
+    expect(existsSync(cover("photography-journey-cover-1200.webp"))).toBe(true);
+    expect(statSync(cover("photography-journey-cover-2000.webp")).size).toBeLessThanOrEqual(
+      260 * 1024,
+    );
+    expect(statSync(cover("photography-journey-cover-1200.webp")).size).toBeLessThanOrEqual(
+      140 * 1024,
+    );
+    // Other covers may live here; the master (or any raster original) of this one may not.
+    expect(existsSync(cover("photography-journey-cover.png"))).toBe(false);
+    expect(
+      readdirSync(covers).filter((file) =>
+        /^photography-journey-cover\.(png|jpe?g|tiff?|bmp|psd)$/i.test(file),
+      ),
+    ).toEqual([]);
+    // The postbuild guard rejects such originals in the production build output.
+    const guard = readFileSync(
+      path.resolve(__dirname, "../../scripts/verify-editorial-strings.mjs"),
+      "utf8",
+    );
+    expect(guard).toContain(
+      "const coverMaster = /^photography-journey-cover.*\\.(png|jpe?g|tiff?|bmp|psd)$/i;",
+    );
+    expect(guard).toContain("coverMastersInOutput.length === 0");
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
     const rule = css.match(/\.photography-editorial-opening-photo \{([^}]*)\}/)?.[1] ?? "";
     // Full width at the collage's own ratio: the sides (Eiffel Tower, pier) are never cropped.
