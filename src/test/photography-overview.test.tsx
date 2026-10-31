@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import path from "node:path";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -158,15 +160,69 @@ describe("Photography album overview", () => {
     expect(screen.queryByText(messages[locale].photos.place)).not.toBeInTheDocument();
   });
 
-  it("preserves the approved opening and album preview without extra featured sections", () => {
+  it.each([
+    [
+      "bg",
+      "Колаж от мои снимки от София, Париж, Слънчев бряг, Бодрум и Тунис, обединени в една панорама.",
+      "София · Париж · Слънчев бряг · Бодрум · Тунис",
+    ],
+    [
+      "en",
+      "Collage of my photos from Sofia, Paris, Sunny Beach, Bodrum and Tunisia, merged into one panorama.",
+      "Sofia · Paris · Sunny Beach · Bodrum · Tunisia",
+    ],
+  ] as const)(
+    "opens on the owner's collage cover with its own %s alt and caption",
+    (locale, alt, caption) => {
+      activeLocale = locale;
+      const { container } = render(<PhotographyView />);
+      const figure = container.querySelector<HTMLElement>("[data-photo-opening]")!;
+      const cover = figure.querySelector<HTMLImageElement>("img")!;
+      expect(cover).toHaveAttribute("src", "/covers/photography-journey-cover-2000.webp");
+      expect(cover).toHaveAttribute(
+        "srcset",
+        "/covers/photography-journey-cover-1200.webp 1200w, /covers/photography-journey-cover-2000.webp 2000w",
+      );
+      expect(cover).toHaveAttribute("sizes", "100vw");
+      expect(cover).toHaveAttribute("width", "2000");
+      expect(cover).toHaveAttribute("height", "673");
+      expect(cover).toHaveAttribute("alt", alt);
+      expect(cover).toHaveAttribute("fetchpriority", "high");
+      expect(cover).not.toHaveAttribute("loading", "lazy");
+      // Not an album photograph: no link, button or lightbox on the cover.
+      expect(figure.closest("a, button")).toBeNull();
+      expect(figure.querySelector("a, button")).toBeNull();
+      const captionText = container.querySelector(".photography-editorial-lead span")!.textContent!;
+      expect(captionText.replace(/\u00a0/g, " ")).toBe(caption);
+      // Lines may only break after a separator: never inside a place name, before a dot or
+      // between the last two places (no lone word on a wrapped last line).
+      expect(captionText).not.toMatch(/[^\u00a0]·|\S \S+ \S/);
+      expect(captionText).toMatch(/\u00a0·\u00a0[^ ]+$/);
+      // The Paris photograph that used to open the page is no longer used here.
+      expect(container.querySelector('img[src*="paris-005"]')).toBeNull();
+    },
+  );
+
+  it("ships the collage cover as two budgeted WebP files at its own ratio, without the PNG", () => {
+    const covers = path.resolve(__dirname, "../../public/covers");
+    expect(readdirSync(covers).sort()).toEqual([
+      "photography-journey-cover-1200.webp",
+      "photography-journey-cover-2000.webp",
+    ]);
+    const size = (file: string) => statSync(path.join(covers, file)).size;
+    expect(size("photography-journey-cover-2000.webp")).toBeLessThanOrEqual(260 * 1024);
+    expect(size("photography-journey-cover-1200.webp")).toBeLessThanOrEqual(140 * 1024);
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
+    const rule = css.match(/\.photography-editorial-opening-photo \{([^}]*)\}/)?.[1] ?? "";
+    // Full width at the collage's own ratio: the sides (Eiffel Tower, pier) are never cropped.
+    expect(rule).toContain("width: 100%");
+    expect(rule).toContain("aspect-ratio: 2000 / 673");
+    expect(rule).not.toMatch(/(^|[ ;])(height|min-height):/);
+  });
+
+  it("preserves the album preview without extra featured sections", () => {
     activeLocale = "en";
     const { container } = render(<PhotographyView />);
-    const opening = container.querySelector<HTMLImageElement>("[data-photo-opening] img")!;
-    expect(opening.getAttribute("src")).toBe("/photos/paris/paris-005.webp");
-    expect(opening).toHaveAttribute("fetchpriority", "high");
-    expect(opening).not.toHaveAttribute("loading", "lazy");
-    expect(Number(opening.getAttribute("width"))).toBeGreaterThan(0);
-    expect(Number(opening.getAttribute("height"))).toBeGreaterThan(0);
 
     const index = container.querySelector(".photography-editorial-destination-list")!;
     fireEvent.mouseEnter(

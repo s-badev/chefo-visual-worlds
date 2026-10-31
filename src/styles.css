@@ -542,9 +542,12 @@
   color: var(--foreground);
 }
 
+/* The cover is a five-place collage: always full width at its own ratio, so no place is cut from
+ * the sides. Only very wide, short screens hit the height cap and lose a little sky and foreground. */
 .photography-editorial-opening-photo {
-  height: min(64svh, 56vw);
-  min-height: 16rem;
+  width: 100%;
+  aspect-ratio: 2000 / 673;
+  max-height: 64svh;
   overflow: hidden;
   background: var(--secondary);
 }

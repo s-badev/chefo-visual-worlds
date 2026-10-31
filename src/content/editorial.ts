@@ -73,12 +73,6 @@ const edirneHighlights = [
 }[];
 
 export interface EditorialConfig {
-  readonly photography: {
-    readonly opening: {
-      readonly photoSlug: PhotoSlug;
-      readonly objectPosition: string;
-    };
-  };
   readonly albums: readonly EditorialAlbum[];
   readonly pilotAlbums: readonly PilotEditorialAlbum[];
   readonly about: {
@@ -92,9 +86,6 @@ export interface EditorialConfig {
 
 /** Optional presentation choices. Published titles, descriptions and media stay in their registries. */
 export const editorial = {
-  photography: {
-    opening: { photoSlug: "paris-005", objectPosition: "50% 50%" },
-  },
   albums: [
     {
       albumSlug: "paris",
