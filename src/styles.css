@@ -2005,6 +2005,7 @@ a.next-album-card:focus-visible {
   outline-offset: 3px;
 }
 .surface-dark a.back-pill:focus-visible {
+  border-color: var(--interaction-gold-bright);
   outline-color: var(--interaction-focus-ring);
 }
 @media (hover: hover) and (pointer: fine) {
