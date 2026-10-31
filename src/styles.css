@@ -1514,11 +1514,15 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 1rem 0.6rem;
+  gap: 1rem 0.75rem;
 }
+/* Justified rows: basis and grow are both proportional to the frame ratio, so every image in a
+   row ends up equally tall. A minimum width (set, or the automatic one from a long caption word)
+   made narrow portraits taller than their row, and grow is scaled so a row whose ratios add up
+   to less than 1 still reaches the right edge. */
 .editorial-album-all-grid li {
-  min-width: min(100%, 7.5rem);
-  flex: var(--gallery-ratio) 1 calc(var(--gallery-ratio) * 9rem);
+  min-width: 0;
+  flex: calc(var(--gallery-ratio) * 100) 1 calc(var(--gallery-ratio) * 9rem);
 }
 .editorial-album-all-grid img {
   display: block;
@@ -1578,6 +1582,7 @@
 }
 .editorial-album-all-grid figcaption {
   margin-top: 0.4rem;
+  overflow-wrap: break-word;
   font-family: var(--font-serif);
   font-size: 1rem;
   line-height: 1.35;
