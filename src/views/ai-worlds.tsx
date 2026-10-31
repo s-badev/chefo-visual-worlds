@@ -94,28 +94,32 @@ export function AiWorldsView() {
 
   return (
     <>
-      <Surface tone="dark" as="div">
-        <div className="container-page pt-16 md:pt-24">
-          <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
+      {/* The first collection's scene also runs up behind the intro (styles.css, .ai-overview). */}
+      <Surface tone="dark" as="div" className="ai-overview">
+        <div className="ai-overview-intro container-page pt-16 md:pt-24">
+          {/* Shrink-wrapped so the local text scrim sits behind the text and tabs only. */}
+          <div className="ai-overview-intro-text">
+            <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
-          {/* Segmented switch; selected and hover states live in styles.css (.ai-view-switch). */}
-          <div role="group" aria-label={m.view} className="ai-view-switch mt-12">
-            <button
-              type="button"
-              aria-pressed={view === "collections"}
-              onClick={() => set({ view: undefined, ...NO_FILTERS })}
-              className="ai-view-switch-tab"
-            >
-              {m.collections}
-            </button>
-            <button
-              type="button"
-              aria-pressed={view === "works"}
-              onClick={() => set({ view: "works" })}
-              className="ai-view-switch-tab"
-            >
-              {m.allWorks}
-            </button>
+            {/* Segmented switch; selected and hover states live in styles.css (.ai-view-switch). */}
+            <div role="group" aria-label={m.view} className="ai-view-switch mt-12">
+              <button
+                type="button"
+                aria-pressed={view === "collections"}
+                onClick={() => set({ view: undefined, ...NO_FILTERS })}
+                className="ai-view-switch-tab"
+              >
+                {m.collections}
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "works"}
+                onClick={() => set({ view: "works" })}
+                className="ai-view-switch-tab"
+              >
+                {m.allWorks}
+              </button>
+            </div>
           </div>
         </div>
 

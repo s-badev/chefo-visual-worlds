@@ -1059,15 +1059,70 @@
   background: linear-gradient(to bottom, transparent, var(--navy));
 }
 /*
+ * Overview top: the first hall's own scene reaches up behind the intro block (eyebrow, title,
+ * tabs), so the page opens on one continuous scene instead of a flat navy band. The reach is a
+ * little more than the measured distance from the top of the page to the first hall (381px from
+ * 768px, 329-357px below; one more line of copy still fits); the overview clips the excess at its
+ * top, and its first 80px fade in from the header navy. Only the first hall changes: its top fade
+ * goes, and its bottom fade keeps its old length, so the hand-over to the second hall is as before.
+ */
+.ai-overview {
+  --ai-intro-reach: 26rem;
+  position: relative;
+}
+/* Only with the halls (Collections): All Artworks stays exactly as it was. */
+.ai-overview:has(.ai-overview-hall) {
+  overflow: clip;
+}
+.ai-overview:has(.ai-overview-hall)::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  height: 80px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--navy), transparent);
+}
+.ai-overview:has(.ai-overview-hall) .ai-overview-intro {
+  position: relative;
+  z-index: 1;
+}
+/* With the halls, the intro text and tabs get their local scrim (0.8 on wide screens, as on
+   collection pages; 0.65 on phones, as the first hall); the scene stays open to their right. */
+.ai-overview-intro-text {
+  --bg-scrim-text: 0.8;
+  --bg-scrim-text-mobile: 0.65;
+  width: fit-content;
+  max-width: 100%;
+}
+.ai-overview .ai-overview-hall:first-child {
+  overflow: clip visible;
+}
+.ai-overview .ai-overview-hall:first-child > .ai-section-background {
+  top: calc(-1 * var(--ai-intro-reach));
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(91% + 0.09 * var(--ai-intro-reach)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(91% + 0.09 * var(--ai-intro-reach)),
+    transparent
+  );
+}
+/*
  * Local scrim: a soft-edged navy panel behind the text block only. It is strongest under the
  * text and fades out within 3-4rem, before the portrait and before the viewport edge.
  */
 .ai-overview-hall-text,
+.ai-overview-intro-text,
 .ai-collection-copy,
 .ai-collection-page [data-exhibit-copy-content] {
   position: relative;
 }
 .ai-overview-hall-text::before,
+.ai-overview:has(.ai-overview-hall) .ai-overview-intro-text::before,
 .ai-collection-copy::before,
 .ai-collection-page [data-exhibit-copy-content]::before {
   content: "";
@@ -1113,6 +1168,7 @@
   }
   /* The text sits under the portrait and spans the width, so the panel runs edge to edge. */
   .ai-overview-hall-text::before,
+  .ai-overview:has(.ai-overview-hall) .ai-overview-intro-text::before,
   .ai-collection-copy::before,
   .ai-collection-page [data-exhibit-copy-content]::before {
     inset: -2.5rem -1.25rem;

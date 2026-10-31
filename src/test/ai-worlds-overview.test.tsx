@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -86,6 +88,72 @@ describe("AI Worlds overview", () => {
       expect(content).toContainElement(hall.querySelector<HTMLElement>(".ai-presentation"));
       expect(content).not.toContainElement(layer);
     }
+  });
+
+  it.each(["bg", "en"] as const)(
+    "carries the first hall's scene up behind the %s intro, one scene per hall",
+    (locale) => {
+      activeLocale = locale;
+      const { container } = render(<AiWorldsView />);
+      const overview = container.querySelector<HTMLElement>(".ai-overview")!;
+      expect(overview).toHaveClass("surface-dark");
+      // Intro text and tabs share one shrink-wrapped block (the local scrim sits behind it).
+      const intro = overview.querySelector<HTMLElement>(
+        ".ai-overview-intro .ai-overview-intro-text",
+      )!;
+      expect(within(intro).getByRole("heading", { level: 1 })).toHaveTextContent(
+        messages[locale].ai.title,
+      );
+      expect(within(intro).getByRole("group", { name: messages[locale].ai.view })).toBeTruthy();
+      // The intro has no backdrop of its own: the first hall's layer reaches up behind it.
+      expect(overview.querySelector(".ai-overview-intro .ai-section-background")).toBeNull();
+      const halls = [...overview.querySelectorAll<HTMLElement>("li.ai-overview-hall")];
+      expect(halls[0]).toBe(halls[0]!.parentElement!.firstElementChild);
+      expect(
+        halls.map((hall) => {
+          const layers = hall.querySelectorAll<HTMLElement>(":scope > .ai-section-background");
+          expect(layers).toHaveLength(1);
+          const layer = layers[0]!;
+          expect(layer).toHaveAttribute("aria-hidden", "true");
+          expect(layer.querySelector("a, button, [tabindex]")).toBeNull();
+          expect(layer.querySelector("img")).toHaveAttribute("alt", "");
+          return layer.dataset["aiSectionBackground"];
+        }),
+      ).toEqual(["historical", "professions", "cinema", "world"]);
+      expect(halls[0]!.querySelector("img")).toHaveAttribute(
+        "src",
+        "/background/ai-bg-historical-1600.webp",
+      );
+      // One image per hall: nothing else on the page draws a backdrop.
+      expect(overview.querySelectorAll(".ai-section-background")).toHaveLength(4);
+    },
+  );
+
+  it("keeps All Artworks flat, without any backdrop", () => {
+    currentSearch = { view: "works" };
+    const { container } = render(<AiWorldsView />);
+    expect(container.querySelector(".ai-overview-intro-text h1")).toBeTruthy();
+    expect(container.querySelector(".ai-section-background")).toBeNull();
+  });
+
+  it("extends only the first hall's layer, by the intro reach, and clips it at the top", () => {
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\s+/g, " ");
+    const body = (selector: string) =>
+      css.match(
+        new RegExp(`(?:^|[}\\s])${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
+      )?.[1] ?? "";
+    expect(body(".ai-overview")).toContain("--ai-intro-reach: 26rem");
+    expect(body(".ai-overview:has(.ai-overview-hall)")).toContain("overflow: clip");
+    expect(body(".ai-overview:has(.ai-overview-hall) .ai-overview-intro")).toContain("z-index: 1");
+    const first = body(".ai-overview .ai-overview-hall:first-child > .ai-section-background");
+    expect(first).toContain("top: calc(-1 * var(--ai-intro-reach))");
+    // The bottom fade keeps its old length, so the hand-over to the second hall is unchanged.
+    expect(first).toContain("#000 calc(91% + 0.09 * var(--ai-intro-reach))");
+    expect(body(".ai-overview .ai-overview-hall:first-child")).toContain("overflow: clip visible");
+    // No other hall is singled out.
+    expect(css).not.toMatch(/ai-overview-hall:(nth-child|last-child|nth-of-type)/);
   });
 
   it.each(["bg", "en"] as const)("opens on the four curated collections in %s", (locale) => {
