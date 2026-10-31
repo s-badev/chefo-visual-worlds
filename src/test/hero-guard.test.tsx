@@ -309,7 +309,18 @@ describe("header over the Hero", () => {
       expect(icon).toHaveAttribute("width", "44");
       expect(icon).toHaveAttribute("height", "44");
       expect(lockup).toHaveClass("min-h-11");
-      expect(lockup).toHaveTextContent(/^CHEFO — Visual Worlds$/);
+      // Dash-free wordmark: bold CHEFO, regular VISUAL WORLDS (from md), no separator glyph.
+      expect(lockup).toHaveTextContent(/^CHEFO Visual Worlds$/);
+      expect(lockup.textContent).not.toMatch(/[—–\-·|/]/);
+      const text = lockup.querySelector("span")!;
+      expect(text.className).toContain("gap-[0.7em]");
+      expect(text.className).toContain("whitespace-nowrap");
+      expect(text.className).toContain("uppercase");
+      const [brand, rest] = Array.from(text.querySelectorAll("span"));
+      expect(brand).toHaveTextContent(/^CHEFO$/);
+      expect(brand!.className).toBe("font-bold");
+      expect(rest).toHaveTextContent(/^Visual Worlds$/);
+      expect(rest!.className.split(" ").sort()).toEqual(["font-normal", "hidden", "md:inline"]);
       cleanupMarked();
     },
   );
