@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { albumText, getAlbum, getAlbumCover, getAlbums } from "@/content/albums";
-import {
-  photographyCover,
-  photographyCoverAlt,
-  photographyCoverPlaces,
-} from "@/content/photography-cover";
+import { photographyCover, photographyCoverAlt } from "@/content/photography-cover";
 import { localizePhoto } from "@/content/photos";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
@@ -56,13 +52,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
           </div>
           <div className="photography-editorial-lead">
             <p>{t.home.photoText}</p>
-            <span className="photography-cover-caption">
-              <span>
-                {photographyCoverPlaces(locale).map((place) => (
-                  <span key={place}>{place}</span>
-                ))}
-              </span>
-            </span>
           </div>
         </div>
       </Surface>
