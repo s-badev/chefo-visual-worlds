@@ -104,7 +104,7 @@ export function HomeView() {
               key={album.id}
               to="/photography/albums/$slug"
               slug={album.slug}
-              className={`group relative isolate block min-h-[20rem] overflow-hidden rounded-md bg-navy text-navy-foreground shadow-soft outline-none transition-shadow duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 motion-reduce:transition-none ${index === 0 ? "min-h-[26rem] sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0" : "lg:min-h-0"}`}
+              className={`group relative isolate block min-h-[20rem] overflow-hidden rounded-md bg-navy text-navy-foreground shadow-soft outline-none transition-shadow duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-interaction-gold focus-visible:ring-offset-4 motion-reduce:transition-none ${index === 0 ? "min-h-[26rem] sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0" : "lg:min-h-0"}`}
             >
               <img
                 src={cover.image}

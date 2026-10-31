@@ -73,8 +73,9 @@ const contrast = (a: string, b: string) => {
 const CREAM = "#f4eee1";
 const GOLD = "#e2b14e";
 const INK = "#1b1610";
-const HOVER_GOLD = "#c9a46b";
-const HOVER_INK = "#16213a";
+// Muted golds that must never paint an interactive hover, focus or pressed state: PR #13's
+// hover/pressed fills and the decorative --gold / --accent tokens.
+const MUTED_GOLDS = ["#c9a46b", "#b8935a", "oklch(0.7 0.095 78)", "oklch(0.72 0.095 78)"];
 // --navy, oklch(0.21 0.045 262), and the light --background, oklch(0.965 0.017 85), in sRGB.
 const NAVY = "#0d182d";
 const LIGHT_PAGE = "#f9f3e7";
@@ -129,9 +130,7 @@ describe("AI Worlds overview halls", () => {
           `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
         );
         expect(link).toHaveTextContent(m.exploreCollection);
-        expect(link.querySelector(".ai-artwork-action-primary")).toHaveClass(
-          "interaction-primary",
-        );
+        expect(link.querySelector(".ai-artwork-action-primary")).toHaveClass("interaction-primary");
         expect(link.querySelector(`${INTERACTIVE}, img`)).toBeNull();
         // Title and photo stay readable content next to the link, not inside it.
         expect(within(hall).getByRole("heading", { level: 2, name: title })).not.toContainElement(
@@ -272,20 +271,20 @@ describe("Design A interaction system", () => {
     expect(css).toContain(`--interaction-cream: ${CREAM};`);
     expect(css).toContain(`--interaction-gold-bright: ${GOLD};`);
     expect(css).toContain(`--interaction-ink-on-gold: ${INK};`);
-    expect(css).toContain(`--btn-hover-bg: ${HOVER_GOLD};`);
-    expect(css).toContain(`--btn-hover-fg: ${HOVER_INK};`);
-    expect(css).toContain(`--btn-hover-border: ${HOVER_GOLD};`);
-    expect(css).toContain("--btn-active-bg: #b8935a;");
+    // The shared button hover tokens point at the bright gold and its ink.
+    expect(css).toContain("--btn-hover-bg: var(--interaction-gold-bright);");
+    expect(css).toContain("--btn-hover-fg: var(--interaction-ink-on-gold);");
+    expect(css).toContain("--btn-hover-border: var(--interaction-gold-bright);");
+    expect(css).toContain("--btn-active-bg: var(--interaction-gold-bright);");
   });
 
   it("keeps rest cream and hover gold apart (OKLab distance x100 >= 18)", () => {
-    expect(deltaEok(CREAM, HOVER_GOLD)).toBeGreaterThanOrEqual(18);
+    expect(deltaEok(CREAM, GOLD)).toBeGreaterThanOrEqual(18);
   });
 
   it("keeps every text pair readable (WCAG >= 4.5:1)", () => {
     expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(INK, GOLD)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(HOVER_INK, HOVER_GOLD)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(CREAM, NAVY)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(4.5);
   });
@@ -308,7 +307,9 @@ describe("Design A interaction system", () => {
     expect(hover).toContain("background-color: var(--btn-hover-bg)");
     expect(hover).toContain("border-color: var(--btn-hover-border)");
     expect(hover).toContain("color: var(--btn-hover-fg)");
-    expect(hover).toContain("box-shadow: none");
+    expect(hover).toContain(
+      "box-shadow: 0 0 0 6px var(--interaction-ring), 0 12px 32px var(--interaction-halo)",
+    );
     expect(
       rule(
         ".ai-presentation-title:hover, .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title",
@@ -405,6 +406,69 @@ describe("Design A interaction system", () => {
     expect(contrast(GOLD, NAVY)).toBeGreaterThanOrEqual(3);
   });
 
+  it("never paints an interactive hover, focus or pressed state with a muted gold", () => {
+    // Custom properties as declared on :root and on dark surfaces (dark wins where both exist).
+    const tokens = (selector: string) =>
+      new Map(
+        rules
+          .filter((r) => r.selector === selector)
+          .flatMap((r) => r.body.split(";"))
+          .map((d) => d.trim().match(/^(--[\w-]+):\s*(.+)$/))
+          .filter((m): m is RegExpMatchArray => m !== null)
+          .map((m) => [m[1]!, m[2]!.trim()] as const),
+      );
+    const light = tokens(":root");
+    const dark = new Map([...light, ...tokens('.surface-dark, [data-theme="dark"]')]);
+    const resolve = (value: string, scope: Map<string, string>, depth = 0): string =>
+      depth > 10
+        ? value
+        : value.replace(/var\((--[\w-]+)\)/g, (_, name: string) =>
+            resolve(scope.get(name) ?? name, scope, depth + 1),
+          );
+    const states = rules.filter((r) =>
+      /:(hover|focus-visible|focus-within|active)\b/.test(r.selector),
+    );
+    expect(states.length).toBeGreaterThan(30);
+    for (const r of states) {
+      for (const declaration of r.body.split(";")) {
+        const [property, ...rest] = declaration.split(":");
+        const name = property!.trim();
+        const painted =
+          /^(color|background(-color)?|border(-\w+)*-color|border|outline(-color)?|box-shadow|text-decoration-color)$/;
+        if (!painted.test(name)) continue;
+        // Text on light pages may use the dark --gold-ink; fills, borders and rings may not.
+        const scopes = name === "color" ? [light] : [light, dark];
+        for (const scope of scopes) {
+          const value = resolve(rest.join(":").trim(), scope);
+          for (const muted of MUTED_GOLDS) {
+            expect(value, `${r.selector} { ${name} }`).not.toContain(muted);
+          }
+        }
+      }
+    }
+    // Tailwind state utilities in components use the bright interaction gold, never --gold.
+    const sources = ["components", "views", "i18n", "routes"].flatMap((dir) =>
+      readdirSync(path.resolve(__dirname, "..", dir), { recursive: true, withFileTypes: true })
+        .filter((f) => f.isFile() && f.name.endsWith(".tsx"))
+        .map((f) => readFileSync(path.join(f.parentPath, f.name), "utf8")),
+    );
+    for (const source of sources) {
+      expect(source).not.toMatch(
+        /\b(?:group-)?(?:hover|focus-visible|focus-within|active):(?:bg|border|ring|text|outline|decoration)-gold\b/,
+      );
+    }
+  });
+
+  it("keeps ink text on the back pill's bright fill in editorial albums", () => {
+    // The editorial album recolours its text links on hover; the back pill is not one of them.
+    expect(
+      rules.find(
+        (r) => r.body === "color: var(--gold-ink);" && r.selector.startsWith(".editorial-album a"),
+      )!.selector,
+    ).toBe(".editorial-album a:not(.next-album-card):not(.back-pill):hover");
+    expect(rule("a.back-pill:hover", POINTER)!.body).toContain("color: var(--btn-hover-fg)");
+  });
+
   it("leaves the Home Hero CTA outside the shared system", () => {
     for (const r of rules.filter((r) => r.selector.includes("hero-cta"))) {
       expect(r.body).not.toContain("--interaction-");
@@ -490,12 +554,39 @@ describe("AI Worlds view switch", () => {
   });
 });
 
+describe("Brand lockup underline", () => {
+  it("paints one 2px bright-gold line under the whole wordmark on hover and focus", () => {
+    const line = rule(".brand-lockup-text")!.body;
+    expect(line).toContain(
+      "linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))",
+    );
+    // Same offset as .interaction-link (0.28em of the 16px link), below the 1em baseline.
+    expect(line).toContain("0 calc(1em + 0.28rem) / 100% 0");
+    expect(rule(".interaction-link")!.body).toContain("text-underline-offset: 0.28em");
+    for (const [state, context] of [
+      [":hover", POINTER],
+      [":focus-visible", ""],
+    ] as const) {
+      // The per-word text underline is off, so it cannot split between CHEFO and VISUAL.
+      expect(rule(`.interaction-link.brand-lockup${state}`, context)!.body).toBe(
+        "text-decoration-line: none;",
+      );
+      expect(rule(`.brand-lockup${state} .brand-lockup-text`, context)!.body).toBe(
+        "background-size: 100% 2px;",
+      );
+    }
+  });
+});
+
 describe("Dash-free wordmark", () => {
   it.each(["bg", "en"] as const)("names the %s brand link Chefo Visual Worlds", async (locale) => {
     await renderAt(`${prefix[locale]}/`, () => <Wordmark />);
     const link = screen.getByRole("link", { name: "Chefo Visual Worlds" });
     expect(link).toHaveAttribute("href", locale === "en" ? "/en" : "/");
     expect(link.textContent).not.toMatch(/[—–\-·|/]/);
-    expect(link.textContent?.replace(/\s+/g, " ").trim()).toBe("CHEFO VISUAL WORLDS");
+    expect(link.textContent).toBe("CHEFO VISUAL WORLDS");
+    // One inline run with a real word space: no flex gap that would widen the first gap.
+    expect(link.className).not.toMatch(/\b(inline-)?flex\b|\bgap-/);
+    expect(link.querySelector(".font-bold")!.textContent).toBe("CHEFO");
   });
 });

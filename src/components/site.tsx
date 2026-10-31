@@ -27,10 +27,7 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
       to="/"
       onClick={onClick}
       aria-label="Chefo Visual Worlds"
-      className={cn(
-        "inline-flex items-baseline gap-[0.7em] font-serif text-lg tracking-[0.18em] whitespace-nowrap",
-        className,
-      )}
+      className={cn("font-serif text-lg tracking-[0.18em] whitespace-nowrap", className)}
     >
       <span className="font-bold">CHEFO</span> <span className="font-normal">VISUAL WORLDS</span>
     </LocaleLink>
@@ -38,7 +35,8 @@ export function Wordmark({ className, onClick }: { className?: string; onClick?:
 }
 
 /** Header logo: round portrait icon and wordmark ("CHEFO" only on phones), one link home.
- * Bold CHEFO and regular VISUAL WORLDS separated by space only, like Wordmark. */
+ * Bold CHEFO and regular VISUAL WORLDS are one inline text run joined by an ordinary word space,
+ * so both gaps match; .brand-lockup-text draws one hover/focus underline under all three words. */
 export function BrandLockup({ onClick }: { onClick?: () => void }) {
   const { t } = useT();
   return (
@@ -46,7 +44,7 @@ export function BrandLockup({ onClick }: { onClick?: () => void }) {
       to="/"
       onClick={onClick}
       aria-label={t.nav.home}
-      className="interaction-link flex min-h-11 items-center gap-3 rounded-sm"
+      className="interaction-link brand-lockup flex min-h-11 items-center gap-3 rounded-sm"
     >
       <img
         src="/brand/chefo-icon.svg"
@@ -55,9 +53,9 @@ export function BrandLockup({ onClick }: { onClick?: () => void }) {
         height={44}
         className="size-9 shrink-0 rounded-full ring-1 ring-gold/40 md:size-11"
       />
-      <span className="inline-flex items-baseline gap-[0.7em] whitespace-nowrap font-serif text-xl uppercase tracking-[0.14em] md:text-[1.4375rem]">
-        <span className="font-bold">CHEFO</span>{" "}
-        <span className="hidden font-normal md:inline">Visual Worlds</span>
+      <span className="brand-lockup-text whitespace-nowrap font-serif text-xl uppercase tracking-[0.14em] md:text-[1.4375rem]">
+        <span className="font-bold">CHEFO</span>
+        <span className="hidden font-normal md:inline"> Visual Worlds</span>
       </span>
     </LocaleLink>
   );
@@ -397,7 +395,7 @@ export function Chip({
         "interaction-control interaction-text-button min-h-11 shrink-0 whitespace-nowrap rounded-full border py-1.5 text-sm transition-colors duration-(--dur-fast) ease-cinematic",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border hover:border-gold",
+          : "border-border hover:border-interaction-gold",
       )}
     >
       {children}
@@ -578,7 +576,7 @@ export function AiCard({
           />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-gold/40 group-focus-within:ring-gold/60"
+            className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-interaction-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-interaction-gold/40 group-focus-within:ring-interaction-gold/60"
           />
           <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
             {t.common.aiBadge}

@@ -95,13 +95,14 @@
   /* Shared Home alignment: only the Home header row and Hero copy consume this gutter. */
   --home-gutter: clamp(20px, 5.5vw, 112px);
 
-  /* Unified text-button sizing and hover language. Focus rings keep their existing tokens below. */
+  /* Unified text-button sizing and hover language (Design A): every hover and pressed fill is the
+     bright interaction gold defined below. Focus rings keep their existing tokens below. */
   --btn-pad-x: 28px;
-  --btn-hover-bg: #c9a46b;
-  --btn-hover-fg: #16213a;
-  --btn-hover-border: #c9a46b;
-  --btn-active-bg: #b8935a;
-  --btn-hover-duration: 150ms;
+  --btn-hover-bg: var(--interaction-gold-bright);
+  --btn-hover-fg: var(--interaction-ink-on-gold);
+  --btn-hover-border: var(--interaction-gold-bright);
+  --btn-active-bg: var(--interaction-gold-bright);
+  --btn-hover-duration: 200ms;
 
   /* Design A interaction system: exact owner-approved values. Muted --gold stays for passive
      editorial decoration; every interactive hover/focus state uses the bright gold. */
@@ -116,7 +117,6 @@
   --interaction-duration: var(--btn-hover-duration);
   /* Light surfaces: cream actions keep a dark boundary; text stays dark, gold only underlines. */
   --interaction-primary-border: var(--interaction-ink-on-gold);
-  --interaction-primary-hover-border: var(--interaction-ink-on-gold);
   --interaction-secondary-text: var(--interaction-ink-on-gold);
   --interaction-secondary-border: var(--interaction-ink-on-gold);
   --interaction-secondary-hover-bg: var(--interaction-tint);
@@ -169,7 +169,6 @@
 .surface-dark,
 [data-theme="dark"] {
   --interaction-primary-border: var(--interaction-cream);
-  --interaction-primary-hover-border: var(--interaction-gold-bright);
   --interaction-secondary-text: var(--interaction-cream);
   --interaction-secondary-border: rgb(244 238 225 / 0.6);
   --interaction-secondary-hover-bg: rgb(244 238 225 / 0.18);
@@ -223,7 +222,7 @@
   [data-header-theme="dark"] :focus-visible,
   header[data-theme="dark"] :focus-visible,
   [role="dialog"] :focus-visible {
-    outline-color: var(--gold);
+    outline-color: var(--interaction-gold-bright);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -689,7 +688,7 @@
   outline-offset: 3px;
 }
 .interaction-primary:focus-visible {
-  border-color: var(--interaction-primary-hover-border);
+  border-color: var(--btn-hover-border);
   background-color: var(--interaction-gold-bright);
   color: var(--interaction-ink-on-gold);
   box-shadow:
@@ -732,6 +731,20 @@
   border-bottom-color: var(--interaction-gold-bright);
   box-shadow: 0 1px 0 var(--interaction-gold-bright);
 }
+/* Header brand lockup: its hover/focus underline is painted once under the whole wordmark,
+   not once per word, so it never splits or seams where bold CHEFO meets the regular words.
+   Same colour, 2px thickness and offset as .interaction-link: 0.28rem below the baseline,
+   which sits 1em below the top of the wordmark's 1.4 line box. */
+.brand-lockup-text {
+  background: linear-gradient(var(--interaction-gold-bright), var(--interaction-gold-bright))
+    no-repeat 0 calc(1em + 0.28rem) / 100% 0;
+}
+.interaction-link.brand-lockup:focus-visible {
+  text-decoration-line: none;
+}
+.brand-lockup:focus-visible .brand-lockup-text {
+  background-size: 100% 2px;
+}
 .interaction-media:focus-visible {
   box-shadow:
     inset 0 0 0 3px var(--interaction-gold-bright),
@@ -747,7 +760,9 @@
     border-color: var(--btn-hover-border);
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-fg);
-    box-shadow: none;
+    box-shadow:
+      0 0 0 6px var(--interaction-ring),
+      0 12px 32px var(--interaction-halo);
   }
   .interaction-secondary:hover {
     border-color: var(--btn-hover-border);
@@ -783,6 +798,12 @@
   }
   .interaction-media:hover {
     box-shadow: inset 0 0 0 3px var(--interaction-gold-bright);
+  }
+  .interaction-link.brand-lockup:hover {
+    text-decoration-line: none;
+  }
+  .brand-lockup:hover .brand-lockup-text {
+    background-size: 100% 2px;
   }
   /* An inset outline paints above card content (covers), unlike an inset shadow. */
   .interaction-card:hover {
@@ -1078,7 +1099,7 @@
   transition-duration: 550ms;
 }
 .ai-presentation-link:focus-visible .ai-artwork-action-primary {
-  border-color: var(--interaction-primary-hover-border);
+  border-color: var(--btn-hover-border);
   background-color: var(--interaction-gold-bright);
   box-shadow:
     0 0 0 6px var(--interaction-ring),
@@ -1101,7 +1122,7 @@
     color: var(--interaction-gold-bright);
   }
   .ai-presentation:has(.ai-presentation-title a:focus-visible) .ai-artwork-action-primary {
-    border-color: var(--interaction-primary-hover-border);
+    border-color: var(--btn-hover-border);
     background-color: var(--interaction-gold-bright);
     box-shadow:
       0 0 0 6px var(--interaction-ring),
@@ -1118,7 +1139,9 @@
     border-color: var(--btn-hover-border);
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-fg);
-    box-shadow: none;
+    box-shadow:
+      0 0 0 6px var(--interaction-ring),
+      0 12px 32px var(--interaction-halo);
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -1511,11 +1534,15 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 1rem 0.6rem;
+  gap: 1rem 0.75rem;
 }
+/* Justified rows: basis and grow are both proportional to the frame ratio, so every image in a
+   row ends up equally tall. A minimum width (set, or the automatic one from a long caption word)
+   made narrow portraits taller than their row, and grow is scaled so a row whose ratios add up
+   to less than 1 still reaches the right edge. */
 .editorial-album-all-grid li {
-  min-width: min(100%, 7.5rem);
-  flex: var(--gallery-ratio) 1 calc(var(--gallery-ratio) * 9rem);
+  min-width: 0;
+  flex: calc(var(--gallery-ratio) * 100) 1 calc(var(--gallery-ratio) * 9rem);
 }
 .editorial-album-all-grid img {
   display: block;
@@ -1575,6 +1602,7 @@
 }
 .editorial-album-all-grid figcaption {
   margin-top: 0.4rem;
+  overflow-wrap: break-word;
   font-family: var(--font-serif);
   font-size: 1rem;
   line-height: 1.35;
@@ -1600,7 +1628,8 @@
     align-items: stretch;
   }
 }
-.editorial-album a:not(.next-album-card):hover {
+/* Text links only: the back pill keeps its ink text on the bright gold hover fill. */
+.editorial-album a:not(.next-album-card):not(.back-pill):hover {
   color: var(--gold-ink);
 }
 .editorial-album a:not(.next-album-card):focus-visible,
@@ -1976,6 +2005,7 @@ a.next-album-card:focus-visible {
   outline-offset: 3px;
 }
 .surface-dark a.back-pill:focus-visible {
+  border-color: var(--interaction-gold-bright);
   outline-color: var(--interaction-focus-ring);
 }
 @media (hover: hover) and (pointer: fine) {

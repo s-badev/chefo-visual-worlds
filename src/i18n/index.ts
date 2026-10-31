@@ -35,7 +35,10 @@ export function useT() {
   return { locale, t: messages[locale] };
 }
 
-/** Localized title/description, canonical + hreflang alternates for a page. */
+/** Shared 1200x630 social card. Root-relative like the canonical below: no site origin is set. */
+const OG_IMAGE = "/og-image.png";
+
+/** Localized title/description, social card, canonical + hreflang alternates for a page. */
 export function pageHead(locale: Locale, bgPath: string, title: string, description: string, opts?: { type?: string }) {
   const self = localizePath(bgPath, locale);
   return {
@@ -47,7 +50,12 @@ export function pageHead(locale: Locale, bgPath: string, title: string, descript
       { property: "og:type", content: opts?.type ?? "website" },
       { property: "og:url", content: self },
       { property: "og:locale", content: locale === "en" ? "en_US" : "bg_BG" },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: messages[locale].common.ogImageAlt },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
       { rel: "canonical", href: self },

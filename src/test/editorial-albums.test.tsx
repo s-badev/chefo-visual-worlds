@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAlbum, getAlbumPhotos } from "@/content/albums";
+import { getAlbum, getAlbumPhotos, getAlbums } from "@/content/albums";
 import { getEditorialAlbum } from "@/content/editorial";
 import { messages } from "@/i18n/messages";
 import { AlbumView } from "@/views/photography";
@@ -133,9 +135,7 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
       const nextAlbum = getAlbum(expected.next)!;
       const { container } = render(<AlbumView album={getAlbum(slug)!} />);
       const navigation = container.querySelector(".editorial-album-navigation")!;
-      const previous = navigation.querySelector<HTMLAnchorElement>(
-        ".next-album-card--previous",
-      )!;
+      const previous = navigation.querySelector<HTMLAnchorElement>(".next-album-card--previous")!;
       const next = navigation.querySelector<HTMLAnchorElement>(".next-album-card--next")!;
 
       expect(previous).toHaveAttribute("href", `/photography/albums/${expected.previous}`);
@@ -300,4 +300,53 @@ it("moves Nessebar to the shared unified album presentation", () => {
     "data-opening-photo-slug",
     getAlbum("nessebar")!.coverPhotoSlug,
   );
+});
+
+// jsdom has no layout engine, so the equal-height rule is asserted on its two inputs: the CSS
+// (width proportional to the frame ratio, nothing clamping it) and the ratios themselves (the
+// albums test checks every Paris width/height against the real WebP file).
+describe("Editorial all-photos grid", () => {
+  const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+  const itemRules = [...css.matchAll(/\.editorial-album-all-grid li \{([^}]*)\}/g)].map((m) =>
+    m[1]!.replace(/\s+/g, " ").trim(),
+  );
+  const RATIO_TIMES = /^calc\(var\(--gallery-ratio\) \* ([\d.]+)(rem)?\)$/;
+
+  it("sizes every item in proportion to its frame ratio with no minimum width", () => {
+    expect(itemRules.length).toBeGreaterThan(0);
+    const all = itemRules.join(" ");
+    expect(all).not.toMatch(/(max-width|max-height|min-height)\s*:/);
+    for (const body of itemRules) {
+      for (const [, property, value] of body.matchAll(
+        /(min-width|flex(?:-grow|-basis)?):\s*([^;]+)/g,
+      )) {
+        if (property === "min-width") expect(value!.trim()).toBe("0");
+        else if (property === "flex") {
+          const [grow, shrink, basis] = value!.trim().split(/ (?![^(]*\))/);
+          expect(grow).toMatch(RATIO_TIMES);
+          expect(shrink).toBe("1");
+          expect(basis).toMatch(RATIO_TIMES);
+        } else expect(value!.trim()).toMatch(RATIO_TIMES);
+      }
+    }
+    expect(all).toContain("min-width: 0");
+  });
+
+  it("lets a row of one narrow portrait still reach the right edge", () => {
+    // Flexbox hands out only part of the free space when the grow factors on a line add up to
+    // less than 1, so the scaled grow of the narrowest frame must be at least 1.
+    const flex = itemRules.map((body) => body.match(/flex: ([^;]+)/)?.[1]).find(Boolean)!;
+    const scale = Number(flex.match(/^calc\(var\(--gallery-ratio\) \* ([\d.]+)\)/)![1]);
+    const editorial = getAlbums().filter((album) => getEditorialAlbum(album.slug));
+    expect(editorial.map((album) => album.slug).sort()).toEqual(["istanbul", "paris"]);
+    for (const album of editorial) {
+      const narrowest = Math.min(
+        ...getAlbumPhotos(album, "bg").map((photo) => photo.width / photo.height),
+      );
+      expect(narrowest * scale, album.slug).toBeGreaterThanOrEqual(1);
+    }
+  });
 });
