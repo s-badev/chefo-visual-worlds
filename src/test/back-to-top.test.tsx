@@ -39,7 +39,7 @@ describe("BackToTop", () => {
 
   it("shares the site hover tokens instead of a translucent icon tint", () => {
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
-    expect(css).toContain("--btn-hover-bg: var(--interaction-gold-bright);");
+    expect(css).toContain("--btn-hover-bg: #c9a46b;");
     expect(css).toContain("--btn-hover-fg: var(--interaction-ink-on-gold);");
     expect(css).toContain(
       ".interaction-icon:hover { border-color: var(--btn-hover-border); background-color: var(--btn-hover-bg); background-image: none; color: var(--btn-hover-fg); }",
