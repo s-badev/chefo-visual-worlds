@@ -1628,7 +1628,8 @@
     align-items: stretch;
   }
 }
-.editorial-album a:not(.next-album-card):hover {
+/* Text links only: the back pill keeps its ink text on the bright gold hover fill. */
+.editorial-album a:not(.next-album-card):not(.back-pill):hover {
   color: var(--gold-ink);
 }
 .editorial-album a:not(.next-album-card):focus-visible,

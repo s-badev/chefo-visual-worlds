@@ -459,6 +459,16 @@ describe("Design A interaction system", () => {
     }
   });
 
+  it("keeps ink text on the back pill's bright fill in editorial albums", () => {
+    // The editorial album recolours its text links on hover; the back pill is not one of them.
+    expect(
+      rules.find(
+        (r) => r.body === "color: var(--gold-ink);" && r.selector.startsWith(".editorial-album a"),
+      )!.selector,
+    ).toBe(".editorial-album a:not(.next-album-card):not(.back-pill):hover");
+    expect(rule("a.back-pill:hover", POINTER)!.body).toContain("color: var(--btn-hover-fg)");
+  });
+
   it("leaves the Home Hero CTA outside the shared system", () => {
     for (const r of rules.filter((r) => r.selector.includes("hero-cta"))) {
       expect(r.body).not.toContain("--interaction-");
