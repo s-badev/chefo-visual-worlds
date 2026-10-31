@@ -176,7 +176,7 @@ describe("Photography album overview", () => {
       /\blight\b/i,
     ],
   ] as const)(
-    "opens on the owner's collage cover with its own %s alt, caption and intro line",
+    "opens on the owner's collage cover with its own %s alt and intro line, without a caption",
     (locale, alt, caption, intro, light) => {
       activeLocale = locale;
       const { container } = render(<PhotographyView />);
@@ -197,15 +197,16 @@ describe("Photography album overview", () => {
       // Not an album photograph: no link, button or lightbox on the cover.
       expect(figure.closest("a, button")).toBeNull();
       expect(figure.querySelector("a, button")).toBeNull();
-      // One element per place, so a line can only break between places; CSS draws the dots.
-      const places = [
-        ...container.querySelectorAll(".photography-cover-caption > span > span"),
-      ].map((place) => place.textContent);
-      expect(places.join(" · ")).toBe(caption);
-      expect(places).toContain(locale === "bg" ? "Бургас" : "Burgas");
-      expect(places.every((place) => place && !place.includes("·"))).toBe(true);
-      // The intro line under the heading, here and on Home, without "light".
-      const lead = container.querySelector(".photography-editorial-lead p")!;
+      // No visible caption: the places are named only in the alt text.
+      const text = container.textContent!.replace(/\s+/g, " ");
+      expect(text).not.toContain(caption);
+      expect(text).not.toContain(caption.split(" · ").slice(0, 2).join(" · "));
+      expect(container.querySelector(".photography-cover-caption")).toBeNull();
+      expect(container.querySelector("[data-photo-opening] figcaption")).toBeNull();
+      // The intro line under the heading, here and on Home, without "light", and alone in its column.
+      const leadColumn = container.querySelector(".photography-editorial-lead")!;
+      expect([...leadColumn.children].map((child) => child.tagName)).toEqual(["P"]);
+      const lead = leadColumn.querySelector("p")!;
       expect(lead).toHaveTextContent(intro);
       expect(lead.textContent).not.toMatch(light);
       expect(messages[locale].home.photoText).toBe(intro);
@@ -214,31 +215,17 @@ describe("Photography album overview", () => {
     },
   );
 
-  it("keeps the caption on one line from 768px and wraps it only between places on phones", () => {
+  it("keeps the original 20rem intro column at every width, with no caption styles left", () => {
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\s+/g, " ");
-    const rule = (selector: string) =>
-      css.match(
-        new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
-      )?.[1] ?? "";
-    // Each place is unbreakable and opens with a dot as wide as " · "; the list is pulled left by
-    // that width and clipped, so no line starts or ends on a dot.
-    expect(rule(".photography-cover-caption > span > span")).toContain("white-space: nowrap");
-    const dot = rule(".photography-cover-caption > span > span::before");
-    expect(dot).toContain('content: "·"');
-    expect(dot).toContain("width: 0.63em");
-    const list = rule(".photography-cover-caption > span");
-    expect(list).toContain("margin-left: -0.63em");
-    expect(list).toContain("text-wrap: balance");
-    expect(rule(".photography-cover-caption")).toContain("overflow: hidden");
-    // Room for one line: a wider lead column up to 1535px, then the caption runs into the margin.
+    // The heading and intro columns as before the caption grew: one rule, from 900px up.
     expect(css).toContain(
-      "@media (min-width: 900px) and (max-width: 1535px) { .photography-editorial-mast { grid-template-columns: minmax(0, 1fr) minmax(16rem, 25rem); } }",
+      "@media (min-width: 900px) { .photography-editorial-mast { grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem); align-items: end; column-gap: 4rem; padding-bottom: 4rem; } }",
     );
-    expect(css).toContain(
-      "@media (min-width: 1536px) { .photography-cover-caption { width: max-content; } }",
-    );
+    expect(css.match(/\.photography-editorial-mast \{ grid-template-columns:/g)).toHaveLength(1);
+    expect(css).not.toContain("photography-cover-caption");
+    expect(css).not.toMatch(/\.photography-editorial-lead span/);
   });
 
   it("ships the collage cover as budgeted WebP files and never its master file", () => {
