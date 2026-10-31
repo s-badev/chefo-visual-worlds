@@ -36,8 +36,8 @@ describe("Social preview card", () => {
     (locale) => {
       for (const [name, head] of heads(locale)) {
         const meta = (key: string) =>
-          head.meta?.find((m) => m.property === key || m.name === key)?.content;
-        const canonical = head.links?.find((l) => l.rel === "canonical")?.href;
+          head.meta?.find((m) => m["property"] === key || m["name"] === key)?.["content"];
+        const canonical = head.links?.find((l) => l["rel"] === "canonical")?.["href"];
         expect(canonical, name).toBeTruthy();
         const image = meta("og:image");
         // Same mechanism as the canonical: both resolve against the one site origin.
