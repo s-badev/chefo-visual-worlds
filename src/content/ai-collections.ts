@@ -10,6 +10,8 @@ export interface AiCollection {
   slug: string;
   order: number;
   title: LocalizedText;
+  /** One- or two-word name for compact navigation (Home worlds scene); the title stays the label. */
+  shortTitle: LocalizedText;
   /** Short line under the title, e.g. "One Face. Many Cultures." */
   tagline?: LocalizedText;
   intro: LocalizedText;
@@ -31,6 +33,7 @@ export const aiCollections: AiCollection[] = [
     slug: "historical-eras-rulers",
     order: 1,
     title: text("Исторически епохи и владетели", "Historical Eras & Rulers"),
+    shortTitle: text("Исторически", "Historical"),
     intro: text(
       "Короните, кадифето и маслените бои на отминали векове. Портрети, в които влизам в ролята на владетели и личности от историята.",
       "Crowns, velvet and the oil paint of past centuries. Portraits in which I step into the roles of rulers and figures from history.",
@@ -59,6 +62,7 @@ export const aiCollections: AiCollection[] = [
     slug: "professions-roles",
     order: 2,
     title: text("Професии и роли", "Professions & Roles"),
+    shortTitle: text("Професии", "Professions"),
     intro: text(
       "Портрети, които изследват идентичността през различни професионални роли.",
       "Portraits exploring identity through different professional roles.",
@@ -87,6 +91,7 @@ export const aiCollections: AiCollection[] = [
     slug: "cinema-archetypes",
     order: 3,
     title: text("Кино архетипи", "Cinema Archetypes"),
+    shortTitle: text("Кино", "Cinema"),
     intro: text(
       "Кинематографична светлина, характер и истории, пресъздадени чрез AI.",
       "Cinematic light, character and stories reimagined through AI.",
@@ -116,6 +121,7 @@ export const aiCollections: AiCollection[] = [
     order: 4,
     kind: "destinations",
     title: text("По света", "Around the World"),
+    shortTitle: text("По света", "Around the world"),
     intro: text(
       "Пътешествие през 16 дестинации, в които облеклото, прическите и атмосферата се променят, но лицето остава същото. Различни култури, епохи и светове, пресъздадени с AI.",
       "A journey across 16 destinations where clothing, hairstyles, and atmosphere change, but the face remains the same. Different cultures, eras, and worlds reimagined with AI.",

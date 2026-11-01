@@ -1337,7 +1337,7 @@ header[data-theme="light"] .brand-lockup > img {
 }
 
 /*
- * Home "One face, four worlds". Wide windows that allow motion get a 420svh track with a sticky
+ * Home "One face, four worlds". Wide windows that allow motion get a 300svh track with a sticky
  * 100svh stage (keep in sync with WORLDS_PIN_QUERY); everything else gets the stacked list.
  * Layers stack by index, so the incoming world always lies above the one it covers.
  */
@@ -1348,7 +1348,7 @@ header[data-theme="light"] .brand-lockup > img {
   .home-worlds-pin {
     display: block;
     position: relative;
-    height: 420svh;
+    height: 300svh;
   }
   .home-worlds-stack {
     display: none;
@@ -1399,16 +1399,64 @@ header[data-theme="light"] .brand-lockup > img {
   grid-area: 1 / 1;
   will-change: opacity, transform;
 }
+/* Short names on one row: 15px, stepping down (never below 13px) where the text column narrows. */
+.home-worlds-text {
+  container-type: inline-size;
+}
 .home-worlds-names {
+  --names-size: 15px;
+  --names-track: 0.22em;
+  --names-pad: 0.375rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.5rem;
+  flex-wrap: nowrap;
+  gap: 0;
   margin-top: 2rem;
+  /* The first label starts on the text column's edge, like the title and the button. */
+  margin-inline-start: calc(-1 * var(--names-pad));
 }
 .home-worlds-name {
   min-height: 44px;
+  padding-inline: var(--names-pad);
   border-bottom: 1px solid transparent;
+  font-size: var(--names-size);
+  letter-spacing: var(--names-track);
+  white-space: nowrap;
   text-align: left;
+}
+/* Steps measured on the text column (BG row needs ~452px at 15px, EN ~579px). */
+@container (max-width: 459px) {
+  .home-worlds-names {
+    --names-size: 14px;
+  }
+}
+@container (max-width: 429px) {
+  .home-worlds-names {
+    --names-size: 13px;
+  }
+}
+@container (max-width: 584px) {
+  .home-worlds-names:lang(en) {
+    --names-size: 14px;
+    --names-track: 0.16em;
+  }
+}
+@container (max-width: 499px) {
+  .home-worlds-names:lang(en) {
+    --names-size: 13px;
+    --names-track: 0.14em;
+  }
+}
+@container (max-width: 469px) {
+  .home-worlds-names:lang(en) {
+    --names-track: 0.1em;
+    --names-pad: 0.25rem;
+  }
+}
+@container (max-width: 439px) {
+  .home-worlds-names:lang(en) {
+    --names-track: 0.07em;
+    --names-pad: 0.1875rem;
+  }
 }
 .home-worlds-name[aria-current="true"] {
   border-bottom-color: var(--gold);

@@ -1,7 +1,10 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getAiCollections, getCollectionWorkSlugs } from "@/content/ai-collections";
 import { WORLD_PORTRAITS, getWorldPortraits } from "@/content/home-worlds";
 import {
+  WORLDS_PIN_QUERY,
   computeFaceLayout,
   crossBlur,
   exposedIndex,
@@ -196,5 +199,61 @@ describe("fallback decision and jumps", () => {
       expect(i0).toBe(i);
       expect(t).toBe(0);
     }
+  });
+
+  it.each([
+    [800, 2400],
+    [1000, 3000],
+  ])("keeps every jump and the progress steady on a 300svh track (vh %i)", (vh, track) => {
+    // 300svh = 3 viewports, so 2 viewports of travel split into three steps.
+    const travel = track - vh;
+    expect(travel).toBe(2 * vh);
+    for (const i of [0, 1, 2, 3]) {
+      const y = worldScrollTarget(i, 5000, track, vh);
+      expect(y).toBeCloseTo(5000 + (i / 3) * travel + 1);
+      const { i0, t, p } = worldsProgress(5000 - y, track, vh);
+      expect(i0).toBe(i);
+      expect(t).toBe(0);
+      expect(p).toBeCloseTo(Math.min(1, i / 3 + 1 / travel), 6);
+    }
+    // Halfway through the second step the crossfade is at its middle.
+    expect(worldsProgress(-(travel * 1.5) / 3, track, vh).t).toBeCloseTo(0.5);
+  });
+});
+
+describe("worlds section styles and short names", () => {
+  const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
+
+  it("pins a 300svh track with a 100svh sticky stage only where the pin query matches", () => {
+    const start = css.indexOf(`@media ${WORLDS_PIN_QUERY} {`);
+    expect(start).toBeGreaterThan(-1);
+    expect(css.slice(start, start + 260)).toContain(
+      ".home-worlds-pin { display: block; position: relative; height: 300svh; }",
+    );
+    expect(css).not.toContain("420svh");
+    expect(css).toContain(".home-worlds-stage { position: sticky; top: 0; height: 100svh;");
+  });
+
+  it("keeps the short names at 15px on one row, never below 13px", () => {
+    expect(css).toContain("--names-size: 15px;");
+    expect(css).toContain("flex-wrap: nowrap;");
+    const sizes = [...css.matchAll(/--names-size: (\d+)px/g)].map((m) => Number(m[1]));
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(13);
+  });
+
+  it("has a BG and EN short name for every collection", () => {
+    const collections = getAiCollections();
+    expect(collections.map((c) => c.shortTitle.bg)).toEqual([
+      "Исторически",
+      "Професии",
+      "Кино",
+      "По света",
+    ]);
+    expect(collections.map((c) => c.shortTitle.en)).toEqual([
+      "Historical",
+      "Professions",
+      "Cinema",
+      "Around the world",
+    ]);
   });
 });

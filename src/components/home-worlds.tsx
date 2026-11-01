@@ -4,7 +4,7 @@
 // first client render always agree.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { collectionText, getCollectionWorkSlugs } from "@/content/ai-collections";
+import { collectionText } from "@/content/ai-collections";
 import { getWorldPortraits, type WorldPortrait } from "@/content/home-worlds";
 import { CollectionAtmosphere } from "@/components/ai-exhibition";
 import { btnPrimary } from "@/components/site";
@@ -40,14 +40,12 @@ export function HomeWorlds() {
   );
 }
 
-/** Count and primary action of one collection (the same pair as on the AI Worlds overview). */
-function WorldActions({ world }: { world: WorldPortrait }) {
+/** Primary action of one collection, aligned with the text column's left edge. */
+function WorldActions({ world, className }: { world: WorldPortrait; className?: string }) {
   const { t, locale } = useT();
   const title = collectionText(world.collection.title, locale);
-  const finished = getCollectionWorkSlugs(world.collection).length;
   return (
-    <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-      {finished > 0 && <p className="text-sm text-muted-foreground">{t.ai.count(finished)}</p>}
+    <div className={cn("flex", className ?? "mt-8")}>
       <LocaleLink
         to="/ai-worlds/collections/$slug"
         slug={world.collection.slug}
@@ -233,13 +231,14 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
                   key={world.collection.slug}
                   type="button"
                   aria-current={exposed === i ? "true" : undefined}
+                  aria-label={collectionText(world.collection.title, locale)}
                   onClick={() => jumpTo(i)}
                   className={cn(
                     "home-worlds-name interaction-link eyebrow",
                     exposed === i ? "text-gold" : "text-muted-foreground",
                   )}
                 >
-                  {collectionText(world.collection.title, locale)}
+                  {collectionText(world.collection.shortTitle, locale)}
                 </button>
               ))}
             </div>
