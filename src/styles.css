@@ -1336,6 +1336,164 @@ header[data-theme="light"] .brand-lockup > img {
   }
 }
 
+/*
+ * Home "One face, four worlds". Wide windows that allow motion get a 420svh track with a sticky
+ * 100svh stage (keep in sync with WORLDS_PIN_QUERY).
+ * Layers stack by index, so the incoming world always lies above the one it covers.
+ */
+.home-worlds-pin {
+  display: none;
+}
+@media (min-width: 900px) and (min-height: 600px) and (prefers-reduced-motion: no-preference) {
+  .home-worlds-pin {
+    display: block;
+    position: relative;
+    height: 420svh;
+  }
+}
+.home-worlds-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0c1729;
+}
+.home-worlds-backdrops {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+.home-worlds-layer {
+  position: absolute;
+  inset: -6%;
+  will-change: opacity;
+}
+.home-worlds-scrim {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, #0c1729, transparent 14%, transparent 86%, #0c1729),
+    linear-gradient(to right, rgb(12 23 41 / 0.88), rgb(12 23 41 / 0.58) 40%, rgb(12 23 41 / 0.1));
+}
+.home-worlds-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+  height: 100%;
+  /* Clear of the sticky 4rem header. */
+  padding-top: 4rem;
+}
+.home-worlds-copies {
+  display: grid;
+}
+.home-worlds-copy {
+  grid-area: 1 / 1;
+  will-change: opacity, transform;
+}
+.home-worlds-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin-top: 2rem;
+}
+.home-worlds-name {
+  min-height: 44px;
+  border-bottom: 1px solid transparent;
+  text-align: left;
+}
+.home-worlds-name[aria-current="true"] {
+  border-bottom-color: var(--gold);
+}
+.home-worlds-portrait {
+  position: relative;
+  justify-self: center;
+  width: min(540px, 41vw);
+  height: min(80svh, 720px);
+  /* The ellipse alone leaves the box edges about half visible; the edge fades finish them. */
+  -webkit-mask-image:
+    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%),
+    linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in, source-in;
+  mask-image:
+    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%),
+    linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+}
+/* Placed by computeFaceLayout; their own edges fade so no hard image border ever shows. */
+.home-worlds-portrait img {
+  position: absolute;
+  max-width: none;
+  will-change: opacity, transform, filter;
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+}
+.home-worlds-layer:not([data-world-index="0"]),
+.home-worlds-copy:not([data-world-index="0"]),
+.home-worlds-portrait img:not([data-world-index="0"]) {
+  opacity: 0;
+}
+/* Viewfinder: four 22px gold corners around the held face (decorative). */
+.home-worlds-finder {
+  position: absolute;
+  pointer-events: none;
+}
+.home-worlds-finder span {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 0 solid var(--gold);
+}
+.home-worlds-finder span:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: 1.5px;
+  border-left-width: 1.5px;
+}
+.home-worlds-finder span:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: 1.5px;
+  border-right-width: 1.5px;
+}
+.home-worlds-finder span:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 1.5px;
+  border-left-width: 1.5px;
+}
+.home-worlds-finder span:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-right-width: 1.5px;
+  border-bottom-width: 1.5px;
+}
+.home-worlds-rail {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 0;
+  height: 3px;
+}
+.home-worlds-rail span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--gold);
+}
+
 /* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;
