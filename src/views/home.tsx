@@ -5,6 +5,7 @@ import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
 import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
+import { HomeWorlds } from "@/components/home-worlds";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
@@ -117,6 +118,8 @@ export function HomeView() {
           </LocaleLink>
         </div>
       </Surface>
+
+      <HomeWorlds />
 
       <Surface tone="dark" seam>
         <div className="container-page section-y">
