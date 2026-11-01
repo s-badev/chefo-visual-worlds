@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { preload } from "react-dom";
 import { ArrowRight } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
@@ -8,6 +9,7 @@ import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
+import { HERO_PIN_QUERY, heroProgress } from "@/lib/motion";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
 /** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
@@ -203,65 +205,113 @@ export function HomeView() {
 function HomeHero() {
   const { t } = useT();
   const m = t.home;
+  const ref = useHeroProgress();
   preloadHeroImage();
   return (
-    <section data-header-theme="dark" className="home-hero surface-dark">
+    <section ref={ref} data-header-theme="dark" className="home-hero surface-dark">
       {/* While this strip is in view the Home header stays transparent (see SiteHeader). */}
       <div aria-hidden="true" data-header-sentinel className="home-hero-sentinel" />
-      <picture>
-        <source
-          media={HERO_DESKTOP}
-          type="image/avif"
-          srcSet={HERO_IMAGES.desktop.avif}
-          sizes="100vw"
-          width={1672}
-          height={941}
-        />
-        <source
-          media={HERO_DESKTOP}
-          type="image/webp"
-          srcSet={HERO_IMAGES.desktop.webp}
-          sizes="100vw"
-          width={1672}
-          height={941}
-        />
-        <source type="image/avif" srcSet={HERO_IMAGES.mobile.avif} sizes="100vw" />
-        <img
-          src="/hero/chefo-hero-mobile-941.webp"
-          srcSet={HERO_IMAGES.mobile.webp}
-          sizes="100vw"
-          alt=""
-          width={941}
-          height={1672}
-          fetchPriority="high"
-          decoding="async"
-          className="home-hero-image"
-        />
-      </picture>
-      <div aria-hidden="true" className="home-hero-shade" />
-      <div className="home-hero-content">
-        <div className="home-hero-copy" data-home-hero-copy>
-          <p className="eyebrow home-hero-eyebrow">{m.eyebrow}</p>
-          <h1 className="home-hero-title">
-            <span className="home-hero-title-primary">{m.h1a}</span>
-            <br />
-            <em>{m.h1b}</em>
-          </h1>
-          <p className="home-hero-sub">{m.heroSub}</p>
-          <div className="home-hero-actions">
-            <LocaleLink
-              to="/photography"
-              className={`home-hero-button ${btnPrimary}`}
-            >
-              {m.ctaPhotos}
-              <ArrowRight aria-hidden="true" className="interaction-arrow size-4" />
-            </LocaleLink>
-            <LocaleLink to="/ai-worlds" className={`home-hero-button ${btnOutline}`}>
-              {m.ctaAi}
-            </LocaleLink>
+      <div className="home-hero-stage">
+        <div className="home-hero-media">
+          <picture>
+            <source
+              media={HERO_DESKTOP}
+              type="image/avif"
+              srcSet={HERO_IMAGES.desktop.avif}
+              sizes="100vw"
+              width={1672}
+              height={941}
+            />
+            <source
+              media={HERO_DESKTOP}
+              type="image/webp"
+              srcSet={HERO_IMAGES.desktop.webp}
+              sizes="100vw"
+              width={1672}
+              height={941}
+            />
+            <source type="image/avif" srcSet={HERO_IMAGES.mobile.avif} sizes="100vw" />
+            <img
+              src="/hero/chefo-hero-mobile-941.webp"
+              srcSet={HERO_IMAGES.mobile.webp}
+              sizes="100vw"
+              alt=""
+              width={941}
+              height={1672}
+              fetchPriority="high"
+              decoding="async"
+              className="home-hero-image"
+            />
+          </picture>
+          <div aria-hidden="true" className="home-hero-shade" />
+        </div>
+        <div className="home-hero-content">
+          <div className="home-hero-copy" data-home-hero-copy>
+            <p className="eyebrow home-hero-eyebrow">{m.eyebrow}</p>
+            <h1 className="home-hero-title">
+              <span className="home-hero-title-primary">{m.h1a}</span>
+              <br />
+              <em>{m.h1b}</em>
+            </h1>
+            <p className="home-hero-sub">{m.heroSub}</p>
+            <div className="home-hero-actions">
+              <LocaleLink
+                to="/photography"
+                className={`home-hero-button ${btnPrimary}`}
+              >
+                {m.ctaPhotos}
+                <ArrowRight aria-hidden="true" className="interaction-arrow size-4" />
+              </LocaleLink>
+              <LocaleLink to="/ai-worlds" className={`home-hero-button ${btnOutline}`}>
+                {m.ctaAi}
+              </LocaleLink>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
+}
+
+/**
+ * Writes the hero's scroll progress to --hp (no React state per frame). Reduced motion keeps 0,
+ * so the copy shows its approved colours.
+ */
+function useHeroProgress() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const hero = ref.current;
+    const stage = hero?.querySelector<HTMLElement>(".home-hero-stage");
+    if (!hero || !stage) return;
+    const pinned = window.matchMedia(HERO_PIN_QUERY);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const hp = heroProgress({
+        wrapperTop: hero.getBoundingClientRect().top,
+        wrapperHeight: hero.offsetHeight,
+        heroHeight: stage.offsetHeight,
+        pinned: pinned.matches,
+        reducedMotion: reduced.matches,
+      });
+      hero.style.setProperty("--hp", hp.toFixed(4));
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    pinned.addEventListener("change", schedule);
+    reduced.addEventListener("change", schedule);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      pinned.removeEventListener("change", schedule);
+      reduced.removeEventListener("change", schedule);
+    };
+  }, []);
+  return ref;
 }

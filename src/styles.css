@@ -198,6 +198,7 @@
   }
 }
 
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -279,11 +280,28 @@
 .home-hero {
   --home-hero-h: clamp(640px, 100svh, 1000px);
   --home-hero-scrim: 0.82;
+  /* Scroll progress 0..1, written by HomeHero. It only swaps the cream and gold of the copy and
+     enlarges the picture slightly; at 0 every colour is the approved one. */
+  --hp: 0;
+  --home-hero-gold: #c9a46b;
+  --home-hero-cream: #f8f1e4;
   position: relative;
-  isolation: isolate;
   /* Slides under the sticky 4rem header so the picture starts at the very top. */
   margin-top: -4rem;
+}
+/* The visible hero. The section around it is the scroll track that pins it on wide screens. */
+.home-hero-stage {
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
+}
+.home-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: scale(calc(1 + var(--hp) * 0.07));
+  /* Phones: grow around the top of the copy so the shade under it stays in place. */
+  transform-origin: 50% 126vw;
 }
 .home-hero-sentinel {
   position: absolute;
@@ -334,17 +352,18 @@
   padding-inline: var(--home-gutter);
 }
 .home-hero-eyebrow {
-  color: var(--gold);
+  color: color-mix(in srgb, var(--home-hero-cream) calc(var(--hp) * 100%), var(--gold));
 }
 .home-hero-title {
   margin-top: 1rem;
   font-size: clamp(38px, 10.8vw, 46px);
   font-weight: 500;
   line-height: 1.05;
-  color: var(--navy-foreground);
+  color: color-mix(in srgb, var(--home-hero-gold) calc(var(--hp) * 100%), var(--navy-foreground));
 }
 .home-hero-title em {
-  color: var(--gold);
+  --hc: color-mix(in srgb, var(--home-hero-cream) calc(var(--hp) * 100%), var(--gold));
+  color: var(--hc);
 }
 .home-hero-sub {
   margin-top: 1.25rem;
@@ -353,7 +372,11 @@
   font-weight: 500;
   line-height: 1.6;
   text-wrap: pretty;
-  color: color-mix(in oklch, var(--navy-foreground) 90%, transparent);
+  color: color-mix(
+    in srgb,
+    var(--home-hero-gold) calc(var(--hp) * 85%),
+    color-mix(in oklch, var(--navy-foreground) 90%, transparent)
+  );
 }
 .home-hero-actions {
   display: flex;
@@ -375,8 +398,11 @@
   outline-offset: 2px;
 }
 @media (min-width: 900px) {
-  .home-hero {
+  .home-hero-stage {
     height: var(--home-hero-h);
+  }
+  .home-hero-media {
+    transform-origin: 40% 50%;
   }
   .home-hero-image {
     height: 100%;
@@ -498,6 +524,18 @@
 
 .home-hero .interaction-secondary {
   background: oklch(0.21 0.045 262 / 0.56);
+}
+
+/* Pin only where the whole hero fits the screen (keep in sync with HERO_PIN_QUERY): the track
+   adds 70svh of scrolling while the copy colours shift. Elsewhere the hero scrolls as before. */
+@media (min-width: 900px) and (min-height: 640px) and (max-height: 1000px) and (prefers-reduced-motion: no-preference) {
+  .home-hero {
+    height: calc(var(--home-hero-h) + 70svh);
+  }
+  .home-hero-stage {
+    position: sticky;
+    top: 0;
+  }
 }
 
 /* Stage F · Wave 2: photographic frames outside published album galleries. */
