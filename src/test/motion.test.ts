@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { clamp01, heroProgress, smoothstep } from "@/lib/motion";
+import {
+  CARD_STAGGER_MS,
+  COUNT_UP_MS,
+  clamp01,
+  countUpValue,
+  easeOutCubic,
+  heroProgress,
+  smoothstep,
+} from "@/lib/motion";
 
 describe("hero progress", () => {
   const pinned = { wrapperHeight: 1400, heroHeight: 800, pinned: true, reducedMotion: false };
@@ -37,5 +45,25 @@ describe("hero progress", () => {
     expect(clamp01(Infinity)).toBe(0);
     expect(clamp01(-1)).toBe(0);
     expect(clamp01(2)).toBe(1);
+  });
+});
+
+describe("frame count-up", () => {
+  it("runs from 0 to the exact album count with an ease-out cubic", () => {
+    expect(countUpValue(33, 0)).toBe(0);
+    expect(countUpValue(33, COUNT_UP_MS / 2)).toBe(Math.round(33 * easeOutCubic(0.5)));
+    expect(countUpValue(33, COUNT_UP_MS)).toBe(33);
+    expect(countUpValue(33, COUNT_UP_MS * 5)).toBe(33);
+  });
+
+  it("starts each card after its stagger delay", () => {
+    expect(countUpValue(58, CARD_STAGGER_MS, { delay: 2 * CARD_STAGGER_MS })).toBe(0);
+    expect(
+      countUpValue(58, COUNT_UP_MS + 2 * CARD_STAGGER_MS, { delay: 2 * CARD_STAGGER_MS }),
+    ).toBe(58);
+  });
+
+  it("shows the final count immediately with reduced motion", () => {
+    expect(countUpValue(45, 0, { reducedMotion: true })).toBe(45);
   });
 });

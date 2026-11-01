@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { preload } from "react-dom";
 import { ArrowRight } from "lucide-react";
 import { localizePhoto } from "@/content/photos";
@@ -9,7 +9,13 @@ import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
-import { HERO_PIN_QUERY, heroProgress } from "@/lib/motion";
+import {
+  CARD_STAGGER_MS,
+  COUNT_UP_MS,
+  HERO_PIN_QUERY,
+  countUpValue,
+  heroProgress,
+} from "@/lib/motion";
 import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
 
 /** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
@@ -100,49 +106,7 @@ export function HomeView() {
 
       <Surface tone="light" id="featured-albums" className="container-page section-y">
         <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:h-[42rem] lg:grid-cols-[1.35fr_1fr] lg:grid-rows-2 lg:gap-6">
-          {featuredAlbums.map(({ album, cover }, index) => (
-            <LocaleLink
-              key={album.id}
-              to="/photography/albums/$slug"
-              slug={album.slug}
-              className={`group relative isolate block min-h-[20rem] overflow-hidden rounded-md bg-navy text-navy-foreground shadow-soft outline-none transition-shadow duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-interaction-gold focus-visible:ring-offset-4 motion-reduce:transition-none ${index === 0 ? "min-h-[26rem] sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0" : "lg:min-h-0"}`}
-            >
-              <img
-                src={cover.image}
-                alt={cover.alt}
-                width={cover.width}
-                height={cover.height}
-                loading={index === 0 ? "eager" : "lazy"}
-                decoding="async"
-                style={cover.objectPosition ? { objectPosition: cover.objectPosition } : undefined}
-                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
-              />
-              <span
-                aria-hidden="true"
-                className="absolute inset-0 -z-10 bg-gradient-to-t from-navy/95 via-navy/30 to-transparent"
-              />
-              <span className="relative flex h-full min-h-[inherit] flex-col justify-end p-6 md:p-8">
-                <span className="flex items-end justify-between gap-4">
-                  <span>
-                    <span
-                      className={`block font-serif leading-tight ${index === 0 ? "text-4xl md:text-5xl" : "text-3xl md:text-4xl"}`}
-                    >
-                      {albumText(album.title, locale)}
-                    </span>
-                    <span className="mt-2 block text-sm text-navy-foreground/85">
-                      {t.photos.count(album.photos.length)}
-                    </span>
-                  </span>
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="mb-1 size-5 shrink-0 text-gold transition-transform motion-safe:group-hover:translate-x-1 motion-reduce:transition-none"
-                  />
-                </span>
-              </span>
-            </LocaleLink>
-          ))}
-        </div>
+        <FeaturedAlbumCards albums={featuredAlbums} />
         <div className="mt-10 flex justify-center">
           <LocaleLink to="/photography" className={`${btnPrimary} group`}>
             {m.allAlbums(getAlbums().length)}
@@ -195,6 +159,72 @@ export function HomeView() {
         </div>
       </Surface>
     </>
+  );
+}
+
+type FeaturedAlbum = {
+  album: NonNullable<ReturnType<typeof getPublishedAlbum>>;
+  cover: ReturnType<typeof localizePhoto>;
+};
+
+/** Home "Through my lens" cards; the frame count is the album's own photo count. */
+function FeaturedAlbumCards({ albums }: { albums: FeaturedAlbum[] }) {
+  const { t, locale } = useT();
+  const [ref, elapsed] = useCardsReveal();
+  return (
+    <div
+      ref={ref}
+      className="mt-12 grid gap-5 sm:grid-cols-2 lg:h-[42rem] lg:grid-cols-[1.35fr_1fr] lg:grid-rows-2 lg:gap-6"
+    >
+      {albums.map(({ album, cover }, index) => {
+        const frames = album.photos.length;
+        return (
+          <LocaleLink
+            key={album.id}
+            to="/photography/albums/$slug"
+            slug={album.slug}
+            className={`group relative isolate block min-h-[20rem] overflow-hidden rounded-md bg-navy text-navy-foreground shadow-soft outline-none transition-shadow duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-interaction-gold focus-visible:ring-offset-4 motion-reduce:transition-none ${index === 0 ? "min-h-[26rem] sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0" : "lg:min-h-0"}`}
+          >
+            <img
+              src={cover.image}
+              alt={cover.alt}
+              width={cover.width}
+              height={cover.height}
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
+              style={cover.objectPosition ? { objectPosition: cover.objectPosition } : undefined}
+              className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-105 motion-reduce:transition-none"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -z-10 bg-gradient-to-t from-navy/95 via-navy/30 to-transparent"
+            />
+            <span className="relative flex h-full min-h-[inherit] flex-col justify-end p-6 md:p-8">
+              <span className="flex items-end justify-between gap-4">
+                <span>
+                  <span
+                    className={`block font-serif leading-tight ${index === 0 ? "text-4xl md:text-5xl" : "text-3xl md:text-4xl"}`}
+                  >
+                    {albumText(album.title, locale)}
+                  </span>
+                  <span className="mt-2 block text-sm tabular-nums text-navy-foreground/85">
+                    {t.photos.count(
+                      elapsed === null
+                        ? frames
+                        : countUpValue(frames, elapsed, { delay: index * CARD_STAGGER_MS }),
+                    )}
+                  </span>
+                </span>
+                <ArrowRight
+                  aria-hidden="true"
+                  className="mb-1 size-5 shrink-0 text-gold transition-transform motion-safe:group-hover:translate-x-1 motion-reduce:transition-none"
+                />
+              </span>
+            </span>
+          </LocaleLink>
+        );
+      })}
+    </div>
   );
 }
 
@@ -314,4 +344,56 @@ function useHeroProgress() {
     };
   }, []);
   return ref;
+}
+
+/**
+ * Cards rise one after another and their frame counts run up from 0 when the grid first enters
+ * the viewport. The server HTML and every render before that show the final counts; reduced
+ * motion and grids already on screen are left as they are. Returns the grid ref and the elapsed
+ * count-up time (null = final values).
+ */
+function useCardsReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [elapsed, setElapsed] = useState<number | null>(null);
+  useEffect(() => {
+    const grid = ref.current;
+    if (!grid || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const total = COUNT_UP_MS + CARD_STAGGER_MS * (grid.children.length - 1);
+    let raf = 0;
+    let observer: IntersectionObserver | undefined;
+    const onIntersect = ([entry]: IntersectionObserverEntry[]) => {
+      if (!entry?.isIntersecting) return;
+      observer?.disconnect();
+      grid.dataset["cardsReveal"] = "shown";
+      const start = performance.now();
+      const tick = () => {
+        const ms = performance.now() - start;
+        if (ms >= total) {
+          raf = 0;
+          setElapsed(null);
+          return;
+        }
+        setElapsed(ms);
+        raf = requestAnimationFrame(tick);
+      };
+      setElapsed(0);
+      raf = requestAnimationFrame(tick);
+    };
+    // Wait a frame so scroll restoration has placed the page before measuring.
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      if (grid.getBoundingClientRect().top <= window.innerHeight) return;
+      grid.dataset["cardsReveal"] = "pending";
+      observer = new IntersectionObserver(onIntersect, { threshold: 0.12 });
+      observer.observe(grid);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      // Never leave cards hidden or counts unfinished when the page changes underneath.
+      if (grid.dataset["cardsReveal"] === "pending") grid.dataset["cardsReveal"] = "";
+    };
+  }, []);
+  return [ref, elapsed] as const;
 }
