@@ -370,6 +370,23 @@ describe("header over the Hero", () => {
     cleanupMarked();
   });
 
+  it.each(["/", "/ai-worlds", "/photography", "/photography/albums/sunny-beach", "/en/about"])(
+    "puts the header row in the one Home container on %s",
+    async (route) => {
+      activePath = route;
+      const { container, cleanupMarked } = renderOver("light");
+      const row = container.querySelector("header > div")!;
+      expect(row).toHaveClass("home-header-row");
+      expect(row.className).not.toMatch(/max-w-|mx-auto|\bpx-/);
+      // The mobile menu shows the logo in the same place.
+      await act(async () => screen.getByRole("button", { name: messages.bg.nav.open }).click());
+      const menuRow = screen.getByRole("dialog").querySelector("[data-theme='dark']")!;
+      expect(menuRow).toHaveClass("home-header-row");
+      expect(menuRow.className).not.toMatch(/\bpx-|md:px-/);
+      cleanupMarked();
+    },
+  );
+
   it("turns solid while the mobile menu is open", async () => {
     vi.stubGlobal("IntersectionObserver", SentinelObserver);
     document.elementsFromPoint = () => [];
