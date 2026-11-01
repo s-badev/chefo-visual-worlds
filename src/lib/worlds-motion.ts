@@ -32,14 +32,6 @@ export function computeFaceLayout(
   };
 }
 
-/** Gold viewfinder brackets around the held face. */
-export function viewfinderRect(box: Box) {
-  const { ax, ay, D } = faceAnchor(box);
-  const width = D * 2.9;
-  const height = D * 3.7;
-  return { left: ax - width / 2, top: ay - height * 0.36, width, height };
-}
-
 export const WORLD_COUNT = 4;
 const LAST = WORLD_COUNT - 1;
 
