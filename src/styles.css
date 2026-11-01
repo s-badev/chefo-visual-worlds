@@ -92,7 +92,8 @@
   --dur-base: 320ms;
   --dur-slow: 700ms;
 
-  /* Shared Home alignment: only the Home header row and Hero copy consume this gutter. */
+  /* Shared Home alignment: the header row on every page (and in the mobile menu) and the Home
+     Hero copy consume this gutter. */
   --home-gutter: clamp(20px, 5.5vw, 112px);
 
   /* Unified text-button sizing and hover language: ONE calm muted gold for every hover fill,

@@ -217,12 +217,10 @@ export function SiteHeader() {
             : "border-border bg-background text-foreground",
       )}
     >
+      {/* One container on every route: the logo and the language switch never move between pages. */}
       <div
         data-home-header-row={isHomePath(pathname) ? "" : undefined}
-        className={cn(
-          "flex h-16 items-center justify-between",
-          isHomePath(pathname) ? "home-header-row" : "mx-auto w-full max-w-7xl px-5 md:px-8",
-        )}
+        className="home-header-row flex h-16 items-center justify-between"
       >
         <BrandLockup />
         <nav aria-label={t.nav.main} className="hidden lg:flex lg:items-center lg:gap-10">
@@ -263,7 +261,7 @@ export function SiteHeader() {
               {/* Dark header state inside the menu overlay. */}
               <div
                 data-theme="dark"
-                className="flex h-16 shrink-0 items-center justify-between border-b border-navy-border px-5 md:px-8"
+                className="home-header-row flex h-16 shrink-0 items-center justify-between border-b border-navy-border"
               >
                 <BrandLockup onClick={() => setOpen(false)} />
                 <Dialog.Close
