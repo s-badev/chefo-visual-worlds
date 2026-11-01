@@ -3,6 +3,20 @@ import { getAiWork } from "@/content/ai-works";
 
 export type HeaderTheme = "light" | "dark";
 
+/** The first marked surface under the header decides its tone; an unmarked page reads as cream. */
+export function resolveHeaderTheme(stack: Iterable<Element>, header: Element): HeaderTheme {
+  for (const el of stack) {
+    if (header.contains(el)) continue;
+    const marked = el.closest<HTMLElement>("[data-header-theme]");
+    if (marked) return marked.dataset["headerTheme"] === "dark" ? "dark" : "light";
+  }
+  return "light";
+}
+
+/** Past this scroll offset the header turns translucent with a light blur. */
+export const HEADER_SCROLLED_AFTER = 24;
+export const isHeaderScrolled = (scrollY: number) => scrollY > HEADER_SCROLLED_AFTER;
+
 /** Match the first rendered surface, including the existing not-found views. */
 export function getInitialHeaderTheme(pathname: string): HeaderTheme {
   const path = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
