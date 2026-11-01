@@ -1338,7 +1338,7 @@ header[data-theme="light"] .brand-lockup > img {
 
 /*
  * Home "One face, four worlds". Wide windows that allow motion get a 420svh track with a sticky
- * 100svh stage (keep in sync with WORLDS_PIN_QUERY).
+ * 100svh stage (keep in sync with WORLDS_PIN_QUERY); everything else gets the stacked list.
  * Layers stack by index, so the incoming world always lies above the one it covers.
  */
 .home-worlds-pin {
@@ -1349,6 +1349,9 @@ header[data-theme="light"] .brand-lockup > img {
     display: block;
     position: relative;
     height: 420svh;
+  }
+  .home-worlds-stack {
+    display: none;
   }
 }
 .home-worlds-stage {
@@ -1492,6 +1495,9 @@ header[data-theme="light"] .brand-lockup > img {
   width: 0;
   height: 100%;
   background: var(--gold);
+}
+.home-worlds-stack-portrait {
+  max-width: 24rem;
 }
 
 /* Compact AI cards retain their restrained edge without corner brackets. */

@@ -56,6 +56,7 @@ describe("Home one face, four worlds", () => {
       expect(section).toHaveAttribute("data-header-theme", "dark");
 
       const pin = section.querySelector<HTMLElement>(".home-worlds-pin")!;
+      const stack = section.querySelector<HTMLElement>(".home-worlds-stack")!;
       const collections = getAiCollections();
       const titles = collections.map((c) => collectionText(c.title, locale));
 
@@ -105,6 +106,13 @@ describe("Home one face, four worlds", () => {
       expect(portraits).toHaveLength(4);
       expect(portraits.filter((img) => img.getAttribute("alt") !== "")).toHaveLength(1);
       expect(portraits.every((img) => img.getAttribute("decoding") === "async")).toBe(true);
+
+      // Stacked fallback: four complete blocks, each linking to its own collection.
+      expect(Array.from(stack.querySelectorAll("h2")).map((h) => h.textContent)).toEqual(titles);
+      expect(Array.from(stack.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(
+        collections.map((c) => `${prefix}/ai-worlds/collections/${c.slug}`),
+      );
+      expect(stack.querySelectorAll("img[alt]:not([alt=''])")).toHaveLength(4);
     },
   );
 

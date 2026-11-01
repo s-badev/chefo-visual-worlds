@@ -1,6 +1,7 @@
 // Home "One face, four worlds": a pinned scene in which the portrait's face stays put while the
-// AI collection around it changes. It is shown only where CSS allows the pin (see .home-worlds in
-// styles.css).
+// AI collection around it changes. Phones, short windows and reduced motion get a plain stacked
+// list instead; CSS picks one of the two (see .home-worlds in styles.css), so server HTML and the
+// first client render always agree.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { collectionText, getCollectionWorkSlugs } from "@/content/ai-collections";
@@ -34,6 +35,7 @@ export function HomeWorlds() {
       className="home-worlds surface-dark"
     >
       <PinnedWorlds worlds={worlds} />
+      <StackedWorlds worlds={worlds} />
     </section>
   );
 }
@@ -272,6 +274,46 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
           <span ref={railRef} />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Phones, short windows and reduced motion: four plain blocks, nothing moves. */
+function StackedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
+  const { t, locale } = useT();
+  return (
+    <div className="home-worlds-stack pb-8 pt-16 md:pb-12 md:pt-24">
+      <p className="container-page eyebrow text-eyebrow">{t.home.worldsLabel}</p>
+      <ol className="mt-4 space-y-4">
+        {worlds.map((world) => (
+          <li
+            key={world.collection.slug}
+            className="ai-overview-hall relative isolate overflow-hidden py-8 md:py-12"
+          >
+            <CollectionAtmosphere collection={world.collection} eager={false} />
+            <div className="container-page grid items-center gap-8 md:grid-cols-12">
+              <img
+                src={world.work.image}
+                alt={world.work.alt}
+                width={world.work.width}
+                height={world.work.height}
+                loading="lazy"
+                decoding="async"
+                className="home-worlds-stack-portrait h-auto w-full rounded-sm md:col-span-5"
+              />
+              <div className="ai-overview-hall-text md:col-span-6 md:col-start-7">
+                <h2 className="title-section break-words">
+                  {collectionText(world.collection.title, locale)}
+                </h2>
+                <p className="lead mt-5 text-muted-foreground">
+                  {collectionText(world.collection.intro, locale)}
+                </p>
+                <WorldActions world={world} />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
