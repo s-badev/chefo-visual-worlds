@@ -729,6 +729,22 @@
   border-bottom-color: var(--interaction-gold);
   box-shadow: 0 1px 0 var(--interaction-gold);
 }
+/* Scrolled header (scrollY > 24): the tone of the section under it, translucent with a light
+   blur. At the top it stays solid, or transparent over the Home hero. */
+header[data-scrolled]:not([data-transparent]) {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+header[data-scrolled][data-theme="dark"]:not([data-transparent]) {
+  background-color: rgb(12 23 41 / 0.94);
+}
+header[data-scrolled][data-theme="light"] {
+  background-color: rgb(249 243 231 / 0.95);
+}
+/* The round icon keeps a navy edge on the cream header. */
+header[data-theme="light"] .brand-lockup > img {
+  box-shadow: 0 0 0 1.5px var(--navy);
+}
 /* Header brand lockup: its hover/focus underline is painted once under the whole wordmark,
    not once per word, so it never splits or seams where bold CHEFO meets the regular words.
    Same colour, 2px thickness and offset as .interaction-link: 0.28rem below the baseline,

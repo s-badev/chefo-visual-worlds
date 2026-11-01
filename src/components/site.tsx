@@ -12,7 +12,12 @@ import { siteConfig } from "@/content/site-config";
 import { reveal } from "@/hooks/use-reveal";
 import { copyText, type CopyResult } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
-import { getInitialHeaderTheme, type HeaderTheme } from "@/components/header-theme";
+import {
+  getInitialHeaderTheme,
+  isHeaderScrolled,
+  resolveHeaderTheme,
+  type HeaderTheme,
+} from "@/components/header-theme";
 
 const NAV = [
   { to: "/photography", key: "photography" },
@@ -113,15 +118,7 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
       if (!header) return;
       const y = header.getBoundingClientRect().bottom + 1;
       const x = window.innerWidth / 2;
-      let next: HeaderTheme = "light";
-      for (const el of document.elementsFromPoint(x, y)) {
-        if (header.contains(el)) continue;
-        const marked = el.closest<HTMLElement>("[data-header-theme]");
-        if (marked) {
-          next = marked.dataset["headerTheme"] === "dark" ? "dark" : "light";
-          break;
-        }
-      }
+      const next = resolveHeaderTheme(document.elementsFromPoint(x, y), header);
       const path = latestPath.current;
       setSample((current) =>
         current?.pathname === path && current.theme === next
@@ -162,6 +159,28 @@ function useHeaderTheme(ref: React.RefObject<HTMLElement | null>) {
   };
 }
 
+/** Server and first client render agree on the top state; scrolling may then turn it on. */
+function useScrolledHeader() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      setScrolled(isHeaderScrolled(window.scrollY));
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", schedule);
+    };
+  }, []);
+  return scrolled;
+}
+
 /** Gold underline that unfolds from the centre on the active page (resting look unchanged). */
 const navUnderline =
   "relative after:absolute after:inset-x-0 after:-bottom-px after:h-px after:origin-center after:scale-x-0 after:bg-gold after:transition-transform after:duration-(--dur-base) after:ease-cinematic";
@@ -171,6 +190,7 @@ export function SiteHeader() {
   const ref = useRef<HTMLElement>(null);
   const { theme, animate } = useHeaderTheme(ref);
   const overHero = useTransparentOverHero();
+  const scrolled = useScrolledHeader();
   const { t } = useT();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // The open mobile menu always shows the solid navy header.
@@ -184,10 +204,11 @@ export function SiteHeader() {
       ref={ref}
       data-theme={dark ? "dark" : "light"}
       data-transparent={transparent ? "" : undefined}
+      data-scrolled={scrolled ? "" : undefined}
       className={cn(
         "sticky top-0 z-40 border-b",
         animate || isHomePath(pathname)
-          ? "transition-colors duration-(--dur-base) motion-reduce:transition-none"
+          ? "transition-colors duration-350 motion-reduce:transition-none"
           : "transition-none",
         transparent
           ? "border-navy-foreground/12 bg-transparent text-navy-foreground"
@@ -214,7 +235,7 @@ export function SiteHeader() {
                     "interaction-link eyebrow border-b border-transparent pb-1 transition-colors",
                     navUnderline,
                   )}
-                  activeClassName={cn("after:scale-x-100", dark && "text-gold")}
+                  activeClassName={cn("after:scale-x-100", dark ? "text-gold" : "text-gold-ink")}
                 >
                   {t.nav[n.key]}
                 </LocaleLink>
