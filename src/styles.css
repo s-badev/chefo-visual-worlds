@@ -1570,8 +1570,33 @@ header[data-theme="light"] .brand-lockup > img {
   height: 100%;
   background: var(--gold);
 }
+/* Compact stacked blocks (fallback): a small 4:5 portrait, a smaller title, 15px+ intro. */
 .home-worlds-stack-portrait {
-  max-width: 24rem;
+  width: min(100%, 11rem);
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.home-worlds-stack-title {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+.home-worlds-stack-intro {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+@media (min-width: 768px) {
+  .home-worlds-stack-portrait {
+    width: min(100%, 18rem);
+  }
+  .home-worlds-stack-title {
+    font-size: 2.25rem;
+    line-height: 1.1;
+  }
+  .home-worlds-stack-intro {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
 }
 
 /* Compact AI cards retain their restrained edge without corner brackets. */

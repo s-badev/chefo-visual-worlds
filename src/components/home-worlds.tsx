@@ -279,20 +279,20 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
   );
 }
 
-/** Phones, short windows and reduced motion: four plain blocks, nothing moves. */
+/** Phones, short windows and reduced motion: four compact blocks, nothing moves. */
 function StackedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
   const { t, locale } = useT();
   return (
-    <div className="home-worlds-stack pb-8 pt-16 md:pb-12 md:pt-24">
+    <div className="home-worlds-stack pb-6 pt-12 md:pb-10 md:pt-20">
       <p className="container-page eyebrow text-eyebrow">{t.home.worldsLabel}</p>
-      <ol className="mt-4 space-y-4">
+      <ol className="mt-2 space-y-1 md:mt-4 md:space-y-4">
         {worlds.map((world) => (
           <li
             key={world.collection.slug}
-            className="ai-overview-hall relative isolate overflow-hidden py-8 md:py-12"
+            className="ai-overview-hall relative isolate overflow-hidden py-5 md:py-10"
           >
             <CollectionAtmosphere collection={world.collection} eager={false} />
-            <div className="container-page grid items-center gap-8 md:grid-cols-12">
+            <div className="container-page grid items-center gap-4 md:grid-cols-12 md:gap-8">
               <img
                 src={world.work.image}
                 alt={world.work.alt}
@@ -300,16 +300,20 @@ function StackedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
                 height={world.work.height}
                 loading="lazy"
                 decoding="async"
-                className="home-worlds-stack-portrait h-auto w-full rounded-sm md:col-span-5"
+                // A 4:5 crop centred on the eyes.
+                style={{
+                  objectPosition: `50% ${((world.eyes.my / (world.work.height ?? world.eyes.my * 4)) * 100).toFixed(1)}%`,
+                }}
+                className="home-worlds-stack-portrait rounded-sm md:col-span-5"
               />
               <div className="ai-overview-hall-text md:col-span-6 md:col-start-7">
-                <h2 className="title-section break-words">
+                <h2 className="home-worlds-stack-title title-section break-words">
                   {collectionText(world.collection.title, locale)}
                 </h2>
-                <p className="lead mt-5 text-muted-foreground">
+                <p className="home-worlds-stack-intro mt-2 text-muted-foreground md:mt-5">
                   {collectionText(world.collection.intro, locale)}
                 </p>
-                <WorldActions world={world} />
+                <WorldActions world={world} className="mt-4 md:mt-8" />
               </div>
             </div>
           </li>
