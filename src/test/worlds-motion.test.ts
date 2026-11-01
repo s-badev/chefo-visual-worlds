@@ -13,7 +13,6 @@ import {
   layerOpacities,
   progressAt,
   textStates,
-  viewfinderRect,
   worldScrollTarget,
   worldsProgress,
 } from "@/lib/worlds-motion";
@@ -72,16 +71,6 @@ describe("computeFaceLayout", () => {
 
   it("uses the anchor at 50% / 38% and a pupil distance of 10.8% of the box width", () => {
     expect(faceAnchor({ width: 500, height: 700 })).toEqual({ ax: 250, ay: 266, D: 54 });
-  });
-
-  it("centres the viewfinder on the anchor", () => {
-    const box = { width: 540, height: 720 };
-    const { ax, ay, D } = faceAnchor(box);
-    const v = viewfinderRect(box);
-    expect(v.left + v.width / 2).toBeCloseTo(ax);
-    expect(v.width).toBeCloseTo(D * 2.9);
-    expect(v.height).toBeCloseTo(D * 3.7);
-    expect(v.top).toBeCloseTo(ay - v.height * 0.36);
   });
 });
 

@@ -19,7 +19,6 @@ import {
   exposedIndex,
   layerOpacities,
   textStates,
-  viewfinderRect,
   worldScrollTarget,
   worldsProgress,
 } from "@/lib/worlds-motion";
@@ -63,7 +62,6 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
   const { t, locale } = useT();
   const trackRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  const finderRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLSpanElement>(null);
   const backdrops = useRef<(HTMLDivElement | null)[]>([]);
   const portraits = useRef<(HTMLImageElement | null)[]>([]);
@@ -94,14 +92,6 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
       img.style.height = `${l.height}px`;
       img.style.transformOrigin = `${l.originX}px ${l.originY}px`;
     });
-    const finder = finderRef.current;
-    if (finder) {
-      const v = viewfinderRect(size);
-      finder.style.left = `${v.left}px`;
-      finder.style.top = `${v.top}px`;
-      finder.style.width = `${v.width}px`;
-      finder.style.height = `${v.height}px`;
-    }
   }, [worlds]);
 
   useEffect(() => {
@@ -263,12 +253,6 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
                 onLoad={layoutFaces}
               />
             ))}
-            <div ref={finderRef} aria-hidden="true" className="home-worlds-finder">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
           </div>
         </div>
         <div aria-hidden="true" className="home-worlds-rail">

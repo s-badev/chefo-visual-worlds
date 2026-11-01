@@ -1521,43 +1521,6 @@ header[data-theme="light"] .brand-lockup > img {
 .home-worlds-portrait img:not([data-world-index="0"]) {
   opacity: 0;
 }
-/* Viewfinder: four 22px gold corners around the held face (decorative); a thin navy halo keeps
-   them visible on bright scenes. */
-.home-worlds-finder {
-  position: absolute;
-  pointer-events: none;
-  filter: drop-shadow(0 0 1.5px rgb(12 23 41 / 0.9));
-}
-.home-worlds-finder span {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 0 solid #c9a46b;
-}
-.home-worlds-finder span:nth-child(1) {
-  top: 0;
-  left: 0;
-  border-top-width: 2px;
-  border-left-width: 2px;
-}
-.home-worlds-finder span:nth-child(2) {
-  top: 0;
-  right: 0;
-  border-top-width: 2px;
-  border-right-width: 2px;
-}
-.home-worlds-finder span:nth-child(3) {
-  bottom: 0;
-  left: 0;
-  border-bottom-width: 2px;
-  border-left-width: 2px;
-}
-.home-worlds-finder span:nth-child(4) {
-  right: 0;
-  bottom: 0;
-  border-right-width: 2px;
-  border-bottom-width: 2px;
-}
 .home-worlds-rail {
   position: absolute;
   z-index: 3;

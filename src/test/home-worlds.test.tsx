@@ -113,6 +113,8 @@ describe("Home one face, four worlds", () => {
         pin.querySelectorAll<HTMLImageElement>(".home-worlds-portrait img"),
       );
       expect(portraits).toHaveLength(4);
+      // Nothing is drawn over the faces: the box holds only the four portraits.
+      expect(pin.querySelector(".home-worlds-portrait")!.children).toHaveLength(4);
       expect(portraits.filter((img) => img.getAttribute("alt") !== "")).toHaveLength(1);
       expect(portraits.every((img) => img.getAttribute("decoding") === "async")).toBe(true);
 
