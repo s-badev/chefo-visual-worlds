@@ -47,7 +47,7 @@ afterEach(() => {
 
 describe("Home one face, four worlds", () => {
   it.each(["bg", "en"] as const)(
-    "takes titles, intros, counts and routes from the data in %s",
+    "takes titles, intros, short names and routes from the data in %s",
     (locale) => {
       activeLocale = locale;
       const { container } = render(<HomeWorlds />);
@@ -76,7 +76,7 @@ describe("Home one face, four worlds", () => {
         ).toBeInTheDocument(),
       );
 
-      // Count and CTA follow the exposed (first) collection.
+      // The CTA follows the exposed (first) collection; this section shows no work count.
       const prefix = locale === "en" ? "/en" : "";
       const ctas = Array.from(pin.querySelectorAll("a"));
       expect(ctas.map((a) => a.getAttribute("href"))).toEqual([
@@ -84,14 +84,23 @@ describe("Home one face, four worlds", () => {
       ]);
       expect(ctas[0]).toHaveTextContent(messages[locale].ai.exploreCollection);
       expect(ctas[0]!.className).toContain("interaction-primary");
-      expect(pin).toHaveTextContent(
-        messages[locale].ai.count(getCollectionWorkSlugs(collections[0]!).length),
-      );
+      for (const collection of collections) {
+        const count = messages[locale].ai.count(getCollectionWorkSlugs(collection).length);
+        expect(section).not.toHaveTextContent(count);
+      }
+      expect(section.textContent).not.toMatch(locale === "bg" ? /творб/ : /artworks?\b/);
 
-      // Four real name buttons; the exposed one is current.
+      // Four real name buttons with the short names; the full title stays their label.
       const names = within(pin).getByRole("group", { name: messages[locale].home.worldsJump });
       const buttons = within(names).getAllByRole("button");
-      expect(buttons.map((b) => b.textContent)).toEqual(titles);
+      expect(buttons.map((b) => b.textContent)).toEqual(
+        collections.map((c) => collectionText(c.shortTitle, locale)),
+      );
+      expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(titles);
+      // Label in name: the accessible name starts with the visible short name.
+      buttons.forEach((b) =>
+        expect(b.getAttribute("aria-label")!.toLowerCase()).toContain(b.textContent!.toLowerCase()),
+      );
       expect(buttons.map((b) => b.getAttribute("aria-current"))).toEqual([
         "true",
         null,

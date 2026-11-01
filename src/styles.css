@@ -1337,7 +1337,7 @@ header[data-theme="light"] .brand-lockup > img {
 }
 
 /*
- * Home "One face, four worlds". Wide windows that allow motion get a 420svh track with a sticky
+ * Home "One face, four worlds". Wide windows that allow motion get a 300svh track with a sticky
  * 100svh stage (keep in sync with WORLDS_PIN_QUERY); everything else gets the stacked list.
  * Layers stack by index, so the incoming world always lies above the one it covers.
  */
@@ -1348,7 +1348,7 @@ header[data-theme="light"] .brand-lockup > img {
   .home-worlds-pin {
     display: block;
     position: relative;
-    height: 420svh;
+    height: 300svh;
   }
   .home-worlds-stack {
     display: none;
@@ -1399,16 +1399,64 @@ header[data-theme="light"] .brand-lockup > img {
   grid-area: 1 / 1;
   will-change: opacity, transform;
 }
+/* Short names on one row: 15px, stepping down (never below 13px) where the text column narrows. */
+.home-worlds-text {
+  container-type: inline-size;
+}
 .home-worlds-names {
+  --names-size: 15px;
+  --names-track: 0.22em;
+  --names-pad: 0.375rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.5rem;
+  flex-wrap: nowrap;
+  gap: 0;
   margin-top: 2rem;
+  /* The first label starts on the text column's edge, like the title and the button. */
+  margin-inline-start: calc(-1 * var(--names-pad));
 }
 .home-worlds-name {
   min-height: 44px;
+  padding-inline: var(--names-pad);
   border-bottom: 1px solid transparent;
+  font-size: var(--names-size);
+  letter-spacing: var(--names-track);
+  white-space: nowrap;
   text-align: left;
+}
+/* Steps measured on the text column (BG row needs ~452px at 15px, EN ~579px). */
+@container (max-width: 459px) {
+  .home-worlds-names {
+    --names-size: 14px;
+  }
+}
+@container (max-width: 429px) {
+  .home-worlds-names {
+    --names-size: 13px;
+  }
+}
+@container (max-width: 584px) {
+  .home-worlds-names:lang(en) {
+    --names-size: 14px;
+    --names-track: 0.16em;
+  }
+}
+@container (max-width: 499px) {
+  .home-worlds-names:lang(en) {
+    --names-size: 13px;
+    --names-track: 0.14em;
+  }
+}
+@container (max-width: 469px) {
+  .home-worlds-names:lang(en) {
+    --names-track: 0.1em;
+    --names-pad: 0.25rem;
+  }
+}
+@container (max-width: 439px) {
+  .home-worlds-names:lang(en) {
+    --names-track: 0.07em;
+    --names-pad: 0.1875rem;
+  }
 }
 .home-worlds-name[aria-current="true"] {
   border-bottom-color: var(--gold);
@@ -1418,16 +1466,40 @@ header[data-theme="light"] .brand-lockup > img {
   justify-self: center;
   width: min(540px, 41vw);
   height: min(80svh, 720px);
-  /* The ellipse alone leaves the box edges about half visible; the edge fades finish them. */
+  /* The soft ellipse, intersected with long eased edge fades (28% left/right, 30% top, 18%
+     bottom). The portraits' own tops sit at 8-16% of the box, inside the top fade, so neither an
+     image border nor the box border reads as a straight line; the face (38%) stays opaque. */
+  --worlds-fade-x: linear-gradient(
+    to right,
+    transparent,
+    rgb(0 0 0 / 0.12) 7%,
+    rgb(0 0 0 / 0.45) 14%,
+    rgb(0 0 0 / 0.82) 21%,
+    #000 28%,
+    #000 72%,
+    rgb(0 0 0 / 0.82) 79%,
+    rgb(0 0 0 / 0.45) 86%,
+    rgb(0 0 0 / 0.12) 93%,
+    transparent
+  );
+  --worlds-fade-y: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(0 0 0 / 0.12) 7.5%,
+    rgb(0 0 0 / 0.45) 15%,
+    rgb(0 0 0 / 0.82) 22.5%,
+    #000 30%,
+    #000 82%,
+    rgb(0 0 0 / 0.55) 91%,
+    transparent
+  );
   -webkit-mask-image:
-    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%),
-    linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
-    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%), var(--worlds-fade-x),
+    var(--worlds-fade-y);
   -webkit-mask-composite: source-in, source-in;
   mask-image:
-    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%),
-    linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
-    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%), var(--worlds-fade-x),
+    var(--worlds-fade-y);
   mask-composite: intersect;
 }
 /* Placed by computeFaceLayout; their own edges fade so no hard image border ever shows. */
@@ -1436,11 +1508,11 @@ header[data-theme="light"] .brand-lockup > img {
   max-width: none;
   will-change: opacity, transform, filter;
   -webkit-mask-image:
-    linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.35) 7%, #000 18%, #000 88%, transparent),
     linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.35) 7%, #000 18%, #000 88%, transparent),
     linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
   mask-composite: intersect;
 }
@@ -1449,40 +1521,42 @@ header[data-theme="light"] .brand-lockup > img {
 .home-worlds-portrait img:not([data-world-index="0"]) {
   opacity: 0;
 }
-/* Viewfinder: four 22px gold corners around the held face (decorative). */
+/* Viewfinder: four 22px gold corners around the held face (decorative); a thin navy halo keeps
+   them visible on bright scenes. */
 .home-worlds-finder {
   position: absolute;
   pointer-events: none;
+  filter: drop-shadow(0 0 1.5px rgb(12 23 41 / 0.9));
 }
 .home-worlds-finder span {
   position: absolute;
   width: 22px;
   height: 22px;
-  border: 0 solid var(--gold);
+  border: 0 solid #c9a46b;
 }
 .home-worlds-finder span:nth-child(1) {
   top: 0;
   left: 0;
-  border-top-width: 1.5px;
-  border-left-width: 1.5px;
+  border-top-width: 2px;
+  border-left-width: 2px;
 }
 .home-worlds-finder span:nth-child(2) {
   top: 0;
   right: 0;
-  border-top-width: 1.5px;
-  border-right-width: 1.5px;
+  border-top-width: 2px;
+  border-right-width: 2px;
 }
 .home-worlds-finder span:nth-child(3) {
   bottom: 0;
   left: 0;
-  border-bottom-width: 1.5px;
-  border-left-width: 1.5px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
 }
 .home-worlds-finder span:nth-child(4) {
   right: 0;
   bottom: 0;
-  border-right-width: 1.5px;
-  border-bottom-width: 1.5px;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
 }
 .home-worlds-rail {
   position: absolute;
@@ -1496,8 +1570,33 @@ header[data-theme="light"] .brand-lockup > img {
   height: 100%;
   background: var(--gold);
 }
+/* Compact stacked blocks (fallback): a small 4:5 portrait, a smaller title, 15px+ intro. */
 .home-worlds-stack-portrait {
-  max-width: 24rem;
+  width: min(100%, 11rem);
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+.home-worlds-stack-title {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+.home-worlds-stack-intro {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+@media (min-width: 768px) {
+  .home-worlds-stack-portrait {
+    width: min(100%, 18rem);
+  }
+  .home-worlds-stack-title {
+    font-size: 2.25rem;
+    line-height: 1.1;
+  }
+  .home-worlds-stack-intro {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
 }
 
 /* Compact AI cards retain their restrained edge without corner brackets. */
