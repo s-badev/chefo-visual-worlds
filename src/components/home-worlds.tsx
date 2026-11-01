@@ -75,7 +75,9 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
   const layoutFaces = useCallback(() => {
     const box = boxRef.current;
     if (!box?.clientWidth) return;
-    const size = { width: box.clientWidth, height: box.clientHeight };
+    // Fractional size (clientWidth rounds), so the anchor matches the rendered box exactly.
+    const rect = box.getBoundingClientRect();
+    const size = { width: rect.width, height: rect.height };
     worlds.forEach((world, i) => {
       const img = portraits.current[i];
       if (!img) return;
