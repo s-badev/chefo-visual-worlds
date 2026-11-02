@@ -1,5 +1,5 @@
 import { PortraitSwitch } from "@/components/portrait";
-import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
+import aboutAiRoyal from "@/assets/about-ai-royal-new.webp";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 

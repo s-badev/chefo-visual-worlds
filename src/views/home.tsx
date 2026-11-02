@@ -18,7 +18,7 @@ import {
   countUpValue,
   heroProgress,
 } from "@/lib/motion";
-import aboutAiRoyal from "@/assets/about-ai-royal-new.png";
+import aboutAiRoyal from "@/assets/about-ai-royal-new.webp";
 
 /** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
 const HERO_IMAGES = {
