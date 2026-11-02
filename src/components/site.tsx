@@ -9,6 +9,7 @@ import { toolLabel, type AiWork } from "@/content/ai-works";
 import { getMessages, useT, type Locale } from "@/i18n";
 import { LanguageSwitcher, LocaleLink } from "@/i18n/link";
 import { siteConfig } from "@/content/site-config";
+import { riseItemStyle } from "@/hooks/use-grid-rise";
 import { reveal } from "@/hooks/use-reveal";
 import { copyText, type CopyResult } from "@/lib/clipboard";
 import { cn } from "@/lib/utils";
@@ -442,6 +443,8 @@ export function EmptyState({ text, onClear }: { text: string; onClear: () => voi
 
 const cardImage =
   "h-full w-full object-cover transition-transform duration-(--dur-slow) ease-cinematic motion-safe:group-hover:scale-[1.03]";
+/** AI cards lift the whole image box instead (.ai-card-media in styles.css), so no zoom here. */
+const aiCardImage = "h-full w-full object-cover";
 
 /** Expects a photo already localized with localizePhoto(). */
 export function PhotoCard({
@@ -547,14 +550,14 @@ export function useCopyPrompt(locale: Locale) {
 export function AiCard({
   work,
   className,
-  revealIndex,
+  riseIndex,
   frame,
   objectPosition,
 }: {
   work: AiWork;
   className?: string;
-  /** Position among siblings for the scroll reveal stagger. */
-  revealIndex?: number;
+  /** Position in a rising grid (useGridRise): sets this card's stagger delay. */
+  riseIndex?: number;
   /** Optional decorative treatment for explicitly approved compact AI grids. */
   frame?: "compact";
   /** Focal point for the 4:5 crop when the centred default would cut the subject. */
@@ -567,13 +570,14 @@ export function AiCard({
       : null;
   return (
     <article
-      className={cn("group min-w-0", className)}
-      {...(revealIndex !== undefined ? reveal(revealIndex) : {})}
+      className={cn("ai-card group min-w-0", className)}
+      style={riseIndex !== undefined ? riseItemStyle(riseIndex) : undefined}
     >
       <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="block">
+        {/* Hover (styles.css): the box lifts with a deeper shadow and a light sweep crosses it. */}
         <div
           className={cn(
-            "relative aspect-[4/5] overflow-hidden rounded-md",
+            "ai-card-media relative aspect-[4/5] overflow-hidden rounded-md",
             frame === "compact" && "ai-frame-compact",
           )}
         >
@@ -584,18 +588,18 @@ export function AiCard({
             height={work.height ?? 1280}
             loading="lazy"
             decoding="async"
-            className={cardImage}
+            className={aiCardImage}
             style={objectPosition ? { objectPosition } : undefined}
           />
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-inset ring-interaction-gold/0 transition-shadow duration-(--dur-base) ease-cinematic group-hover:ring-interaction-gold/40 group-focus-within:ring-interaction-gold/60"
           />
-          <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
+          <span className="eyebrow absolute left-3 top-3 z-[1] rounded-sm bg-navy/80 px-2 py-1 text-gold">
             {t.common.aiBadge}
           </span>
         </div>
-        <h3 className="title-card mt-3 font-serif transition-colors group-hover:text-interaction-gold">
+        <h3 className="title-card mt-3 font-serif transition-colors duration-200 group-hover:text-interaction-gold">
           {work.title}
         </h3>
       </LocaleLink>

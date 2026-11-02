@@ -8,6 +8,7 @@ import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/sit
 import { HomeWorlds } from "@/components/home-worlds";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
+import { riseGridStyle, useGridRise } from "@/hooks/use-grid-rise";
 import { usePhotoViewfinder, viewfinderLabel } from "@/hooks/use-photo-viewfinder";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -130,11 +131,7 @@ export function HomeView() {
               {m.allAi} <ArrowRight className="interaction-arrow size-4" />
             </LocaleLink>
           </div>
-          <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredAiWorks.map(({ work, objectPosition }, i) => (
-              <AiCard key={work.slug} work={work} objectPosition={objectPosition} revealIndex={i} />
-            ))}
-          </div>
+          <AiCardsGrid works={featuredAiWorks} />
         </div>
       </Surface>
 
@@ -163,6 +160,28 @@ export function HomeView() {
         </div>
       </Surface>
     </>
+  );
+}
+
+type FeaturedAiWork = {
+  work: Parameters<typeof AiCard>[0]["work"];
+  objectPosition?: string | undefined;
+};
+
+/** Home AI cards: one staggered rise when the grid first enters the viewport (useGridRise). */
+function AiCardsGrid({ works }: { works: FeaturedAiWork[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useGridRise(ref);
+  return (
+    <div
+      ref={ref}
+      style={riseGridStyle}
+      className="mt-14 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      {works.map(({ work, objectPosition }, i) => (
+        <AiCard key={work.slug} work={work} objectPosition={objectPosition} riseIndex={i} />
+      ))}
+    </div>
   );
 }
 
