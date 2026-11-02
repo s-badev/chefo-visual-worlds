@@ -227,7 +227,8 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
                   onClick={() => jumpTo(i)}
                   className={cn(
                     "home-worlds-name interaction-link eyebrow",
-                    exposed === i ? "text-gold" : "text-muted-foreground",
+                    // The current name in the hover gold: >= 4.5:1 over every scene at 13px.
+                    exposed === i ? "text-interaction-gold" : "text-muted-foreground",
                   )}
                 >
                   {collectionText(world.collection.shortTitle, locale)}
