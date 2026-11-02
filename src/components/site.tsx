@@ -181,10 +181,6 @@ function useScrolledHeader() {
   return scrolled;
 }
 
-/** Gold underline that unfolds from the centre on the active page (resting look unchanged). */
-const navUnderline =
-  "relative after:absolute after:inset-x-0 after:-bottom-px after:h-px after:origin-center after:scale-x-0 after:bg-gold after:transition-transform after:duration-(--dur-base) after:ease-cinematic";
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
@@ -227,13 +223,11 @@ export function SiteHeader() {
           <ul className="flex gap-10">
             {NAV.map((n) => (
               <li key={n.to}>
+                {/* One 1px underline for the current page and hover (.header-underline). */}
                 <LocaleLink
                   to={n.to}
-                  className={cn(
-                    "interaction-link eyebrow border-b border-transparent pb-1 transition-colors",
-                    navUnderline,
-                  )}
-                  activeClassName={cn("after:scale-x-100", dark ? "text-gold" : "text-gold-ink")}
+                  className="header-underline interaction-link eyebrow border-b border-transparent pb-1 transition-colors"
+                  activeClassName={dark ? "text-gold" : "text-gold-ink"}
                 >
                   {t.nav[n.key]}
                 </LocaleLink>
