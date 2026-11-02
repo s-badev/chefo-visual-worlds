@@ -11,6 +11,8 @@ export const VIEWFINDER = {
   stroke: 1.5,
   dot: 4,
   gold: "#C9A46B",
+  // Dark halo on the brackets and the dot only (not the label), so they read on bright sky.
+  halo: "drop-shadow(0 0 1px rgba(12, 23, 41, 0.9)) drop-shadow(0 0 2px rgba(12, 23, 41, 0.55))",
   labelGap: 10,
   labelFont: 10.5,
   labelWeight: 600,
@@ -64,6 +66,7 @@ export function createViewfinder(reducedMotion: boolean) {
       [horizontal]: "0",
       width: `${v.corner}px`,
       height: `${v.corner}px`,
+      filter: v.halo,
     });
     corner.style.setProperty(`border-${vertical}`, line);
     corner.style.setProperty(`border-${horizontal}`, line);
@@ -79,6 +82,7 @@ export function createViewfinder(reducedMotion: boolean) {
     margin: `${-v.dot / 2}px 0 0 ${-v.dot / 2}px`,
     borderRadius: "50%",
     background: v.gold,
+    filter: v.halo,
   });
   const label = document.createElement("span");
   Object.assign(label.style, {
