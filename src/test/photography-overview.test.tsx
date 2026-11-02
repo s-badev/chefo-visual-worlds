@@ -265,7 +265,20 @@ describe("Photography album overview", () => {
 
   it("preserves the album preview without extra featured sections", () => {
     activeLocale = "en";
+    // The live preview answers only to a wide window with a fine, hovering pointer.
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
     const { container } = render(<PhotographyView />);
+    // The current preview is the top (last) layer of the stack.
+    const top = () =>
+      container.querySelector(".photography-editorial-preview-layer:last-child img");
 
     const index = container.querySelector(".photography-editorial-destination-list")!;
     fireEvent.mouseEnter(
@@ -273,19 +286,14 @@ describe("Photography album overview", () => {
         .getByText("Istanbul")
         .closest("li")!,
     );
-    expect(container.querySelector(".photography-editorial-preview-frame img")).toHaveAttribute(
-      "src",
-      "/photos/istanbul/istanbul-024-maidens-tower.webp",
-    );
+    expect(top()).toHaveAttribute("src", "/photos/istanbul/istanbul-024-maidens-tower.webp");
     fireEvent.focusIn(
       within(index as HTMLElement)
         .getByText("Sofia")
         .closest("a")!,
     );
-    expect(container.querySelector(".photography-editorial-preview-frame img")).toHaveAttribute(
-      "src",
-      "/photos/sofia/sofia-001.webp",
-    );
+    media.mockRestore();
+    expect(top()).toHaveAttribute("src", "/photos/sofia/sofia-001.webp");
     expect(container.querySelector(".photography-editorial-opening-photo")).not.toHaveClass(
       "photo-frame-print",
     );
