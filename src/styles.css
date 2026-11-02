@@ -1695,6 +1695,56 @@ header .interaction-link.header-underline:focus-visible {
   }
 }
 
+/*
+ * About "Реален кадър / AI версия" iris (portrait.tsx holds the numbers as --iris-*): the AI layer's
+ * circle clip opens from the pressed button at the frame's bottom edge; a 2px gold ring expands from
+ * the same point. Reduced motion switches at once, without the ring.
+ */
+.portrait-iris {
+  position: absolute;
+  inset: 0;
+  transition: clip-path var(--iris-ms) var(--iris-ease);
+}
+.portrait-iris-ring {
+  position: absolute;
+  z-index: 2;
+  left: var(--iris-x);
+  top: var(--iris-y);
+  width: 0;
+  aspect-ratio: 1;
+  border: 2px solid var(--interaction-gold);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: portrait-iris-ring var(--iris-ms) var(--iris-ease) forwards;
+}
+@keyframes portrait-iris-ring {
+  from {
+    width: 0;
+    opacity: var(--iris-ring-opacity);
+  }
+  to {
+    width: var(--iris-ring-to);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait-iris {
+    transition: none;
+  }
+  .portrait-iris-ring {
+    display: none;
+  }
+}
+/* The selected segment stays filled on hover; only the other one takes the hover gold. */
+@media (hover: hover) and (pointer: fine) {
+  .portrait-toggle .interaction-control[aria-pressed="true"]:hover {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
 /* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;

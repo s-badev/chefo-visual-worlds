@@ -343,7 +343,9 @@ describe("Photography album overview", () => {
 
     fireEvent.click(screen.getByRole("button", { name: messages.bg.portrait.ai }));
     const ai = screen.getByRole("img", { name: messages.bg.portrait.aiAlt });
-    expect(ai.parentElement).toBe(frame);
+    // The AI portrait lies in the same frame, inside the iris layer over the real one.
+    expect(ai.closest("[data-portrait-frame]")).toBe(frame);
+    expect(ai.parentElement).toHaveClass("portrait-iris");
     expect(ai).toHaveClass("object-cover", "object-top");
     expect(ai.className).not.toMatch(/scale-|translate-/);
   });
@@ -356,8 +358,11 @@ describe("Photography album overview", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(messages[locale].about.p1)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: messages[locale].about.howTitle })).toBeNull();
+    // The closed AI portrait layer carries its "AI" badge (hidden, clipped); it is not a step.
     for (const step of messages[locale].about.steps) {
-      expect(screen.queryByText(step.title)).toBeNull();
+      expect(
+        screen.queryByText(step.title, { ignore: "script, style, .portrait-iris *" }),
+      ).toBeNull();
     }
     expect(
       screen.getByRole("group", { name: messages[locale].portrait.group }),
