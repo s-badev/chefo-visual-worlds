@@ -1573,6 +1573,13 @@ header[data-theme="light"] .brand-lockup > img {
   }
 }
 
+/* Home photo cards: the native cursor gives way to the viewfinder only while it is over a card
+   (see use-photo-viewfinder.ts); everywhere else the cursor is untouched. */
+.photo-viewfinder-active,
+.photo-viewfinder-active * {
+  cursor: none;
+}
+
 /* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;
