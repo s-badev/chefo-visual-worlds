@@ -107,6 +107,14 @@ describe("Home one face, four worlds", () => {
         null,
         null,
       ]);
+      // The current name is drawn in the hover gold (the deeper --gold fell below 4.5:1).
+      expect(buttons.map((b) => b.classList.contains("text-interaction-gold"))).toEqual([
+        true,
+        false,
+        false,
+        false,
+      ]);
+      expect(buttons.some((b) => b.classList.contains("text-gold"))).toBe(false);
 
       // Four portraits; only the exposed one is announced.
       const portraits = Array.from(
