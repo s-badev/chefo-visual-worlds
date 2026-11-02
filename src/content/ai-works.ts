@@ -1,22 +1,22 @@
 // Local content layer for AI creations.
 // Shape mirrors a future database table `ai_works` (+ related image rows).
 // Reconstruction prompts describe the visible artworks; generation originals are not verified.
-import knight from "@/assets/ai-knight.png";
-import knightHorse from "@/assets/ai-knight-horse.png";
-import renaissance from "@/assets/ai-renaissance.png";
-import future from "@/assets/ai-future.png";
-import worldSaudiArabia from "@/assets/chefo-saudi-arabia.png";
-import worldGreece from "@/assets/chefo-greece.png";
-import worldCuba from "@/assets/chefo-cuba.png";
-import worldBrazil from "@/assets/chefo-brazil.png";
-import worldGreenland from "@/assets/chefo-greenland.png";
-import worldRussia from "@/assets/chefo-russia.png";
-import worldItaly from "@/assets/chefo-italy.png";
-import worldFrance from "@/assets/chefo-france.png";
-import worldIndia from "@/assets/chefo-india.png";
-import worldTurkey from "@/assets/chefo-turkey.png";
-import worldEgypt from "@/assets/chefo-egypt.png";
-import worldDubai from "@/assets/chefo-dubai.png";
+import knight from "@/assets/ai-knight.webp";
+import knightHorse from "@/assets/ai-knight-horse.webp";
+import renaissance from "@/assets/ai-renaissance.webp";
+import future from "@/assets/ai-future.webp";
+import worldSaudiArabia from "@/assets/chefo-saudi-arabia.webp";
+import worldGreece from "@/assets/chefo-greece.webp";
+import worldCuba from "@/assets/chefo-cuba.webp";
+import worldBrazil from "@/assets/chefo-brazil.webp";
+import worldGreenland from "@/assets/chefo-greenland.webp";
+import worldRussia from "@/assets/chefo-russia.webp";
+import worldItaly from "@/assets/chefo-italy.webp";
+import worldFrance from "@/assets/chefo-france.webp";
+import worldIndia from "@/assets/chefo-india.webp";
+import worldTurkey from "@/assets/chefo-turkey.webp";
+import worldEgypt from "@/assets/chefo-egypt.webp";
+import worldDubai from "@/assets/chefo-dubai.webp";
 import { importedAiWorks } from "./ai-imported-works";
 import { phase3Works } from "./ai-phase3-works";
 import { professionWorks } from "./ai-profession-works";
