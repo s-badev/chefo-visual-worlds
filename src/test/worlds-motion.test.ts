@@ -223,11 +223,38 @@ describe("worlds section styles and short names", () => {
     expect(css).toContain(".home-worlds-stage { position: sticky; top: 0; height: 100svh;");
   });
 
-  it("keeps the short names at 15px on one row, never below 13px", () => {
-    expect(css).toContain("--names-size: 15px;");
+  it("sizes the short names from one 13px token on one row, never below 12px", () => {
+    expect(css).toContain("--names-base: 13px; --names-size: var(--names-base);");
     expect(css).toContain("flex-wrap: nowrap;");
-    const sizes = [...css.matchAll(/--names-size: (\d+)px/g)].map((m) => Number(m[1]));
-    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(13);
+    // Every step derives from the token; none hard-codes a size.
+    expect(css).not.toMatch(/--names-size: \d+px/);
+    const steps = [...css.matchAll(/--names-size: calc\(var\(--names-base\) - (\d+)px\)/g)];
+    expect(steps.length).toBeGreaterThan(0);
+    expect(Math.max(...steps.map((m) => Number(m[1])))).toBe(1);
+    expect(css).toContain("min-height: 36px; padding-block: 0.5rem;");
+  });
+
+  it("draws one kind of underline: the active border, repeated on hover for the other names", () => {
+    const name = css.match(/\.home-worlds-name \{([^}]*)\}/)![1]!;
+    expect(name).toContain("border-bottom: 1px solid transparent;");
+    expect(name).toContain("text-decoration-line: none;");
+    expect(css).toContain(
+      '.home-worlds-name[aria-current="true"] { border-bottom-color: var(--gold); }',
+    );
+    // The global link underline is switched off for these buttons on focus and hover.
+    expect(css).toContain(
+      ".interaction-link.home-worlds-name:focus-visible { text-decoration-line: none; }",
+    );
+    const hover = css.indexOf(
+      "@media (hover: hover) and (pointer: fine) { .interaction-link.home-worlds-name:hover",
+    );
+    expect(hover).toBeGreaterThan(-1);
+    expect(css.slice(hover, hover + 260)).toContain(
+      '.interaction-link.home-worlds-name:hover { text-decoration-line: none; } .home-worlds-name:not([aria-current="true"]):hover { border-bottom-color: var(--gold); }',
+    );
+    // No hover rule for these names lives outside a hover media query.
+    const outside = css.replace(/@media \(hover: hover\)[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g, "");
+    expect(outside).not.toMatch(/\.home-worlds-name[^{]*:hover/);
   });
 
   it("has a BG and EN short name for every collection", () => {
