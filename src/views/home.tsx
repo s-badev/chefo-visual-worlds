@@ -8,6 +8,7 @@ import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/sit
 import { HomeWorlds } from "@/components/home-worlds";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
+import { usePhotoViewfinder, viewfinderLabel } from "@/hooks/use-photo-viewfinder";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import {
@@ -174,6 +175,7 @@ type FeaturedAlbum = {
 function FeaturedAlbumCards({ albums }: { albums: FeaturedAlbum[] }) {
   const { t, locale } = useT();
   const [ref, elapsed] = useCardsReveal();
+  usePhotoViewfinder(ref);
   return (
     <div
       ref={ref}
@@ -186,6 +188,10 @@ function FeaturedAlbumCards({ albums }: { albums: FeaturedAlbum[] }) {
             key={album.id}
             to="/photography/albums/$slug"
             slug={album.slug}
+            data-viewfinder-label={viewfinderLabel(
+              albumText(album.title, locale),
+              t.photos.count(frames),
+            )}
             className={`group relative isolate block min-h-[20rem] overflow-hidden rounded-md bg-navy text-navy-foreground shadow-soft outline-none transition-shadow duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-interaction-gold focus-visible:ring-offset-4 motion-reduce:transition-none ${index === 0 ? "min-h-[26rem] sm:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0" : "lg:min-h-0"}`}
           >
             <img
