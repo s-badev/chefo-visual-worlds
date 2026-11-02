@@ -155,6 +155,11 @@ describe("photo viewfinder behaviour", () => {
     expect(vf.style.position).toBe("fixed");
     expect(vf.style.opacity).toBe("0");
     expect(vf.style.transition).toBe(`opacity ${VIEWFINDER.fadeMs}ms ease`);
+    // The dark halo sits on the four brackets and the dot only, never on the label.
+    const parts = Array.from(vf.children) as HTMLElement[];
+    expect(parts).toHaveLength(6);
+    parts.slice(0, 5).forEach((p) => expect(p.style.filter).toBe(VIEWFINDER.halo));
+    expect(parts[5]!.style.filter).toBe("");
 
     const [a, b] = Array.from(getByTestId("grid").querySelectorAll("a"));
     move(getByText("Несебър"), 200, 150);
@@ -239,5 +244,8 @@ describe("photo viewfinder behaviour", () => {
       fadeMs: 200,
     });
     expect(VIEWFINDER.zIndex).toBeLessThan(40);
+    expect(VIEWFINDER.halo).toBe(
+      "drop-shadow(0 0 1px rgba(12, 23, 41, 0.9)) drop-shadow(0 0 2px rgba(12, 23, 41, 0.55))",
+    );
   });
 });

@@ -887,6 +887,55 @@ header[data-theme="light"] .brand-lockup > img {
     box-shadow: 0 0 0 6px var(--interaction-card-ring);
   }
 }
+/*
+ * Header nav links and the BG/EN switch: one underline system, as on the worlds names (PR #29).
+ * A 1px line (::after, under the word) marks the current item and, on hover, any other item. The
+ * .interaction-link text underline, border colour and shadow are off here in every state, so
+ * hovering the current item adds nothing. Gold on the dark header, gold ink on the light one.
+ * Scoped to the header: the mobile menu's switch keeps its own look.
+ */
+header .header-underline {
+  position: relative;
+  text-decoration-line: none;
+}
+header .header-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--header-underline-inset, 0);
+  bottom: -1px;
+  height: 1px;
+  background-color: var(--gold);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 200ms var(--motion-ease);
+  pointer-events: none;
+}
+header[data-theme="light"] .header-underline::after {
+  background-color: var(--gold-ink);
+}
+header .header-underline[aria-current]::after {
+  transform: scaleX(1);
+}
+header .interaction-link.header-underline:focus-visible {
+  text-decoration-line: none;
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  header .interaction-link.header-underline:hover {
+    text-decoration-line: none;
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+  header .header-underline:not([aria-current]):hover::after {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  header .header-underline::after {
+    transition: none;
+  }
+}
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .interaction-primary:hover {
     translate: 0 -2px;

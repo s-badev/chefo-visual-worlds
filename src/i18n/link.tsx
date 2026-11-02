@@ -81,8 +81,10 @@ export function LanguageSwitcher({
                 onSwitch?.();
                 if (!active) router.navigate({ href });
               }}
+              // In the header, .header-underline draws the line under the letters (inset by the
+              // padding) and switches the text underline off; the mobile menu keeps the classes below.
               className={cn(
-                "interaction-link rounded-sm px-1.5 py-1 transition-colors",
+                "header-underline interaction-link rounded-sm px-1.5 py-1 transition-colors [--header-underline-inset:0.375rem]",
                 active
                   ? // On the cream header, gold text needs the deeper ink for contrast.
                     "text-gold underline decoration-gold underline-offset-4 [[data-theme=light]_&]:text-gold-ink [[data-theme=light]_&]:decoration-gold-ink"
