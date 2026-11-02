@@ -1745,6 +1745,80 @@ header .interaction-link.header-underline:focus-visible {
   }
 }
 
+/*
+ * Back to top (back-to-top.tsx holds the numbers): a navy disc with a cream arrow and a 2px ring
+ * that fills with the page's scroll progress. Above content, below the header (z-40), the mobile
+ * menu and dialogs (z-50). Hidden (and inert) until the page has scrolled 0.8 viewports.
+ */
+.back-to-top {
+  position: fixed;
+  z-index: 30;
+  right: max(22px, env(safe-area-inset-right));
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--navy);
+  color: var(--navy-foreground);
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity 300ms var(--motion-ease),
+    transform 300ms var(--motion-ease),
+    background-color var(--interaction-duration) var(--motion-ease),
+    color var(--interaction-duration) var(--motion-ease);
+}
+.back-to-top[data-visible] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.back-to-top-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.back-to-top-ring circle {
+  fill: none;
+  stroke-width: 2px;
+}
+.back-to-top-track {
+  stroke: rgb(248 241 228 / 0.18);
+}
+.back-to-top-progress {
+  stroke: var(--interaction-gold);
+}
+.back-to-top-arrow {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 600px) {
+  .back-to-top {
+    width: 46px;
+    height: 46px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}
+
 /* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;
