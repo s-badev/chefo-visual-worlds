@@ -1629,6 +1629,196 @@ header .interaction-link.header-underline:focus-visible {
   cursor: none;
 }
 
+/*
+ * Home AI cards (motion pack 4). Rise: timing comes from use-grid-rise.ts through custom properties
+ * on the grid (--rise-*) and each card (--rise-delay); only a grid that starts below the viewport is
+ * set "pending". Hover tuning lives in the .ai-card custom properties below.
+ */
+@keyframes ai-rise-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ai-rise-move {
+  from {
+    transform: translateY(var(--rise-distance));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-grid-rise="pending"] > * {
+    opacity: 0;
+    transform: translateY(var(--rise-distance));
+  }
+  [data-grid-rise="shown"] > * {
+    animation:
+      ai-rise-fade var(--rise-opacity-s) var(--rise-ease) var(--rise-delay, 0s) both,
+      ai-rise-move var(--rise-transform-s) var(--rise-ease) var(--rise-delay, 0s) both;
+  }
+}
+.ai-card {
+  --ai-card-lift: -6px;
+  --ai-card-lift-s: 0.45s;
+  --ai-card-shadow: 0 22px 40px -18px rgb(0 0 0 / 0.65);
+  --ai-card-sweep: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 236 200 / 0.22) 48%,
+    transparent 62%
+  );
+  --ai-card-sweep-s: 1.1s;
+  --ai-card-sweep-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* The light sweep: parked off the right edge, it crosses once on hover and snaps back on leave. */
+.ai-card-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--ai-card-sweep);
+  background-repeat: no-repeat;
+  background-size: 250% 100%;
+  background-position: 160% 0;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ai-card-media {
+    transition:
+      transform var(--ai-card-lift-s) var(--ai-card-sweep-ease),
+      box-shadow var(--ai-card-lift-s) var(--ai-card-sweep-ease);
+  }
+  .ai-card:hover .ai-card-media {
+    transform: translateY(var(--ai-card-lift));
+    box-shadow: var(--ai-card-shadow);
+  }
+  .ai-card:hover .ai-card-media::after {
+    background-position: -60% 0;
+    transition: background-position var(--ai-card-sweep-s) var(--ai-card-sweep-ease);
+  }
+}
+
+/*
+ * About "Реален кадър / AI версия" iris (portrait.tsx holds the numbers as --iris-*): the AI layer's
+ * circle clip opens from the pressed button at the frame's bottom edge; a 2px gold ring expands from
+ * the same point. Reduced motion switches at once, without the ring.
+ */
+.portrait-iris {
+  position: absolute;
+  inset: 0;
+  transition: clip-path var(--iris-ms) var(--iris-ease);
+}
+.portrait-iris-ring {
+  position: absolute;
+  z-index: 2;
+  left: var(--iris-x);
+  top: var(--iris-y);
+  width: 0;
+  aspect-ratio: 1;
+  border: 2px solid var(--interaction-gold);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: portrait-iris-ring var(--iris-ms) var(--iris-ease) forwards;
+}
+@keyframes portrait-iris-ring {
+  from {
+    width: 0;
+    opacity: var(--iris-ring-opacity);
+  }
+  to {
+    width: var(--iris-ring-to);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait-iris {
+    transition: none;
+  }
+  .portrait-iris-ring {
+    display: none;
+  }
+}
+/* The selected segment stays filled on hover; only the other one takes the hover gold. */
+@media (hover: hover) and (pointer: fine) {
+  .portrait-toggle .interaction-control[aria-pressed="true"]:hover {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+/*
+ * Back to top (back-to-top.tsx holds the numbers): a navy disc with a cream arrow and a 2px ring
+ * that fills with the page's scroll progress. Above content, below the header (z-40), the mobile
+ * menu and dialogs (z-50). Hidden (and inert) until the page has scrolled 0.8 viewports.
+ */
+.back-to-top {
+  position: fixed;
+  z-index: 30;
+  right: max(22px, env(safe-area-inset-right));
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--navy);
+  color: var(--navy-foreground);
+  box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity 300ms var(--motion-ease),
+    transform 300ms var(--motion-ease),
+    background-color var(--interaction-duration) var(--motion-ease),
+    color var(--interaction-duration) var(--motion-ease);
+}
+.back-to-top[data-visible] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.back-to-top-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.back-to-top-ring circle {
+  fill: none;
+  stroke-width: 2px;
+}
+.back-to-top-track {
+  stroke: rgb(248 241 228 / 0.18);
+}
+.back-to-top-progress {
+  stroke: var(--interaction-gold);
+}
+.back-to-top-arrow {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 600px) {
+  .back-to-top {
+    width: 46px;
+    height: 46px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}
+
 /* Compact AI cards retain their restrained edge without corner brackets. */
 .surface-dark .ai-frame-compact:focus-visible {
   outline-offset: -3px;
