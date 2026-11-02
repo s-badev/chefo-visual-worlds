@@ -4,7 +4,11 @@ import { describe, expect, it } from "vitest";
 import { getAiCollections, getCollectionWorkSlugs } from "@/content/ai-collections";
 import { WORLD_PORTRAITS, getWorldPortraits } from "@/content/home-worlds";
 import {
+  TEXT_IN_START,
+  TEXT_OUT_END,
   WORLDS_PIN_QUERY,
+  WORLD_FADE,
+  WORLD_HOLDS,
   computeFaceLayout,
   crossBlur,
   exposedIndex,
@@ -12,6 +16,8 @@ import {
   isStackedWorlds,
   layerOpacities,
   progressAt,
+  steadyProgress,
+  textFades,
   textStates,
   worldScrollTarget,
   worldsProgress,
@@ -75,38 +81,61 @@ describe("computeFaceLayout", () => {
 });
 
 describe("worlds progress", () => {
-  it("maps the scroll track to p, f, i0, i1 and t", () => {
+  it("maps the scroll track to p, i0, i1 and t", () => {
     // Track 4200, viewport 1000: 3200 px of travel.
     expect(worldsProgress(0, 4200, 1000)).toMatchObject({ p: 0, f: 0, i0: 0, i1: 1, t: 0 });
-    expect(worldsProgress(-1600, 4200, 1000)).toMatchObject({ p: 0.5, f: 1.5, i0: 1, i1: 2 });
+    expect(worldsProgress(-1600, 4200, 1000)).toMatchObject({ p: 0.5, i0: 1, i1: 2 });
+    expect(worldsProgress(-1600, 4200, 1000).f).toBeCloseTo(1.5);
     expect(worldsProgress(-1600, 4200, 1000).t).toBeCloseTo(0.5);
     expect(worldsProgress(-3200, 4200, 1000)).toMatchObject({ p: 1, f: 3, i0: 3, i1: 3, t: 0 });
     expect(worldsProgress(500, 4200, 1000).p).toBe(0);
     expect(worldsProgress(-9999, 4200, 1000).p).toBe(1);
   });
 
-  it("holds each world before and after the crossfade window", () => {
-    expect(progressAt(0.2).t).toBe(0);
-    expect(progressAt(0.22).t).toBe(0);
-    expect(progressAt(0.78).t).toBeCloseTo(1);
-    expect(progressAt(0.9).t).toBe(1);
-    expect(progressAt(0.5).t).toBeCloseTo(0.5);
-    expect(progressAt(2.99).i0).toBe(2);
+  it("holds the first and last worlds longest and gives the three crossfades equal room", () => {
+    expect(WORLD_HOLDS).toEqual([0.14, 0.12, 0.12, 0.14]);
+    expect(WORLD_FADE).toBeCloseTo(0.16, 9);
+    expect(WORLD_HOLDS.reduce((a, b) => a + b, 0) + 3 * WORLD_FADE).toBeCloseTo(1, 9);
+    expect(WORLD_HOLDS[0]).toBeGreaterThan(WORLD_HOLDS[1]);
+    expect(WORLD_HOLDS[3]).toBeGreaterThan(WORLD_HOLDS[2]);
+  });
+
+  it("holds each world steady between the crossfades", () => {
+    // Holds: 0-0.14, 0.30-0.42, 0.58-0.70, 0.86-1. Fades: 0.14-0.30, 0.42-0.58, 0.70-0.86.
+    const holds: [number, number, number][] = [
+      [0, 0.1399, 0],
+      [0.3001, 0.4199, 1],
+      [0.5801, 0.6999, 2],
+      [0.8601, 1, 3],
+    ];
+    for (const [from, to, world] of holds)
+      for (const p of [from, (from + to) / 2, to]) {
+        expect(progressAt(p)).toMatchObject({ i0: world, t: 0 });
+      }
+    // Each crossfade is symmetric around its middle.
+    for (const [mid, i0] of [
+      [0.22, 0],
+      [0.5, 1],
+      [0.78, 2],
+    ] as const) {
+      expect(progressAt(mid)).toMatchObject({ i0, i1: i0 + 1 });
+      expect(progressAt(mid).t).toBeCloseTo(0.5, 9);
+    }
   });
 });
 
-const SAMPLES = Array.from({ length: 301 }, (_, k) => (k / 300) * 3);
+const SAMPLES = Array.from({ length: 301 }, (_, k) => k / 300);
 
 describe("layer invariants", () => {
-  it.each(SAMPLES.filter((_, k) => k % 10 === 0))("keeps one opaque portrait at f = %f", (f) => {
-    const { i0, t } = progressAt(f);
+  it.each(SAMPLES.filter((_, k) => k % 10 === 0))("keeps one opaque portrait at p = %f", (p) => {
+    const { i0, t } = progressAt(p);
     const opacities = layerOpacities(i0, t);
     expect(Math.max(...opacities)).toBe(1);
   });
 
   it("never leaves the stage without an opaque layer at any sampled f", () => {
-    for (const f of SAMPLES) {
-      const { i0, t } = progressAt(f);
+    for (const p of SAMPLES) {
+      const { i0, t } = progressAt(p);
       expect(layerOpacities(i0, t)).toContain(1);
     }
   });
@@ -134,15 +163,69 @@ describe("layer invariants", () => {
 });
 
 describe("text invariants", () => {
-  it("overlaps the two titles slightly halfway, never both empty", () => {
-    const s = textStates(0, 0.5);
-    expect(s[0]!.opacity).toBeGreaterThan(0.1);
-    expect(s[1]!.opacity).toBeGreaterThan(0.1);
-    expect(s[0]!.opacity).toBeCloseTo(1 / 6);
-    expect(s[1]!.opacity).toBeCloseTo(1 / 6);
-    for (const f of SAMPLES) {
-      const { i0, t } = progressAt(f);
-      expect(Math.max(...textStates(i0, t).map((x) => x.opacity))).toBeGreaterThan(0.1);
+  it("tunes the sequence in two named constants: out by 0.4, in from 0.6", () => {
+    expect(TEXT_OUT_END).toBe(0.4);
+    expect(TEXT_IN_START).toBe(0.6);
+    expect(TEXT_OUT_END).toBeLessThan(0.5);
+    expect(TEXT_IN_START).toBeGreaterThan(0.5);
+  });
+
+  it.each([
+    // t, outgoing, incoming (smoothstep on each part)
+    [0, 1, 0],
+    [0.2, 0.5, 0],
+    [0.35, 0.04296875, 0],
+    [0.4, 0, 0],
+    [0.5, 0, 0],
+    [0.6, 0, 0],
+    [0.65, 0, 0.04296875],
+    [0.8, 0, 0.5],
+    [1, 0, 1],
+  ])("fades out, pauses, then fades in: t = %f -> out %f, in %f", (t, out, inc) => {
+    for (const i0 of [0, 1, 2]) {
+      const o = textStates(i0, t).map((x) => x.opacity);
+      expect(o[i0]).toBeCloseTo(out, 9);
+      expect(o[i0 + 1]).toBeCloseTo(inc, 9);
+      expect(o.filter((_, i) => i !== i0 && i !== i0 + 1).every((v) => v === 0)).toBe(true);
+    }
+  });
+
+  it("never shows two texts at once, and leaves the column empty only between 0.4 and 0.6", () => {
+    for (const t of Array.from({ length: 10001 }, (_, k) => k / 10000)) {
+      const f = textFades(t);
+      const visible = [1 - f.out, f.in].filter((a) => a > 0.02);
+      expect(visible.length).toBeLessThanOrEqual(1);
+      if (t <= TEXT_OUT_END) expect(f.in).toBe(0);
+      if (t >= TEXT_IN_START) expect(f.out).toBe(1);
+      if (t > TEXT_OUT_END && t < TEXT_IN_START) expect(1 - f.out + f.in).toBe(0);
+    }
+    // Along the track: at most one text above 0.02, and any visible text is the exposed group.
+    for (const p of Array.from({ length: 4001 }, (_, k) => k / 4000)) {
+      const { i0, t } = progressAt(p);
+      const o = textStates(i0, t).map((x) => x.opacity);
+      expect(o.filter((a) => a > 0.02).length).toBeLessThanOrEqual(1);
+      o.forEach((a, i) => {
+        if (a > 0.02) expect(i).toBe(exposedIndex(i0, t));
+      });
+    }
+    for (const mid of [0.22, 0.5, 0.78]) {
+      const { i0, t } = progressAt(mid);
+      expect(t).toBeCloseTo(0.5, 9);
+      expect(textStates(i0, t).every((x) => x.opacity === 0)).toBe(true);
+    }
+  });
+
+  it("shows exactly one text at 1 at every hold centre", () => {
+    for (const [p, world] of [
+      [0.07, 0],
+      [0.36, 1],
+      [0.64, 2],
+      [0.93, 3],
+    ] as const) {
+      const { i0, t } = progressAt(p);
+      expect(textStates(i0, t).map((x) => x.opacity)).toEqual(
+        [0, 1, 2, 3].map((i) => (i === world ? 1 : 0)),
+      );
     }
   });
 
@@ -181,6 +264,10 @@ describe("fallback decision and jumps", () => {
     expect(isStackedWorlds({ width: 390, height: 844, reducedMotion: false })).toBe(true);
   });
 
+  it("jumps to the track's ends for the first and last world and mid-hold between", () => {
+    expect([0, 1, 2, 3].map(steadyProgress).map((p) => +p.toFixed(9))).toEqual([0, 0.36, 0.64, 1]);
+  });
+
   it("jumps to the steady scroll position of each world", () => {
     for (const i of [0, 1, 2, 3]) {
       const y = worldScrollTarget(i, 2000, 4200, 1000);
@@ -199,14 +286,16 @@ describe("fallback decision and jumps", () => {
     expect(travel).toBe(2 * vh);
     for (const i of [0, 1, 2, 3]) {
       const y = worldScrollTarget(i, 5000, track, vh);
-      expect(y).toBeCloseTo(5000 + (i / 3) * travel + 1);
+      expect(y).toBeCloseTo(5000 + steadyProgress(i) * travel + 1);
       const { i0, t, p } = worldsProgress(5000 - y, track, vh);
       expect(i0).toBe(i);
       expect(t).toBe(0);
-      expect(p).toBeCloseTo(Math.min(1, i / 3 + 1 / travel), 6);
+      expect(p).toBeCloseTo(Math.min(1, steadyProgress(i) + 1 / travel), 6);
     }
-    // Halfway through the second step the crossfade is at its middle.
-    expect(worldsProgress(-(travel * 1.5) / 3, track, vh).t).toBeCloseTo(0.5);
+    // Halfway along the track the middle crossfade is at its middle.
+    expect(worldsProgress(-travel / 2, track, vh).t).toBeCloseTo(0.5);
+    // The first and last worlds each stay steady over 14% of the travel (28svh of scrolling).
+    expect(WORLD_HOLDS[0] * travel).toBeCloseTo(0.28 * vh, 6);
   });
 });
 

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { HomeWorlds } from "@/components/home-worlds";
 import { collectionText, getAiCollections, getCollectionWorkSlugs } from "@/content/ai-collections";
 import { messages } from "@/i18n/messages";
+import { WORLDS_PIN_QUERY } from "@/lib/worlds-motion";
 
 let activeLocale: "bg" | "en" = "bg";
 
@@ -138,5 +139,93 @@ describe("Home one face, four worlds", () => {
   it("shows no prototype-only labels", () => {
     const { container } = render(<HomeWorlds />);
     expect(container.textContent).not.toMatch(/Закачен скрол|Идея|Idea|Pinned scroll/);
+  });
+});
+
+describe("Home worlds crossfade as applied to the stage", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  /** Pin query answers as on a wide window; the track sits at progress p of its 300svh travel. */
+  const renderAt = (p: number, reducedMotion: boolean) => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === WORLDS_PIN_QUERY && !reducedMotion,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const vh = window.innerHeight;
+    const original = HTMLElement.prototype.getBoundingClientRect;
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.classList.contains("home-worlds-pin")
+        ? ({ top: -p * 2 * vh, height: 3 * vh, width: 1280, left: 0 } as DOMRect)
+        : original.call(this);
+    });
+    const { container } = render(<HomeWorlds />);
+    return Array.from(
+      container.querySelectorAll<HTMLElement>(".home-worlds-pin .home-worlds-copy"),
+    );
+  };
+
+  it.each(["bg", "en"] as const)(
+    "empties the text column at every transition midpoint, keeps the portrait, and hands over the heading there (%s)",
+    (locale) => {
+      activeLocale = locale;
+      for (const [mid, i0] of [
+        [0.22, 0],
+        [0.5, 1],
+        [0.78, 2],
+      ] as const) {
+        const copies = renderAt(mid, false);
+        expect(copies.map((c) => Number(c.style.opacity))).toEqual([0, 0, 0, 0]);
+        // The outgoing portrait stays opaque under the incoming one: never a blank stage.
+        const imgs = Array.from(
+          document.querySelectorAll<HTMLImageElement>(".home-worlds-pin .home-worlds-portrait img"),
+        );
+        expect(Number(imgs[i0]!.style.opacity)).toBe(1);
+        expect(Number(imgs[i0 + 1]!.style.opacity)).toBeCloseTo(0.5, 6);
+        cleanup();
+        // One meaningful heading, handed over inside the empty gap; the others are hidden and inert.
+        for (const [p, exposed] of [
+          [mid - 0.005, i0],
+          [mid + 0.005, i0 + 1],
+        ] as const) {
+          const around = renderAt(p, false);
+          expect(around.every((c) => Number(c.style.opacity) <= 0.02)).toBe(true);
+          expect(around.map((c) => c.getAttribute("aria-hidden"))).toEqual(
+            around.map((_, i) => (i === exposed ? "false" : "true")),
+          );
+          around.forEach((c, i) =>
+            expect(c.classList.contains("pointer-events-none")).toBe(i !== exposed),
+          );
+          cleanup();
+        }
+        // Before the gap only the outgoing text shows, after it only the incoming one.
+        const before = renderAt(mid - 0.05, false).map((c) => Number(c.style.opacity));
+        expect(before.filter((a) => a > 0.02)).toHaveLength(1);
+        expect(before[i0]).toBeGreaterThan(0.02);
+        cleanup();
+        const after = renderAt(mid + 0.05, false).map((c) => Number(c.style.opacity));
+        expect(after.filter((a) => a > 0.02)).toHaveLength(1);
+        expect(after[i0 + 1]).toBeGreaterThan(0.02);
+        cleanup();
+      }
+    },
+  );
+
+  it("leaves the stage untouched under reduced motion (the stacked list shows instead)", () => {
+    const copies = renderAt(0.5, true);
+    expect(copies.map((c) => c.style.opacity)).toEqual(["", "", "", ""]);
+    expect(copies.map((c) => c.getAttribute("aria-hidden"))).toEqual([
+      "false",
+      "true",
+      "true",
+      "true",
+    ]);
+    expect(WORLDS_PIN_QUERY).toContain("(prefers-reduced-motion: no-preference)");
   });
 });

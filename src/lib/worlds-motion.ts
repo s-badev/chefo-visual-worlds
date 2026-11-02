@@ -1,6 +1,22 @@
 /** Pure helpers behind the Home "One face, four worlds" scene; the component measures and applies. */
 import { clamp01, smoothstep } from "@/lib/motion";
 
+export const WORLD_COUNT = 4;
+const LAST = WORLD_COUNT - 1;
+
+/*
+ * Tuning, in one place:
+ * - WORLD_HOLDS: share of the track's travel each world is held steady (first and last longer).
+ *   The three transitions split what is left equally (WORLD_FADE, 0.16 each with these holds).
+ * - TEXT_OUT_END / TEXT_IN_START: within a transition (t 0..1) the outgoing text fades out over
+ *   0..TEXT_OUT_END, the column stays empty, then the incoming text fades in over TEXT_IN_START..1.
+ *   The two texts never overlap; the exposed group switches at t = 0.5, inside the empty gap.
+ */
+export const WORLD_HOLDS = [0.14, 0.12, 0.12, 0.14] as const;
+export const WORLD_FADE = (1 - WORLD_HOLDS.reduce((a, b) => a + b, 0)) / LAST;
+export const TEXT_OUT_END = 0.4;
+export const TEXT_IN_START = 0.6;
+
 export type Box = { width: number; height: number };
 export type Eyes = { mx: number; my: number; d: number };
 
@@ -32,26 +48,33 @@ export function computeFaceLayout(
   };
 }
 
-export const WORLD_COUNT = 4;
-const LAST = WORLD_COUNT - 1;
+/** Where world i's hold starts on the 0..1 track. */
+const holdStart = (i: number) =>
+  WORLD_HOLDS.slice(0, i).reduce((a: number, b) => a + b, 0) + i * WORLD_FADE;
 
-/**
- * Scroll progress through the pinned track. f runs 0..3; each step holds the current world, then
- * crossfades to the next between 22% and 78% of the step (smoothstep t).
- */
+/** Scroll progress through the pinned track (see progressAt). */
 export function worldsProgress(sectionTop: number, sectionHeight: number, viewportHeight: number) {
-  const p = clamp01(-sectionTop / Math.max(1, sectionHeight - viewportHeight));
-  return progressAt(p * LAST);
+  return progressAt(-sectionTop / Math.max(1, sectionHeight - viewportHeight));
 }
 
-export function progressAt(f: number) {
-  const p = clamp01(f / LAST);
-  f = p * LAST;
-  const i0 = Math.min(LAST, Math.floor(f));
+/**
+ * p runs 0..1 over the track. Inside a hold t is 0; inside a crossfade t eases 0..1 (smoothstep).
+ * f is the continuous world position (i0 plus the linear share of the crossfade).
+ */
+export function progressAt(progress: number) {
+  const p = clamp01(progress);
+  let i0 = LAST;
+  let raw = 0;
+  for (let i = 0; i < LAST; i++) {
+    const fadeStart = holdStart(i) + WORLD_HOLDS[i]!;
+    if (p < fadeStart + WORLD_FADE) {
+      i0 = i;
+      raw = clamp01((p - fadeStart) / WORLD_FADE);
+      break;
+    }
+  }
   const i1 = Math.min(LAST, i0 + 1);
-  const raw = clamp01((f - i0 - 0.22) / 0.56);
-  const t = i0 === LAST ? 0 : smoothstep(raw);
-  return { p, f, i0, i1, t };
+  return { p, f: i0 + raw, i0, i1, t: smoothstep(raw) };
 }
 
 /**
@@ -73,12 +96,22 @@ export function crossBlur(t: number) {
   return { blur, scale: 1 + blur * 0.009 };
 }
 
-/** Title and description groups: a short overlap so the column is never empty. */
+/** Share of the outgoing fade-out and the incoming fade-in done at t (each eased, 0..1). */
+export const textFades = (t: number) => ({
+  out: smoothstep(clamp01(clamp01(t) / TEXT_OUT_END)),
+  in: smoothstep(clamp01((clamp01(t) - TEXT_IN_START) / (1 - TEXT_IN_START))),
+});
+
+/**
+ * Title and description groups, in sequence: the outgoing one fades out (drifting up), the column
+ * stays empty, then the incoming one fades in (rising into place). Never two texts at once.
+ */
 export function textStates(i0: number, t: number) {
+  const fade = textFades(t);
   return Array.from({ length: WORLD_COUNT }, (_, i) => {
     if (i0 >= LAST) return { opacity: i === LAST ? 1 : 0, y: 0 };
-    if (i === i0) return { opacity: 1 - clamp01(t / 0.6), y: -8 * t };
-    if (i === i0 + 1) return { opacity: clamp01((t - 0.4) / 0.6), y: 18 * (1 - t) };
+    if (i === i0) return { opacity: 1 - fade.out, y: -8 * fade.out };
+    if (i === i0 + 1) return { opacity: fade.in, y: 18 * (1 - fade.in) };
     return { opacity: 0, y: 0 };
   });
 }
@@ -101,10 +134,14 @@ export const isStackedWorlds = ({
   reducedMotion: boolean;
 }) => width < 900 || height < 600 || reducedMotion;
 
-/** Scroll position at which world i is shown steadily (one pixel in, so floor() lands on i). */
+/** Where world i is shown steadily: the track's ends for the first and last, mid-hold between. */
+export const steadyProgress = (i: number) =>
+  i <= 0 ? 0 : i >= LAST ? 1 : holdStart(i) + WORLD_HOLDS[i]! / 2;
+
+/** Scroll position at which world i is shown steadily (one pixel in, so the pin has started). */
 export const worldScrollTarget = (
   i: number,
   sectionDocTop: number,
   sectionHeight: number,
   viewportHeight: number,
-) => sectionDocTop + (i / LAST) * Math.max(0, sectionHeight - viewportHeight) + 1;
+) => sectionDocTop + steadyProgress(i) * Math.max(0, sectionHeight - viewportHeight) + 1;
