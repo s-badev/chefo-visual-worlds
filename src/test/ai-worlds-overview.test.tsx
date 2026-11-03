@@ -74,30 +74,14 @@ const openDesktopFilters = (container: HTMLElement) =>
   fireEvent.click(container.querySelector('button[aria-controls="ai-filter-panel"]')!);
 
 describe("AI Worlds overview", () => {
-  it("runs each collection backdrop edge to edge behind a centred content container", () => {
-    const { container } = render(<AiWorldsView />);
-    const halls = [...container.querySelectorAll<HTMLElement>("li.ai-overview-hall")];
-    expect(halls).toHaveLength(4);
-    for (const hall of halls) {
-      // The hall itself is outside every max-width container, so it spans the viewport.
-      expect(hall.closest(".container-page")).toBeNull();
-      const layer = hall.querySelector<HTMLElement>(".ai-section-background")!;
-      expect(layer.parentElement).toBe(hall);
-      const content = hall.querySelector<HTMLElement>(":scope > .container-page")!;
-      expect(content).not.toBeNull();
-      expect(content).toContainElement(hall.querySelector<HTMLElement>(".ai-presentation"));
-      expect(content).not.toContainElement(layer);
-    }
-  });
-
   it.each(["bg", "en"] as const)(
-    "carries the first hall's scene up behind the %s intro, one scene per hall",
+    "keeps the %s intro on its own and gives each world of the scene one inert backdrop",
     (locale) => {
       activeLocale = locale;
       const { container } = render(<AiWorldsView />);
       const overview = container.querySelector<HTMLElement>(".ai-overview")!;
       expect(overview).toHaveClass("surface-dark");
-      // Intro text and tabs share one shrink-wrapped block (the local scrim sits behind it).
+      // Intro text and tabs share one shrink-wrapped block.
       const intro = overview.querySelector<HTMLElement>(
         ".ai-overview-intro .ai-overview-intro-text",
       )!;
@@ -105,27 +89,20 @@ describe("AI Worlds overview", () => {
         messages[locale].ai.title,
       );
       expect(within(intro).getByRole("group", { name: messages[locale].ai.view })).toBeTruthy();
-      // The intro has no backdrop of its own: the first hall's layer reaches up behind it.
-      expect(overview.querySelector(".ai-overview-intro .ai-section-background")).toBeNull();
-      const halls = [...overview.querySelectorAll<HTMLElement>("li.ai-overview-hall")];
-      expect(halls[0]).toBe(halls[0]!.parentElement!.firstElementChild);
+      // The Collections scene follows the overview; no backdrop sits inside the overview itself.
+      expect(overview.querySelector(".ai-section-background, .ai-overview-hall")).toBeNull();
+      const scene = container.querySelector<HTMLElement>("section.home-worlds")!;
+      const layers = [
+        ...scene.querySelectorAll<HTMLElement>(".home-worlds-layer > .ai-section-background"),
+      ];
       expect(
-        halls.map((hall) => {
-          const layers = hall.querySelectorAll<HTMLElement>(":scope > .ai-section-background");
-          expect(layers).toHaveLength(1);
-          const layer = layers[0]!;
+        layers.map((layer) => {
           expect(layer).toHaveAttribute("aria-hidden", "true");
           expect(layer.querySelector("a, button, [tabindex]")).toBeNull();
           expect(layer.querySelector("img")).toHaveAttribute("alt", "");
           return layer.dataset["aiSectionBackground"];
         }),
       ).toEqual(["historical", "professions", "cinema", "world"]);
-      expect(halls[0]!.querySelector("img")).toHaveAttribute(
-        "src",
-        "/background/ai-bg-historical-1600.webp",
-      );
-      // One image per hall: nothing else on the page draws a backdrop.
-      expect(overview.querySelectorAll(".ai-section-background")).toHaveLength(4);
     },
   );
 
@@ -159,7 +136,9 @@ describe("AI Worlds overview", () => {
   it.each(["bg", "en"] as const)("opens on the four curated collections in %s", (locale) => {
     activeLocale = locale;
     const { container } = render(<AiWorldsView />);
-    const links = Array.from(container.querySelectorAll('a[href^="/ai-worlds/collections/"]'));
+    // The stacked fallback list enters each collection through one action, in collection order.
+    const stack = container.querySelector<HTMLElement>(".home-worlds-stack")!;
+    const links = Array.from(stack.querySelectorAll('a[href^="/ai-worlds/collections/"]'));
     expect(links.map((a) => a.getAttribute("href"))).toEqual([
       "/ai-worlds/collections/historical-eras-rulers",
       "/ai-worlds/collections/professions-roles",
@@ -167,26 +146,24 @@ describe("AI Worlds overview", () => {
       "/ai-worlds/collections/chefo-around-the-world",
     ]);
     expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
-    // Each hall is entered through its one visible action, named after the collection.
-    const collectionActions = screen.getAllByText(messages[locale].ai.exploreCollection);
+    // Each action is named after its collection.
+    const collectionActions = within(stack).getAllByText(messages[locale].ai.exploreCollection);
     expect(collectionActions).toHaveLength(4);
     for (const action of collectionActions) {
       const link = action.closest("a")!;
-      const title = within(link.closest("article")!).getByRole("heading", { level: 2 });
+      const title = within(link.closest("li")!).getByRole("heading", { level: 2 });
       expect(link).toHaveAccessibleName(
         `${messages[locale].ai.exploreCollection}: ${title.textContent}`,
       );
     }
-    // The collection uses its own taxi portrait as cover.
-    const professions = links[1]!.closest("article")!;
-    expect(professions.querySelector(".ai-presentation-media img")?.getAttribute("src")).toContain(
-      "chefo-taxi-driver.webp",
-    );
+    // The professions world shows the taxi driver portrait.
+    const professions = links[1]!.closest("li")!;
+    expect(
+      professions.querySelector("img.home-worlds-stack-portrait")?.getAttribute("src"),
+    ).toContain("chefo-taxi-driver.webp");
     expect(professions.querySelector(".ai-frame-portal")).toBeNull();
     expect(professions.textContent).not.toMatch(/coming soon|очаква|подготвя/i);
-    const aroundTheWorld = links[3]!.closest("article")!;
-    expect(aroundTheWorld).toHaveTextContent(messages[locale].ai.count(16));
-    expect(aroundTheWorld.textContent).not.toContain(
+    expect(container.textContent).not.toContain(
       locale === "bg" ? "Едно лице. Много култури." : "One Face. Many Cultures.",
     );
     expect(container.textContent).not.toContain(

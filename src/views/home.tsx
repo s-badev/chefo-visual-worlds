@@ -5,8 +5,6 @@ import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
 import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
-import { HomeWorlds } from "@/components/home-worlds";
-import { WorldSlider } from "@/components/world-slider";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { riseGridStyle, useGridRise } from "@/hooks/use-grid-rise";
@@ -108,8 +106,6 @@ export function HomeView() {
     <>
       <HomeHero />
 
-      <WorldSlider />
-
       <Surface tone="light" id="featured-albums" className="container-page section-y">
         <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
         <FeaturedAlbumCards albums={featuredAlbums} />
@@ -123,8 +119,6 @@ export function HomeView() {
           </LocaleLink>
         </div>
       </Surface>
-
-      <HomeWorlds />
 
       <Surface tone="dark" seam>
         <div className="container-page section-y">
