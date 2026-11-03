@@ -29,13 +29,14 @@ import {
   ArtImage,
   artworkAnchor,
   CollectionAtmosphere,
-  CollectionHalls,
   ExhibitWork,
   ExhibitionWall,
   PromptNote,
   toLightboxItem,
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
+import { HomeWorlds } from "@/components/home-worlds";
+import { WorldSlider } from "@/components/world-slider";
 import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
@@ -68,7 +69,10 @@ const NO_FILTERS: AiFilterValues = {
   tool: undefined,
 };
 
-/** AI Worlds landing: curated collections first, All Artworks (with filters) second. */
+/**
+ * AI Worlds landing: the world slider on top, then the intro with the view switch. Collections
+ * is the pinned "One face, four worlds" scene; All Artworks (with filters) is the second view.
+ */
 export function AiWorldsView() {
   const { t, locale } = useT();
   const m = t.ai;
@@ -94,7 +98,8 @@ export function AiWorldsView() {
 
   return (
     <>
-      {/* The first collection's scene also runs up behind the intro (styles.css, .ai-overview). */}
+      <WorldSlider />
+
       <Surface tone="dark" as="div" className="ai-overview">
         <div className="ai-overview-intro container-page pt-16 md:pt-24">
           {/* Shrink-wrapped so the local text scrim sits behind the text and tabs only. */}
@@ -123,14 +128,8 @@ export function AiWorldsView() {
           </div>
         </div>
 
-        {/* Collection halls run edge to edge so their backdrops can; each hall re-centres its content. */}
-        <div
-          key={view}
-          className="pb-16 duration-300 motion-safe:animate-in motion-safe:fade-in-0 md:pb-24"
-        >
-          {view === "collections" ? (
-            <CollectionHalls />
-          ) : (
+        {view === "works" && (
+          <div className="pb-16 duration-300 motion-safe:animate-in motion-safe:fade-in-0 md:pb-24">
             <div className="container-page mt-8">
               <AiFilterBar values={filters} count={items.length} onChange={(p) => set(p)} />
               {items.length ? (
@@ -146,9 +145,17 @@ export function AiWorldsView() {
                 <EmptyState text={m.empty} onClear={() => set(NO_FILTERS)} />
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </Surface>
+
+      {/* A sibling of the overview, so the scene keeps the look it had on Home: the .ai-overview
+          rules for the old halls (intro reach, clip) never reach it. */}
+      {view === "collections" && (
+        <div className="duration-300 motion-safe:animate-in motion-safe:fade-in-0">
+          <HomeWorlds />
+        </div>
+      )}
     </>
   );
 }

@@ -1,7 +1,8 @@
-// Home "One face, four worlds": a pinned scene in which the portrait's face stays put while the
-// AI collection around it changes. Phones, short windows and reduced motion get a plain stacked
-// list instead; CSS picks one of the two (see .home-worlds in styles.css), so server HTML and the
-// first client render always agree.
+// "One face, four worlds" (the Collections view of AI Worlds; it first ran on Home, hence the
+// name): a pinned scene in which the portrait's face stays put while the AI collection around it
+// changes. Phones, short windows and reduced motion get a plain stacked list instead; CSS picks
+// one of the two (see .home-worlds in styles.css), so server HTML and the first client render
+// always agree.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { collectionText } from "@/content/ai-collections";

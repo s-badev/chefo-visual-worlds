@@ -1,4 +1,4 @@
-// Home "One face, four worlds": one front-facing portrait per AI collection, with its eyes
+// "One face, four worlds" (AI Worlds, Collections view): one front-facing portrait per AI collection, with its eyes
 // measured so the face can be held at the same place while the worlds change.
 import { getAiCollections, type AiCollection } from "./ai-collections";
 import { getAiWork, type AiWork } from "./ai-works";

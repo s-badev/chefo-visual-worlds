@@ -1,4 +1,4 @@
-/** Pure helpers behind the Home "One face, four worlds" scene; the component measures and applies. */
+/** Pure helpers behind the AI Worlds "One face, four worlds" scene; the component measures and applies. */
 import { clamp01, smoothstep } from "@/lib/motion";
 
 export const WORLD_COUNT = 4;
