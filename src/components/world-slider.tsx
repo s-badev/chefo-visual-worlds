@@ -21,6 +21,9 @@ export function WorldSlider() {
   const { locale, t } = useT();
   const copy = t.home.worldSlider;
   const [activeIndex, setActiveIndex] = useState(0);
+  // Worlds whose blurred backdrop has an image: a world's backdrop takes its AI image (already
+  // loaded or preloaded by the slider) once the world is chosen, and keeps it for the cross-fade.
+  const [backdropWorlds, setBackdropWorlds] = useState<readonly number[]>([0]);
   const activeWorld = localizeWorldSlide(WORLD_SLIDES[activeIndex]!, locale);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -135,6 +138,7 @@ export function WorldSlider() {
     stopAnimation();
     demoDoneRef.current = true;
     setActiveIndex(index);
+    setBackdropWorlds((shown) => (shown.includes(index) ? shown : [...shown, index]));
     applyFocus();
     if (reducedMotionRef.current) setPosition(START_POSITION);
     else {
@@ -289,6 +293,19 @@ export function WorldSlider() {
       aria-labelledby="world-slider-title"
       className="world-slider-section surface-dark"
     >
+      <div className="world-slider-backdrop" aria-hidden="true">
+        {WORLD_SLIDES.map((world, index) => (
+          <div
+            key={world.id}
+            className={`world-slider-backdrop-layer ${index === activeIndex ? "is-active" : ""}`}
+            style={
+              backdropWorlds.includes(index)
+                ? { backgroundImage: `url(${world.ai.image})` }
+                : undefined
+            }
+          />
+        ))}
+      </div>
       <div className="container-page">
         <div className="world-slider-header">
           <div className="world-slider-heading">
@@ -397,7 +414,7 @@ export function WorldSlider() {
             {copy.hint}
           </span>
           <span ref={leftChipRef} className="world-slider-chip is-left">
-            {copy.realWorld}
+            {copy.realPlace}
             <span className="world-slider-chip-tag"> · {activeWorld.tagL}</span>
           </span>
           <span ref={rightChipRef} className="world-slider-chip is-right">

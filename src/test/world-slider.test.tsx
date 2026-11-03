@@ -1,27 +1,67 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorldSlider } from "@/components/world-slider";
+import { WORLD_SLIDES } from "@/content/world-slider";
 import { messages } from "@/i18n/messages";
+
+let activeLocale: "bg" | "en" = "bg";
 
 vi.mock("@/i18n", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/i18n")>();
-  return { ...actual, useT: () => ({ locale: "bg", t: messages.bg }) };
+  return { ...actual, useT: () => ({ locale: activeLocale, t: messages[activeLocale] }) };
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  activeLocale = "bg";
+});
+
+const reducedMotion = () =>
+  vi.spyOn(window, "matchMedia").mockImplementation(
+    (query: string) =>
+      ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }) as unknown as MediaQueryList,
+  );
+
+const COPY = {
+  bg: {
+    eyebrow: "Едно място · две времена",
+    title: "Същото място, друго време",
+    subtitle: "Отляво е мястото днес. Отдясно е същото място в друга епоха.",
+    real: "Реално място",
+    captions: [
+      "Площад „Ларго“, София. Днес и през 2200 г.",
+      "Ортакьой на Босфора. Днес и Константинопол около 1450 г.",
+      "Трокадеро, Париж. Днес и по времето на Световното изложение през 1900 г.",
+    ],
+    right: ["AI свят · 2200", "AI свят · Константинопол 1450", "AI свят · 1900"],
+    cities: ["София", "Истанбул", "Париж"],
+  },
+  en: {
+    eyebrow: "One place · two times",
+    title: "Same place, another time",
+    subtitle: "On the left is the place today. On the right is the same place in another era.",
+    real: "Real place",
+    captions: [
+      "Largo Square, Sofia. Today and in the year 2200.",
+      "Ortaköy on the Bosphorus. Today and Constantinople around 1450.",
+      "Trocadéro, Paris. Today and at the 1900 World's Fair.",
+    ],
+    right: ["AI world · 2200", "AI world · Constantinople 1450", "AI world · 1900"],
+    cities: ["Sofia", "Istanbul", "Paris"],
+  },
+} as const;
 
 describe("WorldSlider", () => {
   it("renders three worlds and supports keyboard and button selection", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(
-      (query: string) =>
-        ({
-          matches: query.includes("prefers-reduced-motion"),
-          media: query,
-          addEventListener: () => {},
-          removeEventListener: () => {},
-        }) as unknown as MediaQueryList,
-    );
-
+    reducedMotion();
     render(<WorldSlider />);
 
     const group = screen.getByRole("group", { name: "Избери свят" });
@@ -34,9 +74,128 @@ describe("WorldSlider", () => {
     expect(slider).toHaveAttribute("aria-valuenow", "50");
     fireEvent.keyDown(slider, { key: "ArrowRight" });
     expect(slider).toHaveAttribute("aria-valuenow", "54");
+    expect(slider).toHaveAttribute("aria-valuetext", "Реално място 54%, AI свят 46%");
 
     fireEvent.click(buttons[1]!);
     expect(buttons[1]).toHaveAttribute("aria-pressed", "true");
     expect(buttons[0]).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it.each(["bg", "en"] as const)(
+    "shows the %s copy, labels and one-fact caption for each world",
+    (locale) => {
+      activeLocale = locale;
+      reducedMotion();
+      const { container } = render(<WorldSlider />);
+      const copy = COPY[locale];
+      expect(screen.getByText(copy.eyebrow)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(copy.title);
+      expect(screen.getByText(copy.subtitle)).toBeInTheDocument();
+      expect(screen.getByRole("slider")).toHaveAttribute(
+        "aria-valuetext",
+        `${copy.real} 50%, ${locale === "bg" ? "AI свят" : "AI world"} 50%`,
+      );
+
+      const buttons = within(
+        screen.getByRole("group", { name: messages[locale].home.worldSlider.chooseWorld }),
+      ).getAllByRole("button");
+      copy.cities.forEach((city, i) => {
+        fireEvent.click(buttons[i]!);
+        const left = container.querySelector(".world-slider-chip.is-left")!;
+        const right = container.querySelector(".world-slider-chip.is-right")!;
+        expect(left.textContent).toBe(`${copy.real} · ${city}`);
+        expect(right.textContent).toBe(copy.right[i]);
+        expect(container.querySelector(".world-slider-caption")).toHaveTextContent(
+          copy.captions[i]!,
+        );
+      });
+    },
+  );
+
+  it.each(["bg", "en"] as const)(
+    "never tells the %s visitor what changes or how to drag",
+    (locale) => {
+      activeLocale = locale;
+      reducedMotion();
+      const { container } = render(<WorldSlider />);
+      const buttons = container.querySelectorAll(".world-slider-selector button");
+      const texts: string[] = [];
+      for (const button of buttons) {
+        fireEvent.click(button);
+        texts.push(container.textContent ?? "");
+        texts.push(screen.getByRole("slider").getAttribute("aria-valuetext") ?? "");
+      }
+      const all = texts.join(" ");
+      expect(all).not.toMatch(/влач|стрелк|drag|arrow/i);
+      expect(all).not.toMatch(/лицето|стойката|дрехите|the face|the pose|clothes/i);
+      expect(all).not.toMatch(/Реален свят|Real world/);
+    },
+  );
+
+  it("swaps the blurred backdrop with the chosen world and keeps it inert", () => {
+    reducedMotion();
+    const { container } = render(<WorldSlider />);
+    const section = container.querySelector("section.world-slider-section")!;
+    const backdrop = section.querySelector<HTMLElement>(":scope > .world-slider-backdrop")!;
+    expect(backdrop).toHaveAttribute("aria-hidden", "true");
+    expect(backdrop.querySelector("a, button, img, [tabindex]")).toBeNull();
+    const layers = [...backdrop.querySelectorAll<HTMLElement>(".world-slider-backdrop-layer")];
+    expect(layers).toHaveLength(WORLD_SLIDES.length);
+    const active = () => layers.map((layer) => layer.classList.contains("is-active"));
+
+    // Only the first world's image is asked for until another world is chosen.
+    expect(active()).toEqual([true, false, false]);
+    expect(layers[0]!.style.backgroundImage).toBe(`url(${WORLD_SLIDES[0]!.ai.image})`);
+    expect(layers[1]!.style.backgroundImage).toBe("");
+    expect(layers[2]!.style.backgroundImage).toBe("");
+
+    const buttons = section.querySelectorAll<HTMLButtonElement>(".world-slider-selector button");
+    fireEvent.click(buttons[2]!);
+    expect(active()).toEqual([false, false, true]);
+    // The previous world keeps its image so it can fade out under the new one.
+    expect(layers[0]!.style.backgroundImage).toBe(`url(${WORLD_SLIDES[0]!.ai.image})`);
+    expect(layers[2]!.style.backgroundImage).toBe(`url(${WORLD_SLIDES[2]!.ai.image})`);
+
+    fireEvent.click(buttons[1]!);
+    expect(active()).toEqual([false, true, false]);
+    expect(layers[1]!.style.backgroundImage).toBe(`url(${WORLD_SLIDES[1]!.ai.image})`);
+
+    // Moving the divider never touches the backdrop.
+    const before = backdrop.innerHTML;
+    fireEvent.keyDown(screen.getByRole("slider"), { key: "End" });
+    expect(backdrop.innerHTML).toBe(before);
+  });
+
+  it("styles the backdrop as a static blur that only fades its opacity", () => {
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\s+/g, " ");
+    const body = (selector: string) =>
+      css.match(
+        new RegExp(`(?:^|[}\\s])${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
+      )?.[1] ?? "";
+    const section = body(".world-slider-section");
+    expect(section).toContain("overflow: hidden");
+    expect(section).toContain("isolation: isolate");
+    const backdrop = body(".world-slider-backdrop");
+    expect(backdrop).toContain("z-index: -1");
+    expect(backdrop).toContain("pointer-events: none");
+    expect(backdrop).toContain(
+      "mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%)",
+    );
+    expect(backdrop).toContain("-webkit-mask-image:");
+    const wash = body(".world-slider-backdrop::after");
+    expect(wash).toContain("color-mix(in oklch, var(--navy) 62%, transparent)");
+    expect(wash).toContain("color-mix(in oklch, var(--navy) 28%, transparent) 62%");
+    expect(wash).toContain("color-mix(in oklch, var(--navy) 40%, transparent)");
+    const layer = body(".world-slider-backdrop-layer");
+    expect(layer).toContain("inset: -8%");
+    expect(layer).toContain("filter: blur(34px) saturate(1.05) brightness(0.5)");
+    expect(layer).toContain("opacity: 0");
+    expect(layer).toContain("transition: opacity 1s ease");
+    expect(body(".world-slider-backdrop-layer.is-active")).toContain("opacity: 0.95");
+    expect(css).toMatch(
+      /@media \(prefers-reduced-motion: reduce\) \{ [^}]*\.world-slider-backdrop-layer[^{]*\{ transition: none;/,
+    );
   });
 });
