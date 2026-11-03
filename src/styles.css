@@ -2888,11 +2888,48 @@ a.next-album-card:focus-visible .next-album-card-arrow {
   }
 }
 
-/* AI Worlds (top) · One frame, two worlds. The compared images move only with transforms; world
+/* AI Worlds (top) · One place, two times. The compared images move only with transforms; world
    changes cross-fade with opacity. All colours and type come from the existing navy/cream/gold system. */
 .world-slider-section {
+  position: relative;
+  isolation: isolate;
   padding-block: clamp(4.5rem, 9vw, 8.125rem);
   overflow: hidden;
+}
+/* Blurred backdrop: the chosen world's AI image behind the whole section. Its blur is static; only
+   opacity changes, and only when the world changes (never while the divider moves). The mask fades
+   it out at the top and bottom into the neighbouring navy sections; the navy wash keeps the text
+   on the left readable. */
+.world-slider-backdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+}
+.world-slider-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--navy) 62%, transparent),
+    color-mix(in oklch, var(--navy) 28%, transparent) 62%,
+    color-mix(in oklch, var(--navy) 40%, transparent)
+  );
+}
+.world-slider-backdrop-layer {
+  position: absolute;
+  inset: -8%;
+  background-position: center;
+  background-size: cover;
+  filter: blur(34px) saturate(1.05) brightness(0.5);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.world-slider-backdrop-layer.is-active {
+  opacity: 0.95;
 }
 .world-slider-header {
   display: flex;
@@ -3123,6 +3160,7 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 
 @media (prefers-reduced-motion: reduce) {
   .world-slider-layer,
+  .world-slider-backdrop-layer,
   .world-slider-chip,
   .world-slider-hint {
     transition: none;

@@ -37,8 +37,8 @@ export const WORLD_SLIDES: readonly WorldSlide[] = [
     tagL: { bg: "София", en: "Sofia" },
     tagR: { bg: "2200", en: "2200" },
     cap: {
-      bg: "Същото място, същото лице. Отляво е истинската снимка от Ларго, отдясно е AI визия за София през 2200: същите каменни сгради, нова настилка, роботи и летящи коли.",
-      en: "Same place, same face. On the left is the real photo from Largo; on the right is an AI vision of Sofia in 2200: the same stone buildings, new paving, robots and flying cars.",
+      bg: "Площад „Ларго“, София. Днес и през 2200 г.",
+      en: "Largo Square, Sofia. Today and in the year 2200.",
     },
   },
   {
@@ -60,8 +60,8 @@ export const WORLD_SLIDES: readonly WorldSlide[] = [
     tagL: { bg: "Истанбул", en: "Istanbul" },
     tagR: { bg: "Константинопол 1450", en: "Constantinople 1450" },
     cap: {
-      bg: "Същото място, същото лице. Отляво е Босфорът днес, отдясно е AI реконструкция на Константинопол около 1450 г.: византийска църква, градските стени, Света София и кораби от епохата.",
-      en: "Same place, same face. On the left is the Bosphorus today; on the right is an AI reconstruction of Constantinople around 1450: a Byzantine church, the city walls, Hagia Sophia and ships of the era.",
+      bg: "Ортакьой на Босфора. Днес и Константинопол около 1450 г.",
+      en: "Ortaköy on the Bosphorus. Today and Constantinople around 1450.",
     },
   },
   {
@@ -86,8 +86,8 @@ export const WORLD_SLIDES: readonly WorldSlide[] = [
     tagL: { bg: "Париж", en: "Paris" },
     tagR: { bg: "1900", en: "1900" },
     cap: {
-      bg: "Същото място, същото лице. Отляво е Париж днес, отдясно е AI реконструкция на Париж от времето на Световното изложение през 1900 г.",
-      en: "Same place, same face. On the left is Paris today; on the right is an AI reconstruction of Paris at the time of the 1900 World's Fair.",
+      bg: "Трокадеро, Париж. Днес и по времето на Световното изложение през 1900 г.",
+      en: "Trocadéro, Paris. Today and at the 1900 World's Fair.",
     },
   },
 ] as const;
