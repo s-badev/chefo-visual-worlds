@@ -6,6 +6,7 @@ import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/conten
 import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
 import { HomeWorlds } from "@/components/home-worlds";
+import { WorldSlider } from "@/components/world-slider";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { riseGridStyle, useGridRise } from "@/hooks/use-grid-rise";
@@ -106,6 +107,8 @@ export function HomeView() {
   return (
     <>
       <HomeHero />
+
+      <WorldSlider />
 
       <Surface tone="light" id="featured-albums" className="container-page section-y">
         <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
