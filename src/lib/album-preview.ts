@@ -6,6 +6,12 @@
 export const ALBUM_PREVIEW = {
   /** Two columns and the preview only here; elsewhere the list stays as it always was. */
   query: "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
+  /** Left map zone only on wide viewports with a fine pointer. */
+  mapQuery: "(min-width: 1680px) and (hover: hover) and (pointer: fine)",
+  /** Mobile sticky route strip + two-tap model on narrow viewports. */
+  mobileQuery: "(max-width: 767px)",
+  /** Dwell time before the map airplane launches on desktop hover/focus. */
+  mapDwellMs: 350,
   /** Sticky offset: the header row's height (h-16) plus a gap, in rem. */
   headerRem: 4,
   stickyGapRem: 1.5,
