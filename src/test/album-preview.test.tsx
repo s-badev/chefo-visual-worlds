@@ -85,10 +85,7 @@ describe("album preview stack", () => {
     expect(wipeDirection(5, 1)).toBe("up");
     expect(wipeDirection(2, 2)).toBeNull();
     expect(css).toContain(
-      "@keyframes album-preview-wipe-down { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }",
-    );
-    expect(css).toContain(
-      "@keyframes album-preview-wipe-up { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }",
+      "@keyframes album-preview-iris { from { clip-path: circle(0% at var(--iris-x, 0%) var(--iris-y, 50%)); } to { clip-path: circle(150% at var(--iris-x, 0%) var(--iris-y, 50%)); } }",
     );
     expect(css).toContain(
       "@keyframes album-preview-settle { from { transform: scale(var(--preview-zoom-from)); } to { transform: scale(1); } }",
@@ -236,7 +233,7 @@ describe("album preview on the Photography page", () => {
     expect(layers(container)).toHaveLength(1);
     expect(layers(container)[0]).not.toHaveAttribute("data-dir");
     expect(css).toContain(
-      '@media (prefers-reduced-motion: no-preference) { .photography-editorial-preview-layer[data-dir="down"] {',
+      '@media (prefers-reduced-motion: no-preference) { .photography-editorial-preview-layer[data-dir="down"], .photography-editorial-preview-layer[data-dir="up"] { animation: album-preview-iris var(--preview-iris-ms) var(--preview-iris-ease) both; }',
     );
   });
 });

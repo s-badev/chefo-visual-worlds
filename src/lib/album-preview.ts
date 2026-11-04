@@ -9,8 +9,10 @@ export const ALBUM_PREVIEW = {
   /** Sticky offset: the header row's height (h-16) plus a gap, in rem. */
   headerRem: 4,
   stickyGapRem: 1.5,
-  /** Wipe of the incoming layer and the slow settle of its image. */
+  /** Wipe/iris of the incoming layer and the slow settle of its image. */
   wipeMs: 750,
+  irisMs: 800,
+  irisEase: "cubic-bezier(.5,0,.2,1)",
   ease: "cubic-bezier(.2,.7,.2,1)",
   zoomFrom: 1.07,
   zoomMs: 1400,
@@ -27,11 +29,34 @@ export const ALBUM_PREVIEW = {
 
 export type WipeDirection = "down" | "up" | null;
 
+export type IrisOrigin = { x: string; y: string };
+
 /** Moving down the list wipes up from the bottom; moving up wipes down from the top. */
 export const wipeDirection = (fromIndex: number, toIndex: number): WipeDirection =>
   toIndex > fromIndex ? "down" : toIndex < fromIndex ? "up" : null;
 
-export type PreviewLayer = { key: number; slug: string; dir: WipeDirection };
+export type PreviewLayer = {
+  key: number;
+  slug: string;
+  dir: WipeDirection;
+  origin?: IrisOrigin;
+};
+
+/**
+ * Computes the iris origin (`X = 0%`, `Y` = vertical center of the hovered/focused row
+ * relative to the preview frame). Falls back to `0% 50%` when layout metrics are zero.
+ */
+export function irisOriginFromRects(
+  rowRect?: { top: number; height: number } | null,
+  frameRect?: { top: number; height: number } | null,
+): IrisOrigin {
+  if (!rowRect || !frameRect || frameRect.height <= 0) {
+    return { x: "0%", y: "50%" };
+  }
+  const rawPct = ((rowRect.top + rowRect.height / 2 - frameRect.top) / frameRect.height) * 100;
+  const clamped = Math.max(0, Math.min(100, Number.isFinite(rawPct) ? rawPct : 50));
+  return { x: "0%", y: `${Math.round(clamped * 10) / 10}%` };
+}
 
 /**
  * The stack after a new album becomes current. The last request always ends on top; an album
@@ -44,9 +69,11 @@ export function pushLayer(
   dir: WipeDirection,
   key: number,
   max: number = ALBUM_PREVIEW.maxLayers,
+  origin?: IrisOrigin,
 ): PreviewLayer[] {
   if (layers.at(-1)?.slug === slug) return layers;
-  const next = [...layers.filter((layer) => layer.slug !== slug), { key, slug, dir }];
+  const entry: PreviewLayer = origin ? { key, slug, dir, origin } : { key, slug, dir };
+  const next = [...layers.filter((layer) => layer.slug !== slug), entry];
   return next.slice(-Math.max(1, max));
 }
 
