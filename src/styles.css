@@ -1932,6 +1932,15 @@ header .interaction-link.header-underline:focus-visible {
 .photography-editorial-row-stamp {
   display: none;
 }
+.photography-editorial-row-go {
+  display: none;
+}
+.photography-editorial-route {
+  display: none;
+}
+.photography-editorial-mobile-cap {
+  display: none;
+}
 .photography-editorial-count {
   color: var(--muted-foreground);
   font-size: 0.78rem;
@@ -1941,13 +1950,19 @@ header .interaction-link.header-underline:focus-visible {
   color: var(--gold-ink);
   transition: transform var(--dur-base) var(--motion-ease);
 }
-.photography-editorial-row:hover .photography-editorial-destination-name,
 .photography-editorial-row:focus-visible .photography-editorial-destination-name {
   color: var(--gold-ink);
 }
-.photography-editorial-row:hover .photography-editorial-row-arrow,
 .photography-editorial-row:focus-visible .photography-editorial-row-arrow {
   transform: translateX(4px);
+}
+@media (hover: hover) and (pointer: fine) {
+  .photography-editorial-row:hover .photography-editorial-destination-name {
+    color: var(--gold-ink);
+  }
+  .photography-editorial-row:hover .photography-editorial-row-arrow {
+    transform: translateX(4px);
+  }
 }
 .photography-editorial-preview {
   display: none;
@@ -2401,6 +2416,121 @@ header .interaction-link.header-underline:focus-visible {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+.photography-editorial-map {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(100% + 56px);
+  width: min(440px, calc((100cqw - 1000px) / 2 - 96px));
+  flex-direction: column;
+  gap: 18px;
+}
+.photography-editorial-map-card {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  background: #d8dee0;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(22, 33, 58, 0.14);
+}
+.photography-editorial-map-card svg,
+.photography-editorial-map-lens svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.photography-editorial-map-land {
+  fill: #f4ecdd;
+  stroke: #8a6a32;
+  stroke-width: 0.8;
+  vector-effect: non-scaling-stroke;
+}
+.photography-editorial-map-layer {
+  transition: opacity 0.7s ease;
+}
+.photography-editorial-map-pin {
+  fill: #8a6a32;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+.photography-editorial-map-pin--active {
+  fill: #c9a46b;
+  opacity: 1;
+  stroke: #16213a;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.photography-editorial-map-label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  fill: rgba(22, 33, 58, 0.7);
+  paint-order: stroke;
+  stroke: #f8f1e4;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  letter-spacing: 0.02em;
+}
+.photography-editorial-map-label--active {
+  fill: #16213a;
+}
+.photography-editorial-map-ring {
+  fill: none;
+  stroke: #8a6a32;
+}
+.photography-editorial-map-lens-wrap {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.photography-editorial-map-lens {
+  position: relative;
+  width: min(100%, 360px);
+  max-height: calc(100% - 26px);
+  aspect-ratio: 1;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d8dee0;
+  box-shadow:
+    0 0 0 1.5px #c9a46b,
+    0 0 0 7px rgba(201, 164, 107, 0.14);
+  transition: box-shadow 0.4s;
+}
+.photography-editorial-map-lens--hot {
+  box-shadow:
+    0 0 0 2.5px #c9a46b,
+    0 0 0 10px rgba(201, 164, 107, 0.28);
+}
+.photography-editorial-map-lens-caption {
+  font-size: 0.65625rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(22, 33, 58, 0.58);
+}
+.photography-editorial-map-lead {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.photography-editorial-map-lead path {
+  fill: none;
+  stroke: #8a6a32;
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.7;
+}
 /* List + live preview: wide windows with a fine, hovering pointer only (ALBUM_PREVIEW.query).
    Touch screens and narrower windows keep the single list with thumbnails. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
@@ -2474,12 +2604,12 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-row[aria-current="true"] .photography-editorial-row-arrow {
     transform: translateX(var(--arrow-slide));
   }
-  @container albums-section (max-width: 1559px) {
+  @container albums-section (max-width: 1479px) {
     .photography-editorial-list-head {
       display: flex;
     }
   }
-  @container albums-section (min-width: 1560px) {
+  @container albums-section (min-width: 1480px) {
     .photography-editorial-index-inner {
       width: min(1000px, calc(100% - 96px));
       max-width: 1000px;
@@ -2489,7 +2619,12 @@ header .interaction-link.header-underline:focus-visible {
       display: block;
     }
   }
-  @container albums-section (min-width: 1560px) and (max-width: 1679px) {
+  @container albums-section (min-width: 1660px) {
+    .photography-editorial-map {
+      display: flex;
+    }
+  }
+  @container albums-section (min-width: 1480px) and (max-width: 1659px) {
     .photography-editorial-passport .photography-editorial-zone-title {
       flex-wrap: wrap;
       gap: 4px 10px;
@@ -2497,12 +2632,12 @@ header .interaction-link.header-underline:focus-visible {
       letter-spacing: 0.14em;
     }
     .photography-editorial-passport-grid {
-      grid-template-columns: repeat(auto-fill, 44px);
-      gap: 8px;
+      grid-template-columns: repeat(auto-fill, 40px);
+      gap: 6px;
     }
     .photography-editorial-passport-slot {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
   }
 }
@@ -2512,26 +2647,189 @@ header .interaction-link.header-underline:focus-visible {
   outline: 3px solid var(--foreground);
   outline-offset: 4px;
 }
-@media (max-width: 420px) {
-  .photography-editorial-row {
-    grid-template-columns: 3.75rem minmax(0, 1fr) auto;
-    gap: 0.5rem;
+/* Mobile passport model (<=767px): sticky route strip + 16:10 photo + open pill, 2-line
+   description + horizontal 4-frame strip, passport counter row, and two-tap album list. */
+@media (max-width: 767px) {
+  .photography-editorial-index-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .photography-editorial-preview {
+    display: contents;
+  }
+  .photography-editorial-preview-sticky {
+    order: 1;
+    position: sticky;
+    top: var(--preview-mobile-top, 4rem);
+    z-index: 20;
+    background: var(--background);
+    padding-top: 6px;
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+    padding-bottom: 8px;
+    box-shadow: 0 10px 16px -14px rgba(22, 33, 58, 0.35);
+  }
+  .photography-editorial-route {
+    display: block;
+    height: 48px;
+    position: relative;
+  }
+  .photography-editorial-route svg {
+    width: 100%;
+    height: 48px;
+    display: block;
+  }
+  .photography-editorial-preview-frame {
+    aspect-ratio: 16 / 10;
+    max-height: calc(40svh - 100px);
+    width: 100%;
+  }
+  .photography-editorial-mobile-cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 44px;
+    margin-top: 6px;
+  }
+  .photography-editorial-mobile-cap-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+  .photography-editorial-mobile-cap-meta b {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .photography-editorial-mobile-cap-meta span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1;
+    color: rgba(22, 33, 58, 0.6);
+    white-space: nowrap;
+  }
+  .photography-editorial-mobile-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: #16213a;
+    color: #f8f1e4;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+  }
+  .photography-editorial-preview-info {
+    order: 2;
+    padding-top: 10px;
+  }
+  .photography-editorial-preview-info figcaption,
+  .photography-editorial-preview-open {
+    display: none;
+  }
+  .photography-editorial-strip {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 8px;
+    padding: 3px 3px 8px;
+    margin: 12px -3px 0;
+    scrollbar-width: none;
+  }
+  .photography-editorial-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .photography-editorial-strip-item {
+    flex: 0 0 44%;
+    scroll-snap-align: start;
+  }
+  .photography-editorial-list-head {
+    display: flex;
+    order: 3;
+    margin-top: 22px;
+  }
+  .photography-editorial-destination-list {
+    order: 4;
+    margin-top: 0;
+    border-top: 1px solid var(--border);
   }
   .photography-editorial-thumb {
-    width: 3.75rem;
+    display: none;
   }
-  .photography-editorial-count {
-    grid-column: 2;
-    font-size: 0.7rem;
+  .photography-editorial-row {
+    min-height: 52px;
+    grid-template-columns: minmax(0, auto) minmax(42px, 1fr) auto;
+    gap: 0.65rem;
+    padding-block: 0.45rem;
+  }
+  .photography-editorial-row[data-mobile-selected="true"] {
+    grid-template-columns: minmax(0, auto) minmax(42px, 1fr) auto auto;
+  }
+  .photography-editorial-destination-name {
+    font-size: 1.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .photography-editorial-row[data-mobile-selected="true"] .photography-editorial-destination-name {
+    color: var(--gold-ink);
+  }
+  .photography-editorial-row-stamp {
+    display: block;
+    position: relative;
+    justify-self: start;
+    width: 42px;
+    height: 42px;
+    opacity: 0;
+    transform: scale(0.5) rotate(var(--stamp-rot, 0deg));
+    pointer-events: none;
+  }
+  .photography-editorial-row-stamp svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .photography-editorial-row-stamp[data-stamped="true"] {
+    opacity: 0.92;
+    transform: rotate(var(--stamp-rot, 0deg));
+    mix-blend-mode: multiply;
   }
   .photography-editorial-row-arrow {
-    grid-column: 3;
-    grid-row: 1 / 3;
+    display: none;
+  }
+  .photography-editorial-row[data-mobile-selected="true"] .photography-editorial-row-go {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    color: #f8f1e4;
+    background: #8a6a32;
+    padding: 7px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .photography-editorial-row-arrow,
-  .photography-editorial-destination-name {
+  .photography-editorial-destination-name,
+  .photography-editorial-map-layer,
+  .photography-editorial-map-pin,
+  .photography-editorial-map-lens {
     transition: none;
   }
   .photography-editorial-row:hover .photography-editorial-row-arrow,
@@ -2976,25 +3274,33 @@ header .interaction-link.header-underline:focus-visible {
   background: var(--secondary);
 }
 @media (min-width: 481px) {
-  .unified-album-grid { height: var(--mosaic-smallTablet-height); }
+  .unified-album-grid {
+    height: var(--mosaic-smallTablet-height);
+  }
   .unified-album-grid li {
     inset: var(--mosaic-smallTablet);
   }
 }
 @media (min-width: 560px) {
-  .unified-album-grid { height: var(--mosaic-mediumTablet-height); }
+  .unified-album-grid {
+    height: var(--mosaic-mediumTablet-height);
+  }
   .unified-album-grid li {
     inset: var(--mosaic-mediumTablet);
   }
 }
 @media (min-width: 768px) {
-  .unified-album-grid { height: var(--mosaic-tablet-height); }
+  .unified-album-grid {
+    height: var(--mosaic-tablet-height);
+  }
   .unified-album-grid li {
     inset: var(--mosaic-tablet);
   }
 }
 @media (min-width: 1024px) {
-  .unified-album-grid { height: var(--mosaic-desktop-height); }
+  .unified-album-grid {
+    height: var(--mosaic-desktop-height);
+  }
   .unified-album-grid li {
     inset: var(--mosaic-desktop);
   }

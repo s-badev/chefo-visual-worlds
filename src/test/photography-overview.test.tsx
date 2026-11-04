@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
@@ -389,6 +389,144 @@ describe("Photography album overview", () => {
     expect(setItemSpy).not.toHaveBeenCalled();
     media.mockRestore();
     setItemSpy.mockRestore();
+  });
+
+  it("renders the lazy album map only at >=1680px with fine pointer, switches europe/balkans layers, activates the coast lens, and suppresses airplane flight under reduced motion", async () => {
+    activeLocale = "bg";
+
+    // Below 1680px (desktop 1024..1679): map does not render.
+    const narrowMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("min-width: 1024px") && !query.includes("min-width: 1680px"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const narrow = render(<PhotographyView />);
+    expect(narrow.container.querySelector(".photography-editorial-map")).toBeNull();
+    narrowMedia.mockRestore();
+    cleanup();
+
+    // At >=1680px + fine pointer + reduced-motion: map renders lazily.
+    const wideMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches:
+            query.includes("pointer: fine") || query.includes("prefers-reduced-motion: reduce"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const { container } = render(<PhotographyView />);
+    await waitFor(() => {
+      expect(container.querySelector(".photography-editorial-map")).not.toBeNull();
+    });
+
+    vi.useFakeTimers();
+    const mapZone = () => container.querySelector<HTMLElement>(".photography-editorial-map")!;
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const plane = () => container.querySelector<SVGGElement>(".photography-editorial-map-plane")!;
+    const lens = () => container.querySelector<HTMLElement>(".photography-editorial-map-lens")!;
+
+    // Default initial album is Sofia (albums[0]) -> "balkans" layer.
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(plane().style.display).toBe("none");
+
+    // Hover Paris -> after 350ms dwell, map switches to "europe", no airplane under reduced-motion.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("Париж")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "europe");
+    expect(lens()).not.toHaveAttribute("data-hot");
+    expect(plane().style.display).toBe("none");
+
+    // Hover Sunny Beach -> after 350ms dwell, map switches to "balkans" and coast lens is hot.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("Слънчев бряг")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(mapZone()).toHaveAttribute("data-coast", "true");
+    expect(lens()).toHaveAttribute("data-hot", "true");
+    expect(
+      lens().querySelector('[data-pin-slug="sunny-beach"].photography-editorial-map-pin--active'),
+    ).not.toBeNull();
+    expect(plane().style.display).toBe("none");
+
+    // Hover Sofia -> after 350ms dwell, stays on "balkans" and clears coast lens hot state.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("София")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(lens()).not.toHaveAttribute("data-hot");
+
+    vi.useRealTimers();
+    wideMedia.mockRestore();
+  });
+
+  it("implements the mobile two-tap selection model with route strip, open link, and polite live announcement", () => {
+    activeLocale = "bg";
+    const mobileMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches:
+            query.includes("max-width: 767px") || query.includes("prefers-reduced-motion: reduce"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+
+    const { container } = render(<PhotographyView />);
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const parisLink = within(index as HTMLElement)
+      .getByText("Париж")
+      .closest("a")!;
+    const onBubbleClick = vi.fn((event: MouseEvent) => event.preventDefault());
+    parisLink.addEventListener("click", onBubbleClick);
+    const mobileOpen = () =>
+      container.querySelector<HTMLAnchorElement>(".photography-editorial-mobile-open")!;
+    const liveRegion = () => container.querySelector<HTMLElement>("[data-mobile-live]")!;
+    const counters = () =>
+      Array.from(container.querySelectorAll(".photography-editorial-passport-count")).map(
+        (el) => el.textContent,
+      );
+
+    expect(container.querySelector(".photography-editorial-route")).not.toBeNull();
+    expect(mobileOpen()).toHaveAttribute("href", "/photography/albums/sofia");
+    expect(counters()).toEqual(["0 / 13", "0 / 13"]);
+
+    // First tap on Paris: prevents navigation in capture phase, stamps Paris (1 / 13), updates mobile open link & live text.
+    const firstTapAllowed = fireEvent.click(parisLink);
+    expect(firstTapAllowed).toBe(false);
+    expect(onBubbleClick).not.toHaveBeenCalled();
+    expect(parisLink).toHaveAttribute("data-mobile-selected", "true");
+    expect(counters()).toEqual(["1 / 13", "1 / 13"]);
+    expect(mobileOpen()).toHaveAttribute("href", "/photography/albums/paris");
+    expect(liveRegion()).toHaveTextContent("Избран: Париж. Натисни отново, за да отвориш.");
+
+    // Second tap on Paris: reaches the link bubble listener and navigates.
+    fireEvent.click(parisLink);
+    expect(onBubbleClick).toHaveBeenCalledTimes(1);
+
+    mobileMedia.mockRestore();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {

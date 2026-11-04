@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "pretest": "node scripts/verify-editorial-strings.mjs --source-only",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "generate:album-map": "node scripts/generate-album-map.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -81,6 +82,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "d3-geo": "^3.1.2",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
@@ -90,9 +92,11 @@
     "jsdom": "^20.0.3",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "topojson-client": "^3.1.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "world-atlas": "^2.0.2"
   }
 }
