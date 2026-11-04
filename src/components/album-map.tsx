@@ -1,6 +1,29 @@
-import { useCallback, useEffect, useRef } from "react";
+/**
+ * Map assets and licenses for the Photography "Albums" section:
+ * - `src/content/album-map.generated.ts`: precomputed Web Mercator geometry (600x400 viewBox).
+ * - `public/maps/relief-europe.webp` & `public/maps/relief-balkans.webp`: 1200x800 shaded relief.
+ * - Sources & licenses:
+ *   • Europe layer: Natural Earth 1:50m (world-atlas) — public domain.
+ *   • Balkans layer & Black Sea lens: OpenStreetMap land polygons (@geo-maps/earth-lands-100m,
+ *     @geo-maps/countries-land-100m) — ODbL (requires "© OpenStreetMap contributors" attribution).
+ *   • Relief: shadedrelief.jpg from basemap-data (Tom Patterson, shadedrelief.com) — public domain,
+ *     high-pass luminance filtered in Web Mercator projection (sea = white), rendered via SVG
+ *     `<image>` clipped to land with `mix-blend-mode: multiply` and `opacity: 0.8`.
+ */
+import { useCallback, useEffect, useId, useRef } from "react";
 import { albumText, type Album } from "@/content/albums";
-import { EU_LAND, MAP_VIEWBOX, PLACE_POINTS, REG_LAND } from "@/content/album-map.generated";
+import {
+  EU_BORDERS,
+  EU_BULGARIA,
+  EU_LAND,
+  LENS_LAND,
+  LENS_VIEWBOX,
+  MAP_VIEWBOX,
+  PLACE_POINTS,
+  REG_BORDERS,
+  REG_BULGARIA,
+  REG_LAND,
+} from "@/content/album-map.generated";
 import { ALBUM_PLACES } from "@/content/album-places";
 import { useT } from "@/i18n";
 
@@ -57,6 +80,12 @@ function spawnRing(
 
 export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: readonly Album[] }) {
   const { t, locale } = useT();
+  const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const euLandId = `map-eup-${rawId}`;
+  const regLandId = `map-regp-${rawId}`;
+  const euClipId = `map-ce-${rawId}`;
+  const regClipId = `map-cr-${rawId}`;
+
   const zoneRef = useRef<HTMLDivElement | null>(null);
   const lensRef = useRef<HTMLDivElement | null>(null);
   const euCoastPinRef = useRef<SVGCircleElement | null>(null);
@@ -228,7 +257,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
       <div className="photography-editorial-zone-title">
         <span>{t.photos.mapWhere}</span>
         <span className="photography-editorial-map-region">
-          {activeLayer === "europe" ? t.photos.mapRegionEurope : t.photos.mapRegionBalkans}
+          {activeLayer === "europe" ? t.photos.regionEurope : t.photos.regionBalkans}
         </span>
       </div>
       <div className="photography-editorial-map-card">
@@ -236,12 +265,37 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
           viewBox={`0 0 ${MAP_VIEWBOX.width} ${MAP_VIEWBOX.height}`}
           preserveAspectRatio="xMidYMid slice"
         >
+          <defs>
+            <clipPath id={euClipId}>
+              <use href={`#${euLandId}`} />
+            </clipPath>
+            <clipPath id={regClipId}>
+              <use href={`#${regLandId}`} />
+            </clipPath>
+          </defs>
+
           <g
             className="photography-editorial-map-layer"
             data-map-layer="europe"
             style={{ opacity: activeLayer === "europe" ? 1 : 0 }}
           >
-            <path className="photography-editorial-map-land" d={EU_LAND} />
+            <path id={euLandId} className="photography-editorial-map-land" d={EU_LAND} />
+            <path
+              className="photography-editorial-map-bg"
+              d={EU_BULGARIA}
+              clipPath={`url(#${euClipId})`}
+            />
+            <image
+              className="photography-editorial-map-relief"
+              href="/maps/relief-europe.webp"
+              x="0"
+              y="0"
+              width="600"
+              height="400"
+              preserveAspectRatio="none"
+              clipPath={`url(#${euClipId})`}
+            />
+            <path className="photography-editorial-map-borders" d={EU_BORDERS} />
             <g ref={euRingsRef} className="photography-editorial-map-rings" />
             <g className="photography-editorial-map-pins">
               {albums.map((album) => {
@@ -304,7 +358,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
                     : "photography-editorial-map-label"
                 }
               >
-                {t.photos.mapBulgaria}
+                {t.photos.countryBulgaria}
               </text>
             </g>
           </g>
@@ -314,7 +368,23 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
             data-map-layer="balkans"
             style={{ opacity: activeLayer === "balkans" ? 1 : 0 }}
           >
-            <path className="photography-editorial-map-land" d={REG_LAND} />
+            <path id={regLandId} className="photography-editorial-map-land" d={REG_LAND} />
+            <path
+              className="photography-editorial-map-bg"
+              d={REG_BULGARIA}
+              clipPath={`url(#${regClipId})`}
+            />
+            <image
+              className="photography-editorial-map-relief"
+              href="/maps/relief-balkans.webp"
+              x="0"
+              y="0"
+              width="600"
+              height="400"
+              preserveAspectRatio="none"
+              clipPath={`url(#${regClipId})`}
+            />
+            <path className="photography-editorial-map-borders" d={REG_BORDERS} />
             <g ref={regRingsRef} className="photography-editorial-map-rings" />
             <g className="photography-editorial-map-pins">
               {albums.map((album) => {
@@ -376,7 +446,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
                     : "photography-editorial-map-label"
                 }
               >
-                {t.photos.mapCoast}
+                {t.photos.blackSeaLabel}
               </text>
             </g>
           </g>
@@ -404,8 +474,11 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
           }
           data-hot={activeIsCoast ? "true" : undefined}
         >
-          <svg viewBox="409 127 48 48">
-            <path className="photography-editorial-map-land" d={REG_LAND} />
+          <svg viewBox={LENS_VIEWBOX}>
+            <path
+              className="photography-editorial-map-land photography-editorial-map-lens-land"
+              d={LENS_LAND}
+            />
             <g ref={lensRingsRef} className="photography-editorial-map-lens-rings" />
             <g className="photography-editorial-map-lens-pins">
               {albums.map((album) => {
@@ -448,8 +521,10 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
             </g>
           </svg>
         </div>
-        <div className="photography-editorial-map-lens-caption">{t.photos.mapCoastZoom}</div>
+        <div className="photography-editorial-map-lens-caption">{t.photos.blackSeaZoom}</div>
       </div>
+
+      <div className="photography-editorial-map-attr">{t.photos.mapCredits}</div>
 
       <svg ref={leadSvgRef} className="photography-editorial-map-lead">
         <path ref={leadPathRef} d="" style={{ opacity: activeIsCoast ? 0.85 : 0.45 }} />

@@ -1,5 +1,4 @@
 import { useId } from "react";
-import { useT } from "@/i18n";
 
 const STAMP_INKS = ["#A16A56", "#3F5A86", "#8A6A32"] as const;
 
@@ -18,7 +17,7 @@ export interface AlbumStampProps {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-/** Decorative passport stamp SVG ported from the approved album reference mockup. */
+/** Decorative English-only passport stamp SVG ported from the approved album reference mockup. */
 export function AlbumStamp({
   index,
   title,
@@ -29,7 +28,6 @@ export function AlbumStamp({
   ink,
   className,
 }: AlbumStampProps) {
-  const { t } = useT();
   const rawId = useId();
   const pathId = `stamp-path-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
@@ -37,7 +35,6 @@ export function AlbumStamp({
   const resolvedInk = ink ?? STAMP_INKS[Math.abs(index) % STAMP_INKS.length]!;
   const numberLabel = pad2(index + 1);
   const upperTitle = title.toUpperCase();
-  const upperFrames = t.photos.framesUpper.toUpperCase();
 
   if (resolvedShape === "rect") {
     const titleFontSize = upperTitle.length > 10 ? 9.6 : upperTitle.length > 7 ? 12.5 : 16;
@@ -86,19 +83,21 @@ export function AlbumStamp({
           x="50"
           y="64"
           textAnchor="middle"
-          letterSpacing="0.6"
+          letterSpacing="0.4"
           style={{
-            font: "600 6.4px var(--font-sans)",
+            font: "600 6.8px var(--font-sans)",
             fill: resolvedInk,
           }}
         >
-          {`${count} ${upperFrames} · № ${numberLabel} / ${total}`}
+          {`${count} PHOTOS · NO. ${numberLabel}`}
         </text>
       </svg>
     );
   }
 
-  const ringText = `${upperTitle} · ${count} ${upperFrames} · `;
+  const ringText = `${upperTitle} · ${count} PHOTOS · `;
+  const isLongRing = ringText.length > 22;
+  const ringFontSize = isLongRing ? 8.2 : 9.2;
 
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true" className={className}>
@@ -108,13 +107,18 @@ export function AlbumStamp({
       <circle cx="50" cy="50" r="46" fill="none" stroke={resolvedInk} strokeWidth="2.4" />
       <circle cx="50" cy="50" r="27" fill="none" stroke={resolvedInk} strokeWidth="1.1" />
       <text
-        letterSpacing="1"
+        letterSpacing={isLongRing ? "0.7" : "1"}
         style={{
-          font: "600 9.2px var(--font-sans)",
+          font: `600 ${ringFontSize}px var(--font-sans)`,
           fill: resolvedInk,
         }}
       >
-        <textPath href={`#${pathId}`} xlinkHref={`#${pathId}`}>
+        <textPath
+          href={`#${pathId}`}
+          xlinkHref={`#${pathId}`}
+          textLength={isLongRing ? 210 : undefined}
+          lengthAdjust={isLongRing ? "spacingAndGlyphs" : undefined}
+        >
           {ringText}
         </textPath>
       </text>

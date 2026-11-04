@@ -391,6 +391,63 @@ describe("Photography album overview", () => {
     setItemSpy.mockRestore();
   });
 
+  it("renders English-only passport stamps on both bg and en, and keeps the English Albums section completely free of Cyrillic", () => {
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+
+    // 1. Bulgarian locale: row displays "София", stamp displays "SOFIA" and "PHOTOS", badge displays "№ 01 / 13 · СОФИЯ".
+    activeLocale = "bg";
+    const bgView = render(<PhotographyView />);
+    const bgIndex = bgView.container.querySelector(".photography-editorial-destination-list")!;
+    const bgSofiaLi = within(bgIndex as HTMLElement)
+      .getByText("София")
+      .closest("li")!;
+    expect(
+      bgView.container.querySelector(".photography-editorial-preview-badge"),
+    ).toHaveTextContent("№ 01 / 13 · СОФИЯ");
+    fireEvent.mouseEnter(bgSofiaLi);
+    const bgStampSvg = bgSofiaLi.querySelector(".photography-editorial-row-stamp svg")!;
+    expect(bgStampSvg.textContent).toContain("SOFIA");
+    expect(bgStampSvg.textContent).toContain("PHOTOS");
+    expect(bgStampSvg.textContent).not.toMatch(/[\u0400-\u04FF]/);
+    const bgStampText = bgStampSvg.textContent;
+    const bgStampNormalizedHtml = bgStampSvg.innerHTML.replace(/stamp-path-[^"]+/g, "stamp-path");
+    cleanup();
+
+    // 2. English locale: stamp is identical, badge is "No. 01 / 13 · SOFIA", and zero Cyrillic appears in the Albums section.
+    activeLocale = "en";
+    const enView = render(<PhotographyView />);
+    const enAlbumsSection = enView.container.querySelector(".photography-editorial-index")!;
+    expect(
+      enView.container.querySelector(".photography-editorial-preview-badge"),
+    ).toHaveTextContent("No. 01 / 13 · SOFIA");
+    expect(
+      enView.container.querySelector(".photography-editorial-passport-empty"),
+    ).toHaveTextContent(messages.en.photos.passportEmpty);
+    expect(enAlbumsSection.textContent).not.toMatch(/[\u0400-\u04FF]/);
+
+    const enIndex = enView.container.querySelector(".photography-editorial-destination-list")!;
+    const enSofiaLi = within(enIndex as HTMLElement)
+      .getByText("Sofia")
+      .closest("li")!;
+    fireEvent.mouseEnter(enSofiaLi);
+    const enStampSvg = enSofiaLi.querySelector(".photography-editorial-row-stamp svg")!;
+    expect(enStampSvg.textContent).toBe(bgStampText);
+    expect(enStampSvg.innerHTML.replace(/stamp-path-[^"]+/g, "stamp-path")).toBe(
+      bgStampNormalizedHtml,
+    );
+    expect(enAlbumsSection.textContent).not.toMatch(/[\u0400-\u04FF]/);
+
+    media.mockRestore();
+  });
+
   it("renders the lazy album map only at >=1680px with fine pointer, switches europe/balkans layers, activates the coast lens, and suppresses airplane flight under reduced motion", async () => {
     activeLocale = "bg";
 
@@ -434,6 +491,13 @@ describe("Photography album overview", () => {
     // Default initial album is Sofia (albums[0]) -> "balkans" layer.
     expect(mapZone()).toHaveAttribute("data-layer", "balkans");
     expect(plane().style.display).toBe("none");
+    expect(mapZone().querySelectorAll(".photography-editorial-map-bg")).toHaveLength(2);
+    expect(mapZone().querySelectorAll(".photography-editorial-map-borders")).toHaveLength(2);
+    expect(mapZone().querySelectorAll("image.photography-editorial-map-relief")).toHaveLength(2);
+    expect(mapZone().querySelector(".photography-editorial-map-lens-land")).not.toBeNull();
+    expect(mapZone().querySelector(".photography-editorial-map-attr")).toHaveTextContent(
+      messages.bg.photos.mapCredits,
+    );
 
     // Hover Paris -> after 350ms dwell, map switches to "europe", no airplane under reduced-motion.
     fireEvent.mouseEnter(

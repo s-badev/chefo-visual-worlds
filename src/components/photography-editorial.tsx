@@ -501,7 +501,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const mobileSelectedAlbum = mobileSelectedSlug ? getAlbum(mobileSelectedSlug) : undefined;
   const mobileLiveText =
     mobile && mobileSelectedAlbum
-      ? t.photos.mobileSelected(albumText(mobileSelectedAlbum.title, locale))
+      ? t.photos.selectedLive(albumText(mobileSelectedAlbum.title, locale))
       : "";
   const headingWords = t.home.photoTitle.split(" ");
   const headingLastWord = headingWords.pop();
@@ -638,7 +638,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                         {isStamped && (
                           <AlbumStamp
                             index={index}
-                            title={title}
+                            title={albumText(album.title, "en")}
                             count={album.photos.length}
                             total={totalAlbums}
                             size={40}
@@ -680,7 +680,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                   className="photography-editorial-preview-frame photo-frame-print photo-frame-print--thin"
                 >
                   <span className="photography-editorial-preview-badge">
-                    {`№ ${pad2(currentIndex + 1)} / ${totalAlbums} · ${albumText(currentAlbum.title, locale).toUpperCase()}`}
+                    {`${t.photos.albumNo(currentIndex + 1, totalAlbums)} · ${albumText(currentAlbum.title, locale).toUpperCase()}`}
                   </span>
                   <div className="photography-editorial-preview-viewfinder" aria-hidden="true">
                     <i />
@@ -696,7 +696,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     {currentStamped && (
                       <AlbumStamp
                         index={currentIndex}
-                        title={albumText(currentAlbum.title, locale)}
+                        title={albumText(currentAlbum.title, "en")}
                         count={currentAlbum.photos.length}
                         total={totalAlbums}
                         size={62}
@@ -815,7 +815,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                         >
                           <AlbumStamp
                             index={index}
-                            title={albumText(album.title, locale)}
+                            title={albumText(album.title, "en")}
                             count={album.photos.length}
                             total={totalAlbums}
                             size={96}
@@ -859,7 +859,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                           >
                             <AlbumStamp
                               index={index}
-                              title={title}
+                              title={albumText(album.title, "en")}
                               count={album.photos.length}
                               total={totalAlbums}
                               size={52}
