@@ -57,13 +57,15 @@ vi.mock("@/i18n/link", () => ({
     slug,
     children,
     className,
+    ...rest
   }: {
     to: string;
     slug?: string;
     children: ReactNode;
     className?: string;
+    [key: string]: unknown;
   }) => (
-    <a href={slug ? to.replace("$slug", slug) : to} className={className}>
+    <a href={slug ? to.replace("$slug", slug) : to} className={className} {...rest}>
       {children}
     </a>
   ),
@@ -306,6 +308,87 @@ describe("Photography album overview", () => {
     ).toHaveLength(13);
     expect(container.querySelector(".photography-editorial-reportage")).toBeNull();
     expect(container.querySelector(".photography-editorial-panorama")).toBeNull();
+  });
+
+  it("starts with an empty passport, stamps on hover/focus in any order without storage, and renders the 4-frame strip without numbers", () => {
+    activeLocale = "en";
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const { container } = render(<PhotographyView />);
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const rowStamps = () => container.querySelectorAll(".photography-editorial-row-stamp svg");
+    const passportStamps = () =>
+      container.querySelectorAll(".photography-editorial-passport-stamp");
+    const counters = () =>
+      Array.from(container.querySelectorAll(".photography-editorial-passport-count")).map(
+        (el) => el.textContent,
+      );
+
+    // Initial render: 0 stamps in list, 0 in passport, counter "0 / 13".
+    expect(rowStamps()).toHaveLength(0);
+    expect(passportStamps()).toHaveLength(0);
+    expect(counters()).toEqual(["0 / 13", "0 / 13"]);
+
+    const sofiaLi = within(index as HTMLElement)
+      .getByText("Sofia")
+      .closest("li")!;
+    const istanbulLi = within(index as HTMLElement)
+      .getByText("Istanbul")
+      .closest("li")!;
+    const rilaLi = within(index as HTMLElement)
+      .getByText("Rila")
+      .closest("li")!;
+    const parisLi = within(index as HTMLElement)
+      .getByText("Paris")
+      .closest("li")!;
+
+    // Click and touch do not add stamps.
+    fireEvent.click(parisLi);
+    fireEvent.touchStart(parisLi);
+    fireEvent.touchEnd(parisLi);
+    expect(rowStamps()).toHaveLength(0);
+    expect(passportStamps()).toHaveLength(0);
+
+    // Hovering Sofia -> 1 stamp in row and passport, counter "1 / 13".
+    fireEvent.mouseEnter(sofiaLi);
+    expect(rowStamps()).toHaveLength(1);
+    expect(passportStamps()).toHaveLength(1);
+    expect(counters()).toEqual(["1 / 13", "1 / 13"]);
+
+    // Repeated hover on Sofia does not add a second stamp.
+    fireEvent.mouseEnter(sofiaLi);
+    expect(rowStamps()).toHaveLength(1);
+    expect(passportStamps()).toHaveLength(1);
+
+    // Hovering Istanbul and Rila in arbitrary order -> 3 stamps total.
+    fireEvent.mouseEnter(istanbulLi);
+    fireEvent.mouseEnter(rilaLi);
+    expect(rowStamps()).toHaveLength(3);
+    expect(passportStamps()).toHaveLength(3);
+    expect(counters()).toEqual(["3 / 13", "3 / 13"]);
+
+    // Mini strip has 4 frames and no numbers (01-04 or <em>).
+    const strip = container.querySelector(".photography-editorial-strip")!;
+    expect(strip).not.toBeNull();
+    expect(strip.querySelectorAll("img")).toHaveLength(4);
+    expect(strip.querySelector("em")).toBeNull();
+    expect(strip.textContent).toBe("");
+
+    // 13 thumbnails remain in DOM.
+    expect(container.querySelectorAll(".photography-editorial-thumb")).toHaveLength(13);
+
+    // Zero localStorage / sessionStorage writes.
+    expect(setItemSpy).not.toHaveBeenCalled();
+    media.mockRestore();
+    setItemSpy.mockRestore();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
