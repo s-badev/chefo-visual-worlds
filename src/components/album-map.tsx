@@ -1,6 +1,9 @@
 /**
- * Map assets and licenses for the Photography "Albums" section:
+ * Map zone of the Photography "Albums" section (container >= 1680px, fine pointer; loaded lazily).
+ * Decorative only: everything it shows is also in the list and the preview.
  * - `src/content/album-map.generated.ts`: precomputed Web Mercator geometry (600x400 viewBox).
+ * - `src/content/album-map.ts`: pin positions per album slug; `src/lib/album-map-pins.ts`: pin
+ *   lookups; `src/lib/album-map.ts`: flight and route maths.
  * - `public/maps/relief-europe.webp` & `public/maps/relief-balkans.webp`: 1200x800 shaded relief.
  * - Sources & licenses:
  *   • Europe layer: Natural Earth 1:50m (world-atlas) — public domain.
@@ -19,37 +22,35 @@ import {
   LENS_LAND,
   LENS_VIEWBOX,
   MAP_VIEWBOX,
-  PLACE_POINTS,
   REG_BORDERS,
   REG_BULGARIA,
   REG_LAND,
 } from "@/content/album-map.generated";
+import {
+  BALKANS_LABEL_END,
+  BULGARIA_LABEL,
+  COAST_PIN_SLUG,
+  LENS_LABEL_OFFSETS,
+  MAP_PINS_BALKANS,
+  MAP_PINS_EUROPE,
+} from "@/content/album-map";
 import { ALBUM_PLACES } from "@/content/album-places";
 import { useT } from "@/i18n";
+import {
+  ALBUM_MAP,
+  easeInOutQuad,
+  flightControlPoint,
+  flightDuration,
+  headingDeg,
+  quadPoint,
+} from "@/lib/album-map";
+import { flightStart, isCoastSlug, lensPoint, mapLayerOf, pinPoint } from "@/lib/album-map-pins";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-const LENS_OFFSETS: Record<string, readonly [number, number, "start" | "end"]> = {
-  "sunny-beach": [-1.4, -1.6, "end"],
-  "sveti-vlas": [1.4, -1.4, "start"],
-  nessebar: [1.6, 1.8, "start"],
-  burgas: [1.6, 1.2, "start"],
-};
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const mapLayerOf = (slug: string): "europe" | "balkans" =>
-  ALBUM_PLACES[slug]?.layer === "europe" ? "europe" : "balkans";
-
-const isCoastSlug = (slug: string): boolean => Boolean(ALBUM_PLACES[slug]?.coast);
-
-const pointInLayer = (layer: "europe" | "balkans", slug: string): [number, number] | null => {
-  const targetSlug = isCoastSlug(slug) ? "sunny-beach" : slug;
-  const place = ALBUM_PLACES[targetSlug];
-  const coords = PLACE_POINTS[targetSlug];
-  if (!place || !coords) return null;
-  if (layer === "balkans" && place.layer === "europe") return null;
-  return layer === "europe" ? coords.eu : coords.reg;
-};
-
+/** An expanding ring at a pin; under reduced motion it is removed at once. */
 function spawnRing(
   host: SVGGElement | null,
   x: number,
@@ -71,12 +72,22 @@ function spawnRing(
     window.setTimeout(() => circle.remove(), 10);
     return;
   }
-  circle.style.transition = "r 0.9s ease-out, opacity 0.9s ease-out";
+  circle.style.transition = `r ${ALBUM_MAP.ringMs}ms ease-out, opacity ${ALBUM_MAP.ringMs}ms ease-out`;
   void circle.getBoundingClientRect();
   circle.setAttribute("r", String(r1));
   circle.style.opacity = "0";
-  window.setTimeout(() => circle.remove(), 950);
+  window.setTimeout(() => circle.remove(), ALBUM_MAP.ringMs + 50);
 }
+
+const pinClass = (active: boolean) =>
+  active
+    ? "photography-editorial-map-pin photography-editorial-map-pin--active"
+    : "photography-editorial-map-pin";
+
+const labelClass = (active: boolean) =>
+  active
+    ? "photography-editorial-map-label photography-editorial-map-label--active"
+    : "photography-editorial-map-label";
 
 export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: readonly Album[] }) {
   const { t, locale } = useT();
@@ -103,6 +114,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
   const activeLayer = mapLayerOf(activeSlug);
   const activeIsCoast = isCoastSlug(activeSlug);
 
+  // Dashed lead line from the shared coast pin on the active layer to the top of the lens.
   const layoutLead = useCallback(() => {
     const zone = zoneRef.current;
     const lens = lensRef.current;
@@ -118,31 +130,42 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
     const y1 = pinRect.top + pinRect.height / 2 - zRect.top;
     const x2 = lensRect.left + lensRect.width / 2 - zRect.left;
     const y2 = lensRect.top - zRect.top;
+    const f = (n: number) => n.toFixed(1);
     leadSvg.setAttribute("viewBox", `0 0 ${Math.round(zRect.width)} ${Math.round(zRect.height)}`);
     leadPath.setAttribute(
       "d",
-      `M${x1.toFixed(1)} ${y1.toFixed(1)} C${x1.toFixed(1)} ${(y1 + 40).toFixed(1)} ${x2.toFixed(1)} ${(y2 - 40).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`,
+      `M${f(x1)} ${f(y1)} C${f(x1)} ${f(y1 + 40)} ${f(x2)} ${f(y2 - 40)} ${f(x2)} ${f(y2)}`,
     );
   }, [activeLayer]);
 
+  // Recompute on layer change, on any resize of the zone and once the web fonts have loaded.
   useEffect(() => {
     layoutLead();
+    let alive = true;
+    const zone = zoneRef.current;
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => layoutLead());
+    if (zone && observer) observer.observe(zone);
     const onResize = () => layoutLead();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    void document.fonts?.ready.then(() => {
+      if (alive) layoutLead();
+    });
+    return () => {
+      alive = false;
+      observer?.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
   }, [layoutLead]);
 
+  // Selection: fly the plane from the previous album (none on the first selection), then a ring.
   useEffect(() => {
     const prevSlug = prevSlugRef.current;
     prevSlugRef.current = activeSlug;
     const layer = mapLayerOf(activeSlug);
-    const coast = isCoastSlug(activeSlug);
-    const p1 = pointInLayer(layer, activeSlug);
+    const p1 = pinPoint(layer, activeSlug);
     if (!p1) return;
-
-    const p0 =
-      (prevSlug ? pointInLayer(layer, prevSlug) : null) ??
-      (layer === "balkans" ? ([-30, 60] as [number, number]) : ([640, 200] as [number, number]));
+    const p0 = flightStart(prevSlug, activeSlug);
 
     if (rafRef.current !== null) {
       window.cancelAnimationFrame(rafRef.current);
@@ -151,77 +174,63 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
 
     const plane = planeRef.current;
     const puffs = puffsRef.current;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timers: number[] = [];
+    const reduced = prefersReducedMotion();
+    let lensTimer: number | null = null;
 
     const land = () => {
       if (plane) plane.style.display = "none";
-      spawnRing(
-        layer === "europe" ? euRingsRef.current : regRingsRef.current,
-        p1[0],
-        p1[1],
-        5,
-        26,
-        1.6,
-        reduced,
-      );
-      const coastPt = PLACE_POINTS[activeSlug]?.reg;
-      if (coast && coastPt) {
-        const id = window.setTimeout(() => {
-          spawnRing(lensRingsRef.current, coastPt[0], coastPt[1], 0.8, 4.5, 0.3, reduced);
-        }, 250);
-        timers.push(id);
+      const host = layer === "europe" ? euRingsRef.current : regRingsRef.current;
+      spawnRing(host, p1[0], p1[1], 5, 26, 1.6, reduced);
+      const q = lensPoint(activeSlug);
+      if (q) {
+        lensTimer = window.setTimeout(() => {
+          spawnRing(lensRingsRef.current, q[0], q[1], 0.8, 4.5, 0.3, reduced);
+        }, ALBUM_MAP.lensRingDelayMs);
       }
     };
 
-    const dx = p1[0] - p0[0];
-    const dy = p1[1] - p0[1];
-    const dist = Math.hypot(dx, dy);
+    const dist = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+    const stop = () => {
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      if (lensTimer !== null) window.clearTimeout(lensTimer);
+    };
 
     if (reduced || !prevSlug || dist < 1) {
       land();
-      return () => {
-        for (const id of timers) window.clearTimeout(id);
-      };
+      return stop;
     }
 
-    const mx = (p0[0] + p1[0]) / 2;
-    const my = (p0[1] + p1[1]) / 2 - Math.min(90, dist * 0.35) - 10;
-    const dur = Math.max(900, Math.min(1800, 700 + dist * 3));
+    const c = flightControlPoint(p0, p1);
+    const dur = flightDuration(dist);
     const t0 = performance.now();
-    let lastPuff: [number, number] | null = null;
-
+    let lastPuff: readonly [number, number] | null = null;
     if (plane) plane.style.display = "";
-
-    const bezier = (e: number): [number, number] => {
-      const u = 1 - e;
-      return [
-        u * u * p0[0] + 2 * u * e * mx + e * e * p1[0],
-        u * u * p0[1] + 2 * u * e * my + e * e * p1[1],
-      ];
-    };
 
     const frame = (now: number) => {
       const tNorm = Math.min(1, (now - t0) / dur);
-      const e = tNorm < 0.5 ? 2 * tNorm * tNorm : 1 - Math.pow(-2 * tNorm + 2, 2) / 2;
-      const a = bezier(e);
-      const b = bezier(Math.min(1, e + 0.01));
-      const angle = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI;
-      plane?.setAttribute("transform", `translate(${a[0]},${a[1]}) rotate(${angle})`);
+      const e = easeInOutQuad(tNorm);
+      const a = quadPoint(p0, c, p1, e);
+      const b = quadPoint(p0, c, p1, Math.min(1, e + 0.01));
+      plane?.setAttribute("transform", `translate(${a[0]},${a[1]}) rotate(${headingDeg(a, b)})`);
 
-      if (puffs && (!lastPuff || Math.hypot(a[0] - lastPuff[0], a[1] - lastPuff[1]) > 9)) {
+      if (
+        puffs &&
+        (!lastPuff || Math.hypot(a[0] - lastPuff[0], a[1] - lastPuff[1]) > ALBUM_MAP.puffStep)
+      ) {
         lastPuff = a;
         const puff = document.createElementNS(SVG_NS, "circle");
         puff.setAttribute("cx", String(a[0]));
         puff.setAttribute("cy", String(a[1]));
         puff.setAttribute("r", "2.3");
-        puff.setAttribute("fill", "#B8935A");
-        puff.style.transition = "opacity 1.6s ease-out";
+        puff.setAttribute("class", "photography-editorial-map-puff");
+        puff.style.transition = `opacity ${ALBUM_MAP.puffMs}ms ease-out`;
         puffs.appendChild(puff);
         void puff.getBoundingClientRect();
         puff.style.opacity = "0";
-        const id = window.setTimeout(() => puff.remove(), 1650);
-        timers.push(id);
+        window.setTimeout(() => puff.remove(), ALBUM_MAP.puffMs + 50);
       }
 
       if (tNorm < 1) {
@@ -233,17 +242,11 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
     };
 
     rafRef.current = window.requestAnimationFrame(frame);
-
-    return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      for (const id of timers) window.clearTimeout(id);
-    };
+    return stop;
   }, [activeSlug]);
 
-  const sunnyBeachPts = PLACE_POINTS["sunny-beach"]!;
+  const euCoast = MAP_PINS_EUROPE[COAST_PIN_SLUG]!;
+  const regCoast = MAP_PINS_BALKANS[COAST_PIN_SLUG]!;
 
   return (
     <div
@@ -300,36 +303,27 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
             <g className="photography-editorial-map-pins">
               {albums.map((album) => {
                 const place = ALBUM_PLACES[album.slug];
-                const pts = PLACE_POINTS[album.slug];
-                if (!place || !pts || place.coast) return null;
+                const pt = MAP_PINS_EUROPE[album.slug];
+                if (!place || !pt || place.coast) return null;
                 const isActive = album.slug === activeSlug;
-                const title = albumText(album.title, locale);
                 return (
                   <g key={album.slug}>
                     <circle
-                      cx={pts.eu[0]}
-                      cy={pts.eu[1]}
+                      cx={pt[0]}
+                      cy={pt[1]}
                       r={5}
                       data-pin-slug={album.slug}
-                      className={
-                        isActive
-                          ? "photography-editorial-map-pin photography-editorial-map-pin--active"
-                          : "photography-editorial-map-pin"
-                      }
+                      className={pinClass(isActive)}
                     />
                     {place.layer === "europe" && (
                       <text
-                        x={pts.eu[0] + 10}
-                        y={pts.eu[1] + 17 * 0.35}
+                        x={pt[0] + 10}
+                        y={pt[1] + 17 * 0.35}
                         fontSize={17}
                         textAnchor="start"
-                        className={
-                          isActive
-                            ? "photography-editorial-map-label photography-editorial-map-label--active"
-                            : "photography-editorial-map-label"
-                        }
+                        className={labelClass(isActive)}
                       >
-                        {title}
+                        {albumText(album.title, locale)}
                       </text>
                     )}
                   </g>
@@ -337,26 +331,18 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
               })}
               <circle
                 ref={euCoastPinRef}
-                cx={sunnyBeachPts.eu[0]}
-                cy={sunnyBeachPts.eu[1]}
+                cx={euCoast[0]}
+                cy={euCoast[1]}
                 r={5}
                 data-pin-slug="coast"
-                className={
-                  activeIsCoast
-                    ? "photography-editorial-map-pin photography-editorial-map-pin--active"
-                    : "photography-editorial-map-pin"
-                }
+                className={pinClass(activeIsCoast)}
               />
               <text
-                x={388}
-                y={196}
+                x={BULGARIA_LABEL[0]}
+                y={BULGARIA_LABEL[1]}
                 fontSize={17}
                 textAnchor="end"
-                className={
-                  !activeIsCoast && activeLayer === "balkans"
-                    ? "photography-editorial-map-label photography-editorial-map-label--active"
-                    : "photography-editorial-map-label"
-                }
+                className={labelClass(!activeIsCoast && activeLayer === "balkans")}
               >
                 {t.photos.countryBulgaria}
               </text>
@@ -389,62 +375,45 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
             <g className="photography-editorial-map-pins">
               {albums.map((album) => {
                 const place = ALBUM_PLACES[album.slug];
-                const pts = PLACE_POINTS[album.slug];
-                if (!place || !pts || place.layer !== "balkans" || place.coast) return null;
+                const pt = MAP_PINS_BALKANS[album.slug];
+                if (!place || !pt || place.layer !== "balkans" || place.coast) return null;
                 const isActive = album.slug === activeSlug;
-                const isEnd = album.slug === "istanbul";
-                const title = albumText(album.title, locale);
+                const isEnd = BALKANS_LABEL_END.has(album.slug);
                 return (
                   <g key={album.slug}>
                     <circle
-                      cx={pts.reg[0]}
-                      cy={pts.reg[1]}
+                      cx={pt[0]}
+                      cy={pt[1]}
                       r={6}
                       data-pin-slug={album.slug}
-                      className={
-                        isActive
-                          ? "photography-editorial-map-pin photography-editorial-map-pin--active"
-                          : "photography-editorial-map-pin"
-                      }
+                      className={pinClass(isActive)}
                     />
                     <text
-                      x={pts.reg[0] + (isEnd ? -12 : 12)}
-                      y={pts.reg[1] + 19 * 0.35}
+                      x={pt[0] + (isEnd ? -12 : 12)}
+                      y={pt[1] + 19 * 0.35}
                       fontSize={19}
                       textAnchor={isEnd ? "end" : "start"}
-                      className={
-                        isActive
-                          ? "photography-editorial-map-label photography-editorial-map-label--active"
-                          : "photography-editorial-map-label"
-                      }
+                      className={labelClass(isActive)}
                     >
-                      {title}
+                      {albumText(album.title, locale)}
                     </text>
                   </g>
                 );
               })}
               <circle
                 ref={regCoastPinRef}
-                cx={sunnyBeachPts.reg[0]}
-                cy={sunnyBeachPts.reg[1]}
+                cx={regCoast[0]}
+                cy={regCoast[1]}
                 r={6}
                 data-pin-slug="coast"
-                className={
-                  activeIsCoast
-                    ? "photography-editorial-map-pin photography-editorial-map-pin--active"
-                    : "photography-editorial-map-pin"
-                }
+                className={pinClass(activeIsCoast)}
               />
               <text
-                x={sunnyBeachPts.reg[0] + 12}
-                y={sunnyBeachPts.reg[1] + 19 * 0.35}
+                x={regCoast[0] + 12}
+                y={regCoast[1] + 19 * 0.35}
                 fontSize={19}
                 textAnchor="start"
-                className={
-                  activeIsCoast
-                    ? "photography-editorial-map-label photography-editorial-map-label--active"
-                    : "photography-editorial-map-label"
-                }
+                className={labelClass(activeIsCoast)}
               >
                 {t.photos.blackSeaLabel}
               </text>
@@ -453,13 +422,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
 
           <g ref={puffsRef} className="photography-editorial-map-puffs" />
           <g ref={planeRef} className="photography-editorial-map-plane" style={{ display: "none" }}>
-            <path
-              d="M15 0L-10 -8.5L-4 0L-10 8.5Z"
-              fill="#16213A"
-              stroke="#C9A46B"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
+            <path d="M15 0L-10 -8.5L-4 0L-10 8.5Z" strokeWidth="1.6" strokeLinejoin="round" />
           </g>
         </svg>
       </div>
@@ -482,38 +445,28 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
             <g ref={lensRingsRef} className="photography-editorial-map-lens-rings" />
             <g className="photography-editorial-map-lens-pins">
               {albums.map((album) => {
-                const place = ALBUM_PLACES[album.slug];
-                const pts = PLACE_POINTS[album.slug];
-                const off = LENS_OFFSETS[album.slug];
-                if (!place?.coast || !pts || !off) return null;
+                const pt = lensPoint(album.slug);
+                const off = LENS_LABEL_OFFSETS[album.slug];
+                if (!pt || !off) return null;
                 const isActive = album.slug === activeSlug;
-                const title = albumText(album.title, locale);
                 return (
                   <g key={album.slug}>
                     <circle
-                      cx={pts.reg[0]}
-                      cy={pts.reg[1]}
+                      cx={pt[0]}
+                      cy={pt[1]}
                       r={0.75}
                       data-pin-slug={album.slug}
-                      className={
-                        isActive
-                          ? "photography-editorial-map-pin photography-editorial-map-pin--active"
-                          : "photography-editorial-map-pin"
-                      }
+                      className={pinClass(isActive)}
                     />
                     <text
-                      x={pts.reg[0] + off[0]}
-                      y={pts.reg[1] + off[1] + 0.6}
+                      x={pt[0] + off[0]}
+                      y={pt[1] + off[1] + 0.6}
                       fontSize={1.9}
                       textAnchor={off[2]}
                       style={{ strokeWidth: "0.55px" }}
-                      className={
-                        isActive
-                          ? "photography-editorial-map-label photography-editorial-map-label--active"
-                          : "photography-editorial-map-label"
-                      }
+                      className={labelClass(isActive)}
                     >
-                      {title}
+                      {albumText(album.title, locale)}
                     </text>
                   </g>
                 );
@@ -527,7 +480,7 @@ export function AlbumMap({ activeSlug, albums }: { activeSlug: string; albums: r
       <div className="photography-editorial-map-attr">{t.photos.mapCredits}</div>
 
       <svg ref={leadSvgRef} className="photography-editorial-map-lead">
-        <path ref={leadPathRef} d="" style={{ opacity: activeIsCoast ? 0.85 : 0.45 }} />
+        <path ref={leadPathRef} d="" />
       </svg>
     </div>
   );

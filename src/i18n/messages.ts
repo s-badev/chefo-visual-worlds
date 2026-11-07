@@ -136,12 +136,12 @@ const bg = {
     albumNo: (n: number, total: number): string => `№ ${String(n).padStart(2, "0")} / ${total}`,
     mapWhere: "Къде",
     regionEurope: "Европа",
-    regionBalkans: "Балкани",
+    regionBalkans: "Балканите",
     blackSeaZoom: "Черноморие · увеличено",
     mapCredits: "Брегове © OpenStreetMap contributors · Релеф: shadedrelief.com",
     countryBulgaria: "България",
     blackSeaLabel: "Черноморие",
-    selectedLive: (name: string): string => `Избран: ${name}. Натисни отново, за да отвориш.`,
+    selectedLive: (name: string, count: string): string => `Избрано: ${name}, ${count}`,
   },
   ai: {
     metaTitle: "AI светове — CHEFO — VISUAL WORLDS",
@@ -397,7 +397,7 @@ const en: Messages = {
     mapCredits: "Coastlines © OpenStreetMap contributors · Relief: shadedrelief.com",
     countryBulgaria: "Bulgaria",
     blackSeaLabel: "Black Sea coast",
-    selectedLive: (name) => `Selected: ${name}. Tap again to open.`,
+    selectedLive: (name, count) => `Selected: ${name}, ${count}`,
   },
   ai: {
     metaTitle: "AI Worlds — CHEFO — VISUAL WORLDS",

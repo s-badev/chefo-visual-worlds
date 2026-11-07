@@ -6,11 +6,11 @@ import {
   LENS_LAND,
   LENS_VIEWBOX,
   MAP_VIEWBOX,
-  PLACE_POINTS,
   REG_BORDERS,
   REG_BULGARIA,
   REG_LAND,
 } from "@/content/album-map.generated";
+import { MAP_PINS_BALKANS, MAP_PINS_EUROPE } from "@/content/album-map";
 import { ALBUM_PLACES } from "@/content/album-places";
 import { getAlbums } from "@/content/albums";
 
@@ -29,9 +29,12 @@ describe("ALBUM_PLACES", () => {
     }
   });
 
-  it("keeps PLACE_POINTS keys and coordinates aligned with ALBUM_PLACES and MAP_VIEWBOX", () => {
+  it("keeps the map pin tables (src/content/album-map.ts) aligned with ALBUM_PLACES and MAP_VIEWBOX", () => {
     const placeSlugs = Object.keys(ALBUM_PLACES);
-    expect(Object.keys(PLACE_POINTS)).toEqual(placeSlugs);
+    expect(Object.keys(MAP_PINS_EUROPE)).toEqual(placeSlugs);
+    expect(Object.keys(MAP_PINS_BALKANS)).toEqual(
+      placeSlugs.filter((slug) => ALBUM_PLACES[slug]!.layer === "balkans"),
+    );
     expect(MAP_VIEWBOX).toEqual({ width: 600, height: 400 });
     expect(LENS_VIEWBOX).toBe("409 127 48 48");
     expect(EU_LAND.length).toBeGreaterThan(1000);
@@ -43,18 +46,19 @@ describe("ALBUM_PLACES", () => {
     expect(LENS_LAND.length).toBeGreaterThan(100);
 
     for (const slug of placeSlugs) {
-      const pts = PLACE_POINTS[slug]!;
+      const eu = MAP_PINS_EUROPE[slug]!;
       const place = ALBUM_PLACES[slug]!;
-      expect(pts.eu[0]).toBeGreaterThanOrEqual(0);
-      expect(pts.eu[0]).toBeLessThanOrEqual(MAP_VIEWBOX.width);
-      expect(pts.eu[1]).toBeGreaterThanOrEqual(0);
-      expect(pts.eu[1]).toBeLessThanOrEqual(MAP_VIEWBOX.height);
+      expect(eu[0]).toBeGreaterThanOrEqual(0);
+      expect(eu[0]).toBeLessThanOrEqual(MAP_VIEWBOX.width);
+      expect(eu[1]).toBeGreaterThanOrEqual(0);
+      expect(eu[1]).toBeLessThanOrEqual(MAP_VIEWBOX.height);
 
       if (place.layer === "balkans") {
-        expect(pts.reg[0]).toBeGreaterThanOrEqual(0);
-        expect(pts.reg[0]).toBeLessThanOrEqual(MAP_VIEWBOX.width);
-        expect(pts.reg[1]).toBeGreaterThanOrEqual(0);
-        expect(pts.reg[1]).toBeLessThanOrEqual(MAP_VIEWBOX.height);
+        const reg = MAP_PINS_BALKANS[slug]!;
+        expect(reg[0]).toBeGreaterThanOrEqual(0);
+        expect(reg[0]).toBeLessThanOrEqual(MAP_VIEWBOX.width);
+        expect(reg[1]).toBeGreaterThanOrEqual(0);
+        expect(reg[1]).toBeLessThanOrEqual(MAP_VIEWBOX.height);
       }
     }
   });

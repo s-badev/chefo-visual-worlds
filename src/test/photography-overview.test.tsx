@@ -451,19 +451,38 @@ describe("Photography album overview", () => {
   it("renders the lazy album map only at >=1680px with fine pointer, switches europe/balkans layers, activates the coast lens, and suppresses airplane flight under reduced motion", async () => {
     activeLocale = "bg";
 
-    // Below 1680px (desktop 1024..1679): map does not render.
+    // Below a 1680px albums section (fine pointer, desktop preview on): map does not render.
     const narrowMedia = vi.spyOn(window, "matchMedia").mockImplementation(
       (query: string) =>
         ({
-          matches: query.includes("min-width: 1024px") && !query.includes("min-width: 1680px"),
+          matches: query.includes("pointer: fine"),
           media: query,
           addEventListener: () => {},
           removeEventListener: () => {},
         }) as unknown as MediaQueryList,
     );
+    const narrowWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1679);
     const narrow = render(<PhotographyView />);
     expect(narrow.container.querySelector(".photography-editorial-map")).toBeNull();
+    narrowWidth.mockRestore();
     narrowMedia.mockRestore();
+    cleanup();
+
+    // A wide section without a fine pointer: no map either.
+    const coarseMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const coarseWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1920);
+    const coarse = render(<PhotographyView />);
+    expect(coarse.container.querySelector(".photography-editorial-map")).toBeNull();
+    coarseWidth.mockRestore();
+    coarseMedia.mockRestore();
     cleanup();
 
     // At >=1680px + fine pointer + reduced-motion: map renders lazily.
@@ -477,6 +496,7 @@ describe("Photography album overview", () => {
           removeEventListener: () => {},
         }) as unknown as MediaQueryList,
     );
+    const wideWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1680);
     const { container } = render(<PhotographyView />);
     await waitFor(() => {
       expect(container.querySelector(".photography-editorial-map")).not.toBeNull();
@@ -542,6 +562,7 @@ describe("Photography album overview", () => {
     expect(lens()).not.toHaveAttribute("data-hot");
 
     vi.useRealTimers();
+    wideWidth.mockRestore();
     wideMedia.mockRestore();
   });
 
@@ -551,12 +572,13 @@ describe("Photography album overview", () => {
       (query: string) =>
         ({
           matches:
-            query.includes("max-width: 767px") || query.includes("prefers-reduced-motion: reduce"),
+            query.includes("pointer: coarse") || query.includes("prefers-reduced-motion: reduce"),
           media: query,
           addEventListener: () => {},
           removeEventListener: () => {},
         }) as unknown as MediaQueryList,
     );
+    const mobileWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(390);
 
     const { container } = render(<PhotographyView />);
     const index = container.querySelector(".photography-editorial-destination-list")!;
@@ -578,19 +600,60 @@ describe("Photography album overview", () => {
     expect(counters()).toEqual(["0 / 13", "0 / 13"]);
 
     // First tap on Paris: prevents navigation in capture phase, stamps Paris (1 / 13), updates mobile open link & live text.
-    const firstTapAllowed = fireEvent.click(parisLink);
+    const firstTapAllowed = fireEvent.click(parisLink, { detail: 1 });
     expect(firstTapAllowed).toBe(false);
     expect(onBubbleClick).not.toHaveBeenCalled();
     expect(parisLink).toHaveAttribute("data-mobile-selected", "true");
     expect(counters()).toEqual(["1 / 13", "1 / 13"]);
     expect(mobileOpen()).toHaveAttribute("href", "/photography/albums/paris");
-    expect(liveRegion()).toHaveTextContent("Избран: Париж. Натисни отново, за да отвориш.");
+    expect(liveRegion()).toHaveTextContent("Избрано: Париж, 57 кадъра");
+    expect(container.querySelector('[data-current="true"]')).toHaveAttribute(
+      "cx",
+      String(14 + 8 * (330 / 12)),
+    );
 
     // Second tap on Paris: reaches the link bubble listener and navigates.
-    fireEvent.click(parisLink);
+    fireEvent.click(parisLink, { detail: 1 });
     expect(onBubbleClick).toHaveBeenCalledTimes(1);
 
+    // Keyboard (or assistive) activation never uses the two-tap rule: Enter on Lyon opens at once.
+    const lyonLink = within(index as HTMLElement)
+      .getByText("Лион")
+      .closest("a")!;
+    const onLyon = vi.fn((event: MouseEvent) => event.preventDefault());
+    lyonLink.addEventListener("click", onLyon);
+    fireEvent.click(lyonLink, { detail: 0 });
+    expect(onLyon).toHaveBeenCalledTimes(1);
+    expect(lyonLink).not.toHaveAttribute("data-mobile-selected");
+
+    mobileWidth.mockRestore();
     mobileMedia.mockRestore();
+  });
+
+  it("opens an album with one mouse click on a narrow section (the two-tap rule is touch only)", () => {
+    activeLocale = "bg";
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(700);
+    const { container } = render(<PhotographyView />);
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const link = within(index as HTMLElement)
+      .getByText("Париж")
+      .closest("a")!;
+    const onClick = vi.fn((event: MouseEvent) => event.preventDefault());
+    link.addEventListener("click", onClick);
+    fireEvent.click(link, { detail: 1 });
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".photography-editorial-route")).not.toBeNull();
+    width.mockRestore();
+    media.mockRestore();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {

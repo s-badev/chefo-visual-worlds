@@ -2505,7 +2505,37 @@ header .interaction-link.header-underline:focus-visible {
 }
 .photography-editorial-map-ring {
   fill: none;
-  stroke: #8a6a32;
+  stroke: var(--gold-ink);
+}
+.photography-editorial-map-plane path,
+.photography-editorial-route-plane path {
+  fill: var(--navy);
+  stroke: var(--interaction-gold);
+}
+.photography-editorial-map-puff,
+.photography-editorial-route-puff {
+  fill: #b8935a;
+}
+.photography-editorial-route-base {
+  stroke: rgba(22, 33, 58, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.photography-editorial-route-progress {
+  stroke: var(--interaction-gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.photography-editorial-route-dots circle {
+  fill: #f8f1e4;
+  stroke: var(--gold-ink);
+  stroke-width: 1.3;
+}
+.photography-editorial-route-dots circle[data-visited="true"] {
+  fill: #a16a56;
+}
+.photography-editorial-route-dots circle[data-current="true"] {
+  fill: var(--interaction-gold);
 }
 .photography-editorial-map-lens-wrap {
   position: relative;
@@ -2519,8 +2549,10 @@ header .interaction-link.header-underline:focus-visible {
 }
 .photography-editorial-map-lens {
   position: relative;
-  width: min(100%, 360px);
-  max-height: calc(100% - 26px);
+  height: calc(100% - 26px);
+  width: auto;
+  max-width: 100%;
+  max-height: 360px;
   aspect-ratio: 1;
   flex: none;
   border-radius: 50%;
@@ -2632,12 +2664,12 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-row[aria-current="true"] .photography-editorial-row-arrow {
     transform: translateX(var(--arrow-slide));
   }
-  @container albums-section (max-width: 1479px) {
+  @container albums-section (max-width: 1499px) {
     .photography-editorial-list-head {
       display: flex;
     }
   }
-  @container albums-section (min-width: 1480px) {
+  @container albums-section (min-width: 1500px) {
     .photography-editorial-index-inner {
       width: min(1000px, calc(100% - 96px));
       max-width: 1000px;
@@ -2647,25 +2679,22 @@ header .interaction-link.header-underline:focus-visible {
       display: block;
     }
   }
-  @container albums-section (min-width: 1660px) {
+  @container albums-section (min-width: 1680px) {
     .photography-editorial-map {
       display: flex;
     }
   }
-  @container albums-section (min-width: 1480px) and (max-width: 1659px) {
-    .photography-editorial-passport .photography-editorial-zone-title {
-      flex-wrap: wrap;
-      gap: 4px 10px;
-      font-size: 0.59375rem;
-      letter-spacing: 0.14em;
+  @container albums-section (min-width: 1500px) and (max-width: 1679px) {
+    .photography-editorial-passport {
+      width: calc((100cqw - 1000px) / 2 - 80px);
     }
     .photography-editorial-passport-grid {
-      grid-template-columns: repeat(auto-fill, 40px);
-      gap: 6px;
+      grid-template-columns: repeat(auto-fill, 44px);
+      gap: 8px;
     }
     .photography-editorial-passport-slot {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
     }
   }
 }
@@ -2675,9 +2704,10 @@ header .interaction-link.header-underline:focus-visible {
   outline: 3px solid var(--foreground);
   outline-offset: 4px;
 }
-/* Mobile passport model (<=767px): sticky route strip + 16:10 photo + open pill, 2-line
-   description + horizontal 4-frame strip, passport counter row, and two-tap album list. */
-@media (max-width: 767px) {
+/* Mobile passport model (albums section <= 767px, ALBUM_MAP.mobileMaxWidth): sticky route bar +
+   16:10 photo + open pill, 2-line description + horizontal 4-frame strip, passport counter row,
+   and the two-tap album list. */
+@container albums-section (max-width: 767px) {
   .photography-editorial-index-grid {
     display: flex;
     flex-direction: column;
@@ -2723,12 +2753,10 @@ header .interaction-link.header-underline:focus-visible {
     margin-top: 6px;
   }
   .photography-editorial-mobile-cap-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 0;
+    display: contents;
   }
   .photography-editorial-mobile-cap-meta b {
+    min-width: 0;
     font-family: var(--font-serif);
     font-size: 1.5rem;
     font-weight: 500;
@@ -2750,14 +2778,32 @@ header .interaction-link.header-underline:focus-visible {
     justify-content: center;
     flex: none;
     min-height: 44px;
-    padding: 0 14px;
+    padding: 0 16px;
     border-radius: 999px;
-    background: #16213a;
+    background: var(--navy);
     color: #f8f1e4;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1;
     text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--interaction-duration) var(--motion-ease),
+      color var(--interaction-duration) var(--motion-ease);
+  }
+  .photography-editorial-mobile-open:focus-visible {
+    background: var(--interaction-gold);
+    color: var(--interaction-ink-on-gold);
+  }
+  .photography-editorial-mobile-open:active {
+    background: var(--btn-active-bg);
+    color: var(--interaction-ink-on-gold);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .photography-editorial-mobile-open:hover {
+      background: var(--interaction-gold);
+      color: var(--interaction-ink-on-gold);
+    }
   }
   .photography-editorial-preview-info {
     order: 2;
@@ -2859,6 +2905,10 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-map-pin,
   .photography-editorial-map-lens {
     transition: none;
+  }
+  .photography-editorial-map-plane,
+  .photography-editorial-route-plane {
+    display: none !important;
   }
   .photography-editorial-row:hover .photography-editorial-row-arrow,
   .photography-editorial-row:focus-visible .photography-editorial-row-arrow,
@@ -3302,33 +3352,25 @@ header .interaction-link.header-underline:focus-visible {
   background: var(--secondary);
 }
 @media (min-width: 481px) {
-  .unified-album-grid {
-    height: var(--mosaic-smallTablet-height);
-  }
+  .unified-album-grid { height: var(--mosaic-smallTablet-height); }
   .unified-album-grid li {
     inset: var(--mosaic-smallTablet);
   }
 }
 @media (min-width: 560px) {
-  .unified-album-grid {
-    height: var(--mosaic-mediumTablet-height);
-  }
+  .unified-album-grid { height: var(--mosaic-mediumTablet-height); }
   .unified-album-grid li {
     inset: var(--mosaic-mediumTablet);
   }
 }
 @media (min-width: 768px) {
-  .unified-album-grid {
-    height: var(--mosaic-tablet-height);
-  }
+  .unified-album-grid { height: var(--mosaic-tablet-height); }
   .unified-album-grid li {
     inset: var(--mosaic-tablet);
   }
 }
 @media (min-width: 1024px) {
-  .unified-album-grid {
-    height: var(--mosaic-desktop-height);
-  }
+  .unified-album-grid { height: var(--mosaic-desktop-height); }
   .unified-album-grid li {
     inset: var(--mosaic-desktop);
   }

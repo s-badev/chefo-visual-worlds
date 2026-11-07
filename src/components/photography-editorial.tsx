@@ -36,7 +36,16 @@ import {
   type IrisOrigin,
   type PreviewLayer,
 } from "@/lib/album-preview";
+import {
+  ALBUM_MAP,
+  easeInOutQuad,
+  headingDeg,
+  routeArcPoint,
+  routeDotX,
+  routeFlightDuration,
+} from "@/lib/album-map";
 
+// The map (geometry + relief) is its own chunk, fetched only when the map zone is shown.
 const LazyAlbumMap = lazy(() => import("@/components/album-map"));
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -63,7 +72,16 @@ const stripPhotosOf = (album: Album): Photo[] => {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-const routeDotX = (index: number, total: number) => 14 + index * (330 / Math.max(1, total - 1));
+/**
+ * A tap from a finger or pen (not a mouse click, not keyboard or assistive activation, which
+ * report `detail === 0`). Only such taps use the two-tap model on mobile.
+ */
+const isTouchTap = (event: MouseEvent<HTMLElement>): boolean => {
+  if (event.detail === 0) return false;
+  const pointerType = (event.nativeEvent as PointerEvent).pointerType;
+  if (pointerType) return pointerType === "touch" || pointerType === "pen";
+  return window.matchMedia(ALBUM_MAP.coarsePointer).matches;
+};
 
 const previewStyle = {
   "--preview-top": `${ALBUM_PREVIEW.headerRem + ALBUM_PREVIEW.stickyGapRem}rem`,
@@ -119,7 +137,11 @@ function PreviewLayerView({ layer, locale }: { layer: PreviewLayer; locale: Loca
   );
 }
 
-/** Mobile 48px route strip with 13 destination dots and sine-arc airplane flight. */
+/**
+ * Mobile route bar (container <= 767px): 13 dots, the selected one larger and gold, visited ones
+ * in stamp ink, a gold progress line up to the selected dot and a small plane that arcs there.
+ * Decorative: the list and the caption carry the same information.
+ */
 function MobileRouteStrip({
   albums,
   currentIndex,
@@ -160,39 +182,32 @@ function MobileRouteStrip({
     }
 
     const x0 = routeDotX(i0, total);
-    const dur = Math.max(1100, Math.min(2000, 800 + Math.abs(x1 - x0) * 5));
+    const dur = routeFlightDuration(x1 - x0);
     const t0 = performance.now();
     let lastX: number | null = null;
-    const timers: number[] = [];
 
     if (plane) plane.style.display = "";
 
     const step = (now: number) => {
       const tNorm = Math.min(1, (now - t0) / dur);
-      const e = tNorm < 0.5 ? 2 * tNorm * tNorm : 1 - Math.pow(-2 * tNorm + 2, 2) / 2;
-      const x = x0 + (x1 - x0) * e;
-      const y = 34 - Math.sin(e * Math.PI) * 22;
-      const e2 = Math.min(1, e + 0.01);
-      const x2 = x0 + (x1 - x0) * e2;
-      const y2 = 34 - Math.sin(e2 * Math.PI) * 22;
-      const angle = (Math.atan2(y2 - y, x2 - x) * 180) / Math.PI;
+      const e = easeInOutQuad(tNorm);
+      const a = routeArcPoint(x0, x1, e);
+      const b = routeArcPoint(x0, x1, Math.min(1, e + 0.01));
+      plane?.setAttribute("transform", `translate(${a[0]},${a[1]}) rotate(${headingDeg(a, b)})`);
+      prog?.setAttribute("x2", String(a[0]));
 
-      plane?.setAttribute("transform", `translate(${x},${y}) rotate(${angle})`);
-      prog?.setAttribute("x2", String(x));
-
-      if (puffs && (lastX === null || Math.abs(x - lastX) > 5)) {
-        lastX = x;
+      if (puffs && (lastX === null || Math.abs(a[0] - lastX) > 5)) {
+        lastX = a[0];
         const c = document.createElementNS(SVG_NS, "circle");
-        c.setAttribute("cx", String(x));
-        c.setAttribute("cy", String(y));
+        c.setAttribute("cx", String(a[0]));
+        c.setAttribute("cy", String(a[1]));
         c.setAttribute("r", "1.8");
-        c.setAttribute("fill", "#B8935A");
-        c.style.transition = "opacity 1.6s";
+        c.setAttribute("class", "photography-editorial-route-puff");
+        c.style.transition = `opacity ${ALBUM_MAP.puffMs}ms ease-out`;
         puffs.appendChild(c);
         void c.getBoundingClientRect();
         c.style.opacity = "0";
-        const id = window.setTimeout(() => c.remove(), 1650);
-        timers.push(id);
+        window.setTimeout(() => c.remove(), ALBUM_MAP.puffMs + 50);
       }
 
       if (tNorm < 1) {
@@ -201,22 +216,6 @@ function MobileRouteStrip({
         rafRef.current = null;
         if (plane) plane.style.display = "none";
         prog?.setAttribute("x2", String(x1));
-        if (puffs) {
-          const rg = document.createElementNS(SVG_NS, "circle");
-          rg.setAttribute("cx", String(x1));
-          rg.setAttribute("cy", "34");
-          rg.setAttribute("r", "5");
-          rg.setAttribute("fill", "none");
-          rg.setAttribute("stroke", "#C9A46B");
-          rg.setAttribute("stroke-width", "1.4");
-          rg.style.transition = "r 0.8s ease-out, opacity 0.8s";
-          puffs.appendChild(rg);
-          void rg.getBoundingClientRect();
-          rg.setAttribute("r", "16");
-          rg.style.opacity = "0";
-          const id = window.setTimeout(() => rg.remove(), 850);
-          timers.push(id);
-        }
       }
     };
 
@@ -227,58 +226,46 @@ function MobileRouteStrip({
         window.cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
-      for (const id of timers) window.clearTimeout(id);
     };
   }, [mobile, currentIndex, total]);
 
+  const y = ALBUM_MAP.routeY;
   return (
     <div className="photography-editorial-route" aria-hidden="true">
       <svg viewBox="0 0 358 48" preserveAspectRatio="xMidYMid meet">
         <line
-          x1={14}
-          y1={34}
-          x2={344}
-          y2={34}
-          stroke="rgba(22,33,58,.28)"
-          strokeWidth={1}
-          strokeDasharray="2 3"
+          className="photography-editorial-route-base"
+          x1={routeDotX(0, total)}
+          y1={y}
+          x2={routeDotX(total - 1, total)}
+          y2={y}
         />
         <line
           ref={progRef}
-          x1={14}
-          y1={34}
+          className="photography-editorial-route-progress"
+          x1={routeDotX(0, total)}
+          y1={y}
           x2={routeDotX(currentIndex, total)}
-          y2={34}
-          stroke="#C9A46B"
-          strokeWidth={2}
-          strokeLinecap="round"
+          y2={y}
         />
         <g className="photography-editorial-route-dots">
           {albums.map((album, k) => {
             const isCurrent = k === currentIndex;
-            const isStamped = passport.has(album.slug);
             return (
               <circle
                 key={album.slug}
                 cx={routeDotX(k, total)}
-                cy={34}
+                cy={y}
                 r={isCurrent ? 5.4 : 3.4}
-                fill={isCurrent ? "#C9A46B" : isStamped ? "#A16A56" : "#F8F1E4"}
-                stroke="#8A6A32"
-                strokeWidth={1.3}
+                data-current={isCurrent ? "true" : undefined}
+                data-visited={!isCurrent && passport.has(album.slug) ? "true" : undefined}
               />
             );
           })}
         </g>
         <g ref={puffsRef} className="photography-editorial-route-puffs" />
         <g ref={planeRef} className="photography-editorial-route-plane" style={{ display: "none" }}>
-          <path
-            d="M13 0L-9 -8L-4 0L-9 8Z"
-            fill="#16213A"
-            stroke="#C9A46B"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
+          <path d="M13 0L-9 -8L-4 0L-9 8Z" strokeWidth="1" strokeLinejoin="round" />
         </g>
       </svg>
     </div>
@@ -293,8 +280,14 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   // Server and first client render agree: the first album, no current row, empty passport.
   // The live preview (hover/focus, iris, passport stamps, map, mobile two-tap) switches on after mount.
   const [enabled, setEnabled] = useState(false);
-  const [mapWide, setMapWide] = useState(false);
-  const [mobile, setMobile] = useState(false);
+  const [finePointer, setFinePointer] = useState(false);
+  // Width of the albums section (the CSS container `albums-section`), measured after mount.
+  const [sectionWidth, setSectionWidth] = useState(0);
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  // Map zone: container >= 1680px with a fine pointer (otherwise never rendered nor downloaded).
+  const mapWide = enabled && finePointer && sectionWidth >= ALBUM_MAP.mapMinWidth;
+  // Mobile model (route bar, sticky caption, two taps): container <= 767px.
+  const mobile = sectionWidth > 0 && sectionWidth <= ALBUM_MAP.mobileMaxWidth;
   const [current, setCurrent] = useState(firstSlug);
   const [mapSlug, setMapSlug] = useState(firstSlug);
   const [mobileSelectedSlug, setMobileSelectedSlug] = useState<string | null>(null);
@@ -357,7 +350,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
     dwellRef.current = window.setTimeout(() => {
       dwellRef.current = null;
       setMapSlug(slug);
-    }, ALBUM_PREVIEW.mapDwellMs);
+    }, ALBUM_MAP.dwellMs);
   }, []);
 
   const clearMapDwell = useCallback(() => {
@@ -380,7 +373,8 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const handleRowClickCapture = useCallback(
     (event: MouseEvent<HTMLLIElement>, slug: string) => {
       clearMapDwell();
-      if (!mobile) return;
+      // First touch tap selects, the second opens; keyboard and mouse always open at once.
+      if (!mobile || !isTouchTap(event)) return;
       if (mobileSelectedSlug !== slug) {
         event.preventDefault();
         event.stopPropagation();
@@ -416,21 +410,26 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
 
   useEffect(() => {
     const desktopQuery = window.matchMedia(ALBUM_PREVIEW.query);
-    const mapQuery = window.matchMedia(ALBUM_PREVIEW.mapQuery);
-    const mobileQuery = window.matchMedia(ALBUM_PREVIEW.mobileQuery);
+    const fineQuery = window.matchMedia(ALBUM_MAP.finePointer);
+    // The section has no inline padding, so its client width is the container query width.
+    const section = innerRef.current?.parentElement ?? null;
+    const measure = () => setSectionWidth(section?.clientWidth ?? 0);
     const sync = () => {
       setEnabled(desktopQuery.matches);
-      setMapWide(mapQuery.matches);
-      setMobile(mobileQuery.matches);
+      setFinePointer(fineQuery.matches);
+      measure();
     };
     sync();
     desktopQuery.addEventListener("change", sync);
-    mapQuery.addEventListener("change", sync);
-    mobileQuery.addEventListener("change", sync);
+    fineQuery.addEventListener("change", sync);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    if (section && observer) observer.observe(section);
+    window.addEventListener("resize", measure);
     return () => {
       desktopQuery.removeEventListener("change", sync);
-      mapQuery.removeEventListener("change", sync);
-      mobileQuery.removeEventListener("change", sync);
+      fineQuery.removeEventListener("change", sync);
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
     };
   }, []);
 
@@ -501,7 +500,10 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const mobileSelectedAlbum = mobileSelectedSlug ? getAlbum(mobileSelectedSlug) : undefined;
   const mobileLiveText =
     mobile && mobileSelectedAlbum
-      ? t.photos.selectedLive(albumText(mobileSelectedAlbum.title, locale))
+      ? t.photos.selectedLive(
+          albumText(mobileSelectedAlbum.title, locale),
+          t.photos.count(mobileSelectedAlbum.photos.length),
+        )
       : "";
   const headingWords = t.home.photoTitle.split(" ");
   const headingLastWord = headingWords.pop();
@@ -544,7 +546,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
         className="photography-editorial-index"
         aria-labelledby="photography-albums-title"
       >
-        <div className="container-page photography-editorial-index-inner">
+        <div ref={innerRef} className="container-page photography-editorial-index-inner">
           <div className="photography-editorial-index-heading">
             <h2 id="photography-albums-title">{t.photos.albums}</h2>
             <button
@@ -604,7 +606,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     <LocaleLink
                       to="/photography/albums/$slug"
                       slug={album.slug}
-                      aria-label={title}
+                      aria-label={`${title}, ${t.photos.count(album.photos.length)}`}
                       aria-current={
                         (enabled && album.slug === current) || isMobileSelected ? "true" : undefined
                       }
@@ -707,29 +709,31 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     <PreviewLayerView key={layer.key} layer={layer} locale={locale} />
                   ))}
                 </div>
-                {mobile && (
-                  <div className="photography-editorial-mobile-cap">
-                    <div className="photography-editorial-mobile-cap-meta">
-                      <b>{albumText(currentAlbum.title, locale)}</b>
-                      <span>{t.photos.count(currentAlbum.photos.length)}</span>
-                    </div>
-                    <LocaleLink
-                      to="/photography/albums/$slug"
-                      slug={currentAlbum.slug}
-                      className="photography-editorial-mobile-open"
-                    >
-                      {t.photos.openAlbum}
-                    </LocaleLink>
+                {/* Shown by CSS only in the mobile layout; its 44px height comes from the pill,
+                    so the name and count filling in after mount shift nothing. */}
+                <div className="photography-editorial-mobile-cap">
+                  <div className="photography-editorial-mobile-cap-meta">
+                    {mobile && (
+                      <>
+                        <b>{albumText(currentAlbum.title, locale)}</b>
+                        <span>{t.photos.count(currentAlbum.photos.length)}</span>
+                      </>
+                    )}
                   </div>
-                )}
+                  <LocaleLink
+                    to="/photography/albums/$slug"
+                    slug={currentAlbum.slug}
+                    className="photography-editorial-mobile-open"
+                  >
+                    {t.photos.openAlbum}
+                  </LocaleLink>
+                </div>
               </div>
               <div className="photography-editorial-preview-info">
-                {!mobile && (
-                  <figcaption>
-                    <span>{albumText(currentAlbum.title, locale)}</span>
-                    <span>{t.photos.count(currentAlbum.photos.length)}</span>
-                  </figcaption>
-                )}
+                <figcaption>
+                  <span>{albumText(currentAlbum.title, locale)}</span>
+                  <span>{t.photos.count(currentAlbum.photos.length)}</span>
+                </figcaption>
                 {description && (
                   <p className="photography-editorial-preview-desc">
                     {currentSource.kind === "photo" && (
@@ -773,14 +777,9 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 className="photography-editorial-zone-title"
                 data-done={allStamped ? "true" : undefined}
               >
-                <span>
-                  {t.photos.passport} ·{" "}
-                  <span className="photography-editorial-passport-count">
-                    {t.photos.passportOf(stampedCount, totalAlbums)}
-                  </span>
-                </span>
-                <span className="photography-editorial-passport-hint">
-                  {t.photos.passportHint(stampedCount, totalAlbums)}
+                <span>{t.photos.passport}</span>
+                <span className="photography-editorial-passport-count">
+                  {t.photos.passportOf(stampedCount, totalAlbums)}
                 </span>
               </div>
               <div className="photography-editorial-passport-book">
