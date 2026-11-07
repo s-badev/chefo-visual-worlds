@@ -611,6 +611,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                         (enabled && album.slug === current) || isMobileSelected ? "true" : undefined
                       }
                       data-mobile-selected={isMobileSelected ? "true" : undefined}
+                      data-selected={enabled && album.slug === mapSlug ? "true" : undefined}
                       className="photography-editorial-row"
                     >
                       {localizedCover && (
@@ -652,7 +653,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                       </span>
                       <ArrowRight
                         className="photography-editorial-row-arrow"
-                        size={17}
+                        size={15}
                         aria-hidden="true"
                       />
                       <span className="photography-editorial-row-go" aria-hidden="true">
@@ -663,115 +664,138 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 );
               })}
             </ul>
-            {/* Decorative on desktop; interactive sticky bar + strip on mobile (<=767px). */}
-            <figure
-              className="photography-editorial-preview"
-              aria-hidden={mobile ? undefined : "true"}
-              inert={!mobile}
-              style={previewStyle}
-            >
-              <div className="photography-editorial-preview-sticky">
-                <MobileRouteStrip
-                  albums={albums}
-                  currentIndex={currentIndex}
-                  passport={passport}
-                  mobile={mobile}
-                />
-                <div
-                  ref={previewFrameRef}
-                  className="photography-editorial-preview-frame photo-frame-print photo-frame-print--thin"
-                >
-                  <span className="photography-editorial-preview-badge">
-                    {`${t.photos.albumNo(currentIndex + 1, totalAlbums)} · ${albumText(currentAlbum.title, locale).toUpperCase()}`}
-                  </span>
-                  <div className="photography-editorial-preview-viewfinder" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </div>
+            {/* Sticky preview column: the figure is decorative on desktop (the rows carry the same
+                information); the open-album pill after it is a real link. On mobile the figure is
+                the interactive sticky bar + strip and the pill is hidden. */}
+            <div className="photography-editorial-preview-col" style={previewStyle}>
+              <figure
+                className="photography-editorial-preview"
+                aria-hidden={mobile ? undefined : "true"}
+                inert={!mobile}
+              >
+                <div className="photography-editorial-preview-sticky">
+                  <MobileRouteStrip
+                    albums={albums}
+                    currentIndex={currentIndex}
+                    passport={passport}
+                    mobile={mobile}
+                  />
                   <div
-                    className="photography-editorial-preview-corner-stamp"
-                    data-stamped={currentStamped ? "true" : undefined}
-                    data-new={currentJustStamped ? "true" : undefined}
-                    aria-hidden="true"
+                    ref={previewFrameRef}
+                    className="photography-editorial-preview-frame photo-frame-print photo-frame-print--thin"
                   >
-                    {currentStamped && (
-                      <AlbumStamp
-                        index={currentIndex}
-                        title={albumText(currentAlbum.title, "en")}
-                        count={currentAlbum.photos.length}
-                        total={totalAlbums}
-                        size={62}
-                      />
-                    )}
-                  </div>
-                  {layers.map((layer) => (
-                    <PreviewLayerView key={layer.key} layer={layer} locale={locale} />
-                  ))}
-                </div>
-                {/* Shown by CSS only in the mobile layout; its 44px height comes from the pill,
-                    so the name and count filling in after mount shift nothing. */}
-                <div className="photography-editorial-mobile-cap">
-                  <div className="photography-editorial-mobile-cap-meta">
-                    {mobile && (
-                      <>
-                        <b>{albumText(currentAlbum.title, locale)}</b>
-                        <span>{t.photos.count(currentAlbum.photos.length)}</span>
-                      </>
-                    )}
-                  </div>
-                  <LocaleLink
-                    to="/photography/albums/$slug"
-                    slug={currentAlbum.slug}
-                    className="photography-editorial-mobile-open"
-                  >
-                    {t.photos.openAlbum}
-                  </LocaleLink>
-                </div>
-              </div>
-              <div className="photography-editorial-preview-info">
-                <figcaption>
-                  <span>{albumText(currentAlbum.title, locale)}</span>
-                  <span>{t.photos.count(currentAlbum.photos.length)}</span>
-                </figcaption>
-                {description && (
-                  <p className="photography-editorial-preview-desc">
-                    {currentSource.kind === "photo" && (
-                      <>{localizePhoto(currentSource.photo, locale).title} — </>
-                    )}
-                    {description}
-                  </p>
-                )}
-                {stripPhotos.length > 0 && (
-                  <div className="photography-editorial-strip">
-                    {stripPhotos.map((photo, k) => (
-                      <span
-                        key={`${currentAlbum.slug}-${photo.slug}`}
-                        className="photography-editorial-strip-item"
-                        style={{ "--strip-delay": `${60 + k * 80}ms` } as CSSProperties}
-                      >
-                        <img
-                          src={photo.image}
-                          alt=""
-                          width={photo.width}
-                          height={photo.height}
-                          loading="lazy"
-                          decoding="async"
-                          sizes="140px"
+                    <span className="photography-editorial-preview-badge">
+                      {`${t.photos.albumNo(currentIndex + 1, totalAlbums)} · ${albumText(currentAlbum.title, locale).toUpperCase()}`}
+                    </span>
+                    <div className="photography-editorial-preview-viewfinder" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </div>
+                    <div
+                      className="photography-editorial-preview-corner-stamp"
+                      data-stamped={currentStamped ? "true" : undefined}
+                      data-new={currentJustStamped ? "true" : undefined}
+                      aria-hidden="true"
+                    >
+                      {currentStamped && (
+                        <AlbumStamp
+                          index={currentIndex}
+                          title={albumText(currentAlbum.title, "en")}
+                          count={currentAlbum.photos.length}
+                          total={totalAlbums}
+                          size={62}
                         />
-                      </span>
+                      )}
+                    </div>
+                    {layers.map((layer) => (
+                      <PreviewLayerView key={layer.key} layer={layer} locale={locale} />
                     ))}
                   </div>
-                )}
-                <LocaleLink
-                  to="/photography/albums/$slug"
-                  slug={currentAlbum.slug}
-                  className="photography-editorial-preview-open"
-                >
-                  {t.photos.openAlbum} <span aria-hidden="true">→</span>
-                </LocaleLink>
-              </div>
-            </figure>
+                  {/* Shown by CSS only in the mobile layout; its 44px height comes from the pill,
+                    so the name and count filling in after mount shift nothing. */}
+                  <div className="photography-editorial-mobile-cap">
+                    <div className="photography-editorial-mobile-cap-meta">
+                      {mobile && (
+                        <>
+                          <b>{albumText(currentAlbum.title, locale)}</b>
+                          <span>{t.photos.count(currentAlbum.photos.length)}</span>
+                        </>
+                      )}
+                    </div>
+                    <LocaleLink
+                      to="/photography/albums/$slug"
+                      slug={currentAlbum.slug}
+                      className="photography-editorial-mobile-open"
+                    >
+                      {t.photos.openAlbum}
+                    </LocaleLink>
+                  </div>
+                </div>
+                <div className="photography-editorial-preview-info">
+                  <figcaption>
+                    <span>{albumText(currentAlbum.title, locale)}</span>
+                    <span>{t.photos.count(currentAlbum.photos.length)}</span>
+                  </figcaption>
+                  {description && (
+                    <p className="photography-editorial-preview-desc">
+                      {currentSource.kind === "photo" && (
+                        <>{localizePhoto(currentSource.photo, locale).title} — </>
+                      )}
+                      {description}
+                    </p>
+                  )}
+                  {stripPhotos.length > 0 && (
+                    <div className="photography-editorial-strip">
+                      {stripPhotos.map((photo, k) => (
+                        <span
+                          key={`${currentAlbum.slug}-${photo.slug}`}
+                          className="photography-editorial-strip-item"
+                          style={{ "--strip-delay": `${60 + k * 80}ms` } as CSSProperties}
+                        >
+                          <img
+                            src={photo.image}
+                            alt=""
+                            width={photo.width}
+                            height={photo.height}
+                            loading="lazy"
+                            decoding="async"
+                            sizes="140px"
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </figure>
+              <LocaleLink
+                to="/photography/albums/$slug"
+                slug={currentAlbum.slug}
+                className="photography-editorial-preview-open"
+                aria-label={t.photos.openAlbumFor(albumText(currentAlbum.title, locale))}
+              >
+                <span className="photography-editorial-open-stamp" aria-hidden="true">
+                  <AlbumStamp
+                    key={currentAlbum.slug}
+                    index={currentIndex}
+                    title={albumText(currentAlbum.title, "en")}
+                    count={currentAlbum.photos.length}
+                    total={totalAlbums}
+                    size={38}
+                    shape="round"
+                    ink="currentColor"
+                  />
+                </span>
+                <span className="photography-editorial-open-label">{t.photos.openAlbum}</span>
+                <span className="photography-editorial-open-arrow" aria-hidden="true">
+                  <b>→</b>
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M3 11.5L21 4l-6.2 16.2-3.2-6.8z" />
+                    <path d="M11.6 13.4L21 4" />
+                  </svg>
+                </span>
+              </LocaleLink>
+            </div>
             <aside className="photography-editorial-passport" aria-label={t.photos.passport}>
               <div
                 className="photography-editorial-zone-title"

@@ -62,7 +62,7 @@ const rows: Row[] = [
     "Цветни фенери висят от високо разклонено стъбло на фона на синьото небе",
     "Colorful lanterns hang from a tall branching stalk against a blue sky",
     "Пътувания",
-    ["travel"],
+    ["sunsets", "travel"],
   ],
   [
     "bodrum",

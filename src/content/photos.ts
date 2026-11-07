@@ -39,6 +39,18 @@ export const PHOTO_LOCATIONS = [
 export type PhotoCategory = (typeof PHOTO_CATEGORIES)[number];
 export const PHOTO_THEMES = ["sea", "city", "sunsets", "nature", "architecture", "travel"] as const;
 export type PhotoTheme = (typeof PHOTO_THEMES)[number];
+/**
+ * Subjects offered as filters on "All photos". `travel` stays on the photographs (every one of
+ * them is also tagged with a real subject) but is not a filter of its own.
+ */
+export const PHOTO_FILTER_THEMES = [
+  "sea",
+  "city",
+  "sunsets",
+  "nature",
+  "architecture",
+] as const satisfies readonly PhotoTheme[];
+export type PhotoFilterTheme = (typeof PHOTO_FILTER_THEMES)[number];
 
 const THEME_LABELS: Record<PhotoTheme, { bg: string; en: string }> = {
   sea: { bg: "Море", en: "Sea" },

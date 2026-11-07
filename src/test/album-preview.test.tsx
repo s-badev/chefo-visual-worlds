@@ -75,8 +75,8 @@ describe("album preview stack", () => {
       removeAfterMs: 800,
       maxLayers: 3,
       warmAround: 2,
-      rowSlidePx: 10,
-      arrowSlidePx: 5,
+      rowSlidePx: 8,
+      arrowSlidePx: 4,
     });
   });
 
