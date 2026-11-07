@@ -79,6 +79,8 @@
 
   /* "Horizon" system — additive tokens; the values above stay frozen for the Hero. */
   --gold-ink: oklch(0.5 0.09 75); /* gold text on cream, >= 4.5:1 */
+  --gold-hi: #f1dfb5; /* light gold on navy */
+  --sand: #efe6d4; /* placeholder under loading photographs */
   --terracotta-ink: oklch(0.5 0.12 40); /* small terracotta text on cream, >= 4.5:1 */
   --eyebrow-ink: var(--terracotta-ink);
   --primary-hover: var(--terracotta);
@@ -1950,6 +1952,10 @@ header .interaction-link.header-underline:focus-visible {
   color: var(--gold-ink);
   transition: transform var(--dur-base) var(--motion-ease);
 }
+.photography-editorial .photography-editorial-row:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
 .photography-editorial-row:focus-visible .photography-editorial-destination-name {
   color: var(--gold-ink);
 }
@@ -1964,6 +1970,7 @@ header .interaction-link.header-underline:focus-visible {
     transform: translateX(4px);
   }
 }
+.photography-editorial-preview-col,
 .photography-editorial-preview {
   display: none;
   min-width: 0;
@@ -2217,24 +2224,258 @@ header .interaction-link.header-underline:focus-visible {
   display: block;
   aspect-ratio: 3 / 2;
   overflow: hidden;
-  background: #0b1424;
-  box-shadow: 0 0 0 3px #0b1424;
+  border-radius: 3px;
+  background: var(--sand);
+  box-shadow: 0 10px 18px -14px rgba(22, 33, 58, 0.55);
+  transition: translate var(--dur-base) var(--motion-ease);
+}
+.photography-editorial-strip-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(22, 33, 58, 0.1);
+  pointer-events: none;
 }
 .photography-editorial-strip-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+/* "Open album" pill (desktop info block): a navy fill opens from the stamp medallion. */
 .photography-editorial-preview-open {
-  display: inline-block;
-  margin-top: 16px;
-  padding-bottom: 4px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  margin-top: 12px;
+  padding: 0 22px 0 10px;
+  border-radius: 999px;
+  background: none;
   color: var(--foreground);
-  font-size: 0.84375rem;
-  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(22, 33, 58, 0.34);
+  overflow: hidden;
+  isolation: isolate;
+  font-size: 13.5px;
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.01em;
   text-decoration: none;
-  background: linear-gradient(var(--gold), var(--gold)) 0 100% / 100% 1px no-repeat;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--dur-fast) var(--motion-ease),
+    box-shadow var(--dur-fast) var(--motion-ease);
+}
+.photography-editorial-preview-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--navy);
+  clip-path: circle(0 at 28px 50%);
+  transition: clip-path 620ms var(--motion-ease);
+}
+.photography-editorial-open-stamp {
+  position: relative;
+  flex: none;
+  display: block;
+  width: 38px;
+  height: 38px;
+  color: var(--gold-ink);
+  transform: rotate(-8deg);
+  transition: color var(--dur-fast) var(--motion-ease);
+}
+.photography-editorial-open-stamp svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.photography-editorial-open-stamp::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+.photography-editorial-open-arrow {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+.photography-editorial-open-arrow b {
+  grid-area: 1 / 1;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--gold-ink);
+  transition:
+    transform var(--dur-base) var(--motion-ease),
+    opacity var(--dur-fast) var(--motion-ease);
+}
+.photography-editorial-open-arrow svg {
+  grid-area: 1 / 1;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--gold-hi);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+.photography-editorial .photography-editorial-preview-open:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+/* Keyboard focus shows the final hover state at once. */
+.photography-editorial-preview-open:focus-visible {
+  color: var(--navy-foreground);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+.photography-editorial-preview-open:focus-visible::before {
+  clip-path: circle(160% at 28px 50%);
+  transition: none;
+}
+.photography-editorial-preview-open:focus-visible .photography-editorial-open-stamp {
+  color: var(--gold-hi);
+}
+.photography-editorial-preview-open:focus-visible .photography-editorial-open-arrow b {
+  transform: translateX(14px);
+  opacity: 0;
+  transition: none;
+}
+.photography-editorial-preview-open:focus-visible .photography-editorial-open-arrow svg {
+  opacity: 1;
+}
+/* Press (also the touch feedback): the fill closes in at once and the stamp pulses; no movement,
+   as for every pressed control on the site. */
+.photography-editorial-preview-open:active {
+  color: var(--navy-foreground);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+.photography-editorial-preview-open:active::before {
+  clip-path: circle(160% at 28px 50%);
+  transition: none;
+}
+.photography-editorial-preview-open:active .photography-editorial-open-stamp {
+  color: var(--gold-hi);
+}
+@media (hover: hover) and (pointer: fine) {
+  .photography-editorial-preview-open:hover {
+    color: var(--navy-foreground);
+    box-shadow: inset 0 0 0 1px var(--navy);
+  }
+  .photography-editorial-preview-open:hover::before {
+    clip-path: circle(160% at 28px 50%);
+  }
+  .photography-editorial-preview-open:hover .photography-editorial-open-stamp {
+    color: var(--gold-hi);
+  }
+  .photography-editorial-preview-open:hover .photography-editorial-open-arrow b {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  .photography-editorial-preview-open:hover .photography-editorial-open-arrow svg {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) and (pointer: fine) {
+    .photography-editorial-preview-open:hover .photography-editorial-open-stamp {
+      animation: album-open-stamp 560ms var(--motion-ease) both;
+    }
+    .photography-editorial-preview-open:hover .photography-editorial-open-stamp::after {
+      animation: album-open-ring 760ms var(--motion-ease) 120ms both;
+    }
+    .photography-editorial-preview-open:hover .photography-editorial-open-arrow svg {
+      animation: album-open-fly 760ms var(--motion-ease) 120ms both;
+    }
+  }
+  .photography-editorial-preview-open:active .photography-editorial-open-stamp {
+    animation: album-open-stamp 560ms var(--motion-ease) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photography-editorial-preview-open,
+  .photography-editorial-preview-open::before,
+  .photography-editorial-open-arrow b {
+    transition: none;
+  }
+  .photography-editorial-preview-open:hover .photography-editorial-open-arrow b,
+  .photography-editorial-preview-open:focus-visible .photography-editorial-open-arrow b {
+    transform: none;
+  }
+}
+/* While the pill is hovered or focused the four frames lift a little, one after another.
+   Browsers without :has() simply keep them still. */
+@supports selector(:has(*)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .photography-editorial-preview-col:has(.photography-editorial-preview-open:focus-visible)
+      .photography-editorial-strip-item {
+      translate: 0 -6px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .photography-editorial-preview-col:has(.photography-editorial-preview-open:hover)
+        .photography-editorial-strip-item {
+        translate: 0 -6px;
+      }
+    }
+    .photography-editorial-preview-col:has(.photography-editorial-preview-open:is(:hover, :focus-visible))
+      .photography-editorial-strip-item:nth-child(2) {
+      transition-delay: 60ms;
+    }
+    .photography-editorial-preview-col:has(.photography-editorial-preview-open:is(:hover, :focus-visible))
+      .photography-editorial-strip-item:nth-child(3) {
+      transition-delay: 120ms;
+    }
+    .photography-editorial-preview-col:has(.photography-editorial-preview-open:is(:hover, :focus-visible))
+      .photography-editorial-strip-item:nth-child(4) {
+      transition-delay: 180ms;
+    }
+  }
+}
+@keyframes album-open-stamp {
+  0% {
+    transform: scale(1.55) rotate(-20deg);
+    opacity: 0.35;
+  }
+  55% {
+    transform: scale(0.9) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-4deg);
+  }
+}
+@keyframes album-open-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+@keyframes album-open-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-18px, 7px);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(5px, -3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
 }
 .photography-editorial-passport {
   display: none;
@@ -2371,9 +2612,15 @@ header .interaction-link.header-underline:focus-visible {
     color 0.3s,
     background-color 0.3s;
 }
-.photography-editorial-passport-slot:hover {
-  border-color: var(--foreground);
+.photography-editorial-passport-slot:focus-visible {
+  border-color: var(--gold-ink);
   color: var(--foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .photography-editorial-passport-slot:hover {
+    border-color: var(--gold-ink);
+    color: var(--foreground);
+  }
 }
 .photography-editorial-passport-slot[data-stamped="true"] {
   border: 0;
@@ -2595,10 +2842,15 @@ header .interaction-link.header-underline:focus-visible {
    Touch screens and narrower windows keep the single list with thumbnails. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   .photography-editorial-index-grid {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 7fr);
+    grid-template-columns: minmax(0, 425fr) minmax(0, 500fr);
     column-gap: 4rem;
     row-gap: 0;
     align-items: start;
+  }
+  .photography-editorial-index-inner {
+    width: min(1000px, calc(100% - 96px));
+    max-width: 1000px;
+    padding-inline: 0;
   }
   .photography-editorial-list-head {
     grid-column: 1;
@@ -2609,15 +2861,24 @@ header .interaction-link.header-underline:focus-visible {
     grid-row: 2;
   }
   .photography-editorial-row {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    min-height: 3.6rem;
-    padding-block: 0.35rem;
+    grid-template-columns: auto minmax(0, 1fr) auto 18px;
+    height: 46px;
+    min-height: 0;
+    padding-block: 0;
+    gap: 12px;
+    transition: padding-left var(--dur-base) var(--motion-ease);
+  }
+  .photography-editorial-count {
+    font-size: 11px;
+    font-weight: 500;
   }
   .photography-editorial-thumb {
     display: none;
   }
   .photography-editorial-destination-name {
-    font-size: clamp(2rem, 2.6vw, 2.75rem);
+    font-size: 34px;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--foreground) 86%, transparent);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2643,12 +2904,15 @@ header .interaction-link.header-underline:focus-visible {
     transform: rotate(var(--stamp-rot, 0deg));
     mix-blend-mode: multiply;
   }
-  .photography-editorial-preview {
+  .photography-editorial-preview-col {
     display: block;
     grid-column: 2;
     grid-row: 1 / span 2;
     position: sticky;
     top: var(--preview-top);
+  }
+  .photography-editorial-preview {
+    display: block;
   }
   .photography-editorial-destination-name,
   .photography-editorial-row-arrow {
@@ -2656,13 +2920,21 @@ header .interaction-link.header-underline:focus-visible {
       color var(--dur-base) var(--motion-ease),
       transform var(--dur-base) var(--motion-ease);
   }
-  /* The current row (hovered or focused last): bronze on cream, the name and arrow slide. */
+  /* The current row (hovered or focused last): its name turns navy and the arrow steps on.
+     The selected row (after the dwell, the map's album) is indented and bronze. */
+  .photography-editorial-row:hover .photography-editorial-destination-name,
+  .photography-editorial-row:focus-visible .photography-editorial-destination-name,
   .photography-editorial-row[aria-current="true"] .photography-editorial-destination-name {
-    color: var(--gold-ink);
-    transform: translateX(var(--row-slide));
+    color: var(--foreground);
   }
   .photography-editorial-row[aria-current="true"] .photography-editorial-row-arrow {
     transform: translateX(var(--arrow-slide));
+  }
+  .photography-editorial-row[data-selected="true"] {
+    padding-left: var(--row-slide);
+  }
+  .photography-editorial-row[data-selected="true"] .photography-editorial-destination-name {
+    color: var(--gold-ink);
   }
   @container albums-section (max-width: 1499px) {
     .photography-editorial-list-head {
@@ -2670,11 +2942,6 @@ header .interaction-link.header-underline:focus-visible {
     }
   }
   @container albums-section (min-width: 1500px) {
-    .photography-editorial-index-inner {
-      width: min(1000px, calc(100% - 96px));
-      max-width: 1000px;
-      padding-inline: 0;
-    }
     .photography-editorial-passport {
       display: block;
     }
@@ -2714,6 +2981,7 @@ header .interaction-link.header-underline:focus-visible {
     align-items: stretch;
     gap: 0;
   }
+  .photography-editorial-preview-col,
   .photography-editorial-preview {
     display: contents;
   }
@@ -2845,8 +3113,8 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-row {
     min-height: 52px;
     grid-template-columns: minmax(0, auto) minmax(42px, 1fr) auto;
-    gap: 0.65rem;
-    padding-block: 0.45rem;
+    gap: 12px;
+    padding-block: 0;
   }
   .photography-editorial-row[data-mobile-selected="true"] {
     grid-template-columns: minmax(0, auto) minmax(42px, 1fr) auto auto;
@@ -2915,6 +3183,10 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-row[aria-current="true"] .photography-editorial-destination-name,
   .photography-editorial-row[aria-current="true"] .photography-editorial-row-arrow {
     transform: none;
+  }
+  .photography-editorial-row,
+  .photography-editorial-strip-item {
+    transition: none;
   }
 }
 

@@ -6,7 +6,8 @@ import {
   getAllGalleryPhotos,
   getPhotoLocations,
 } from "@/content/photo-gallery";
-import { PHOTO_THEMES } from "@/content/photos";
+import { PHOTO_FILTER_THEMES, PHOTO_THEMES, photoThemeLabel } from "@/content/photos";
+import { validatePhotoSearch } from "@/views/photography";
 
 describe("photography filters", () => {
   const items = getAllGalleryPhotos("bg");
@@ -64,6 +65,68 @@ describe("photography filters", () => {
     expect(
       filterGalleryPhotos(items, { theme: "architecture", location: "paris" }).length,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe("photography theme chips", () => {
+  const items = getAllGalleryPhotos("bg");
+
+  it("offers five subjects (plus All); travel stays on the photos but is not a chip", () => {
+    expect(PHOTO_FILTER_THEMES).toEqual(["sea", "city", "sunsets", "nature", "architecture"]);
+    expect(PHOTO_FILTER_THEMES.map((theme) => photoThemeLabel(theme, "bg"))).toEqual([
+      "Море",
+      "Град",
+      "Залези",
+      "Природа",
+      "Архитектура",
+    ]);
+    expect(PHOTO_FILTER_THEMES.map((theme) => photoThemeLabel(theme, "en"))).toEqual([
+      "Sea",
+      "City",
+      "Sunsets",
+      "Nature",
+      "Architecture",
+    ]);
+    expect(items.filter(({ photo }) => photo.themes.includes("travel"))).toHaveLength(294);
+  });
+
+  it("makes every photo reachable from at least one subject chip", () => {
+    const unreachable = items.filter(
+      ({ photo }) =>
+        !photo.themes.some((theme) => (PHOTO_FILTER_THEMES as readonly string[]).includes(theme)),
+    );
+    expect(unreachable.map(({ photo }) => photo.slug)).toEqual([]);
+    // The four photos that used to carry only travel keep it and gained one subject each.
+    const themesOf = (slug: string) => items.find(({ photo }) => photo.slug === slug)!.photo.themes;
+    expect(themesOf("tunisia-001")).toEqual(["architecture", "travel"]);
+    expect(themesOf("tunisia-004")).toEqual(["architecture", "travel"]);
+    expect(themesOf("tunisia-010")).toEqual(["nature", "travel"]);
+    expect(themesOf("bodrum-016")).toEqual(["sunsets", "travel"]);
+  });
+
+  it("counts photos per chip", () => {
+    const count = (theme?: (typeof PHOTO_FILTER_THEMES)[number]) =>
+      filterGalleryPhotos(items, { theme }).length;
+    expect({
+      all: count(),
+      sea: count("sea"),
+      city: count("city"),
+      sunsets: count("sunsets"),
+      nature: count("nature"),
+      architecture: count("architecture"),
+    }).toEqual({ all: 426, sea: 173, city: 196, sunsets: 46, nature: 112, architecture: 147 });
+  });
+
+  it("ignores an old ?theme=travel (or any unknown theme) and shows every photo", () => {
+    expect(validatePhotoSearch({ view: "photos", theme: "travel" })).toEqual({
+      view: "photos",
+      theme: undefined,
+      location: undefined,
+    });
+    expect(validatePhotoSearch({ theme: "nope", location: "sofia" }).theme).toBeUndefined();
+    expect(
+      filterGalleryPhotos(items, { theme: validatePhotoSearch({ theme: "travel" }).theme }),
+    ).toHaveLength(426);
   });
 });
 

@@ -6,9 +6,9 @@ import {
   photoCategoryLabel,
   photoThemeLabel,
   photos,
-  PHOTO_THEMES,
+  PHOTO_FILTER_THEMES,
   type Photo,
-  type PhotoTheme,
+  type PhotoFilterTheme,
 } from "@/content/photos";
 import {
   filterGalleryPhotos,
@@ -35,12 +35,13 @@ import { LocaleLink } from "@/i18n/link";
 
 export type PhotoSearch = {
   view?: "photos" | undefined;
-  theme?: PhotoTheme | undefined;
+  theme?: PhotoFilterTheme | undefined;
   location?: string | undefined;
 };
 export const validatePhotoSearch = (s: Record<string, unknown>): PhotoSearch => ({
   view: s["view"] === "photos" ? "photos" : undefined,
-  theme: PHOTO_THEMES.find((theme) => theme === s["theme"]),
+  // Only offered subjects; anything else (e.g. an old ?theme=travel link) shows every photo.
+  theme: PHOTO_FILTER_THEMES.find((theme) => theme === s["theme"]),
   location: getPhotoLocations().find((album) => album.slug === s["location"])?.slug,
 });
 
@@ -133,7 +134,7 @@ export function PhotographyView() {
             <Chip active={!theme} onClick={() => set({ theme: undefined })}>
               {t.common.all}
             </Chip>
-            {PHOTO_THEMES.map((value) => (
+            {PHOTO_FILTER_THEMES.map((value) => (
               <Chip
                 key={value}
                 active={theme === value}

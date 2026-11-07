@@ -22,9 +22,9 @@ export const ALBUM_PREVIEW = {
   /** Covers warmed on each side of the current row, when the browser is idle. */
   warmAround: 2,
   idleTimeoutMs: 1200,
-  /** Current row: the name slides right, the arrow a little less. */
-  rowSlidePx: 10,
-  arrowSlidePx: 5,
+  /** Selected row: indented by rowSlidePx; the arrow of the hovered/focused row moves arrowSlidePx. */
+  rowSlidePx: 8,
+  arrowSlidePx: 4,
 } as const;
 
 export type WipeDirection = "down" | "up" | null;
