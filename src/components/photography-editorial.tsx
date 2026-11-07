@@ -182,7 +182,7 @@ function PassportVisa({ total }: { total: number }) {
 
 /**
  * A tap from a finger or pen (not a mouse click, not keyboard or assistive activation, which
- * report `detail === 0`). Only such taps use the two-tap model on mobile.
+ * report `detail === 0`). Only such taps use the two-tap model at any section width.
  */
 const isTouchTap = (event: MouseEvent<HTMLElement>): boolean => {
   if (event.detail === 0) return false;
@@ -485,7 +485,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
     (event: MouseEvent<HTMLLIElement>, slug: string) => {
       clearMapDwell();
       // First touch tap selects, the second opens; keyboard and mouse always open at once.
-      if (!mobile || !isTouchTap(event)) return;
+      if (!isTouchTap(event)) return;
       if (mobileSelectedSlug !== slug) {
         event.preventDefault();
         event.stopPropagation();
@@ -494,7 +494,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
         stamp(slug);
       }
     },
-    [mobile, mobileSelectedSlug, clearMapDwell, selectWithOrigin, stamp],
+    [mobileSelectedSlug, clearMapDwell, selectWithOrigin, stamp],
   );
 
   const handleRowKeyDown = useCallback(
