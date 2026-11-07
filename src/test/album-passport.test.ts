@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   addStamp,
   EMPTY_PASSPORT,
+  isPassportComplete,
+  PASSPORT_FINALE_TIMINGS,
+  passportCountText,
+  passportMrzLines,
   POSITIONS,
   stampRotation,
   stampSpot,
@@ -43,6 +47,31 @@ describe("album passport pure state", () => {
 
     expect([...state]).toEqual(order);
     expect(addStamp(state, "bodrum").isNew).toBe(false);
+  });
+
+  it("starts the finale only at the exact album count and keeps its sequence explicit", () => {
+    const twelve = new Set(Array.from({ length: 12 }, (_, index) => `album-${index}`));
+    const thirteen = new Set([...twelve, "album-12"]);
+
+    expect(isPassportComplete(twelve, 13)).toBe(false);
+    expect(isPassportComplete(thirteen, 13)).toBe(true);
+    expect(isPassportComplete(new Set([...thirteen, "unexpected"]), 13)).toBe(false);
+    expect(isPassportComplete(EMPTY_PASSPORT, 0)).toBe(false);
+    expect(PASSPORT_FINALE_TIMINGS).toEqual({
+      startMs: 650,
+      sealAfterVisaMs: 1050,
+      ctaAfterVisaMs: 1500,
+    });
+  });
+
+  it("derives the VISA, seal and MRZ count copy from the real total", () => {
+    expect(passportCountText(13)).toBe("13 / 13");
+    expect(passportCountText(7)).toBe("07 / 07");
+    expect(passportMrzLines(13)).toEqual([
+      "V<AIW<CHEFO<<VISUAL<WORLDS<<<<<<",
+      "13<13<REAL<PLACES<<AI<WORLDS<<<<<",
+    ]);
+    expect(passportMrzLines(7)[1]).toContain("07<07<REAL<PLACES");
   });
 
   it("computes deterministic spread positions and rotations, wrapping modularly past 13", () => {

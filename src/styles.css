@@ -1890,6 +1890,7 @@ header .interaction-link.header-underline:focus-visible {
 }
 .photography-editorial-list-head {
   display: none;
+  min-height: 44px;
   margin: 0 0 10px;
 }
 .photography-editorial-zone-title {
@@ -1898,6 +1899,62 @@ header .interaction-link.header-underline:focus-visible {
 .photography-editorial-list-head[data-done="true"],
 .photography-editorial-zone-title[data-done="true"] {
   color: #8a6a32;
+}
+.photography-editorial-passport-summary {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.photography-editorial-zone-name {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.photography-editorial-zone-name small {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold-ink);
+}
+.photography-editorial-complete-seal-compact {
+  display: inline-block;
+  width: 78px;
+  height: 26px;
+  margin-left: 8px;
+  vertical-align: middle;
+  transform: rotate(-6deg);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.photography-editorial-complete-seal-compact svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.photography-editorial-complete-link-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
+  margin-left: auto;
+  color: var(--gold-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-decoration: none;
+  transition: color var(--interaction-duration) var(--motion-ease);
+}
+.photography-editorial .photography-editorial-complete-link-compact:focus-visible {
+  color: var(--navy);
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .photography-editorial-complete-link-compact:hover {
+    color: var(--navy);
+  }
 }
 .photography-editorial-destination-list {
   min-width: 0;
@@ -2046,8 +2103,8 @@ header .interaction-link.header-underline:focus-visible {
   z-index: 4;
   right: 12px;
   bottom: 12px;
-  width: 62px;
-  height: 62px;
+  width: 64px;
+  height: 64px;
   opacity: 0;
   transform: scale(0.6) rotate(-14deg);
   transition:
@@ -2160,6 +2217,58 @@ header .interaction-link.header-underline:focus-visible {
     opacity: 1;
   }
 }
+@keyframes album-visa-in {
+  from {
+    opacity: 0;
+    transform: translate(0, -130%) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) rotate(2.2deg);
+  }
+}
+@keyframes album-visa-hologram {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+@keyframes album-complete-seal-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) rotate(-26deg) scale(2.1);
+  }
+  65% {
+    opacity: 0.9;
+    transform: translateY(-50%) rotate(-11deg) scale(0.95);
+  }
+  100% {
+    opacity: 0.9;
+    transform: translateY(-50%) rotate(-11deg) scale(1);
+  }
+}
+@keyframes album-complete-seal-compact-in {
+  from {
+    opacity: 0;
+    transform: rotate(-16deg) scale(1.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+@keyframes album-complete-link-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .photography-editorial-preview-layer[data-dir="down"],
   .photography-editorial-preview-layer[data-dir="up"] {
@@ -2182,6 +2291,22 @@ header .interaction-link.header-underline:focus-visible {
   }
   .photography-editorial-passport-slot[data-stamped="true"][data-new="true"] {
     animation: album-slot-pop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  .photography-editorial-visa {
+    animation: album-visa-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .photography-editorial-visa-hologram {
+    animation: album-visa-hologram 1.6s ease 0.9s both;
+  }
+  .photography-editorial-complete-seal {
+    animation: album-complete-seal-in 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+  .photography-editorial-complete-seal-compact {
+    animation: album-complete-seal-compact-in 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+  .photography-editorial-complete-link,
+  .photography-editorial-complete-link-compact {
+    animation: album-complete-link-in 0.4s var(--motion-ease) both;
   }
 }
 .photography-editorial-preview figcaption {
@@ -2583,6 +2708,171 @@ header .interaction-link.header-underline:focus-visible {
   display: block;
   width: 100%;
   height: 100%;
+}
+.photography-editorial-visa {
+  position: absolute;
+  z-index: 3;
+  left: 53%;
+  top: 8%;
+  width: 43%;
+  height: 78%;
+  overflow: hidden;
+  border-radius: 3px;
+  background:
+    repeating-radial-gradient(
+      circle at 30% 40%,
+      rgba(201, 164, 107, 0.16) 0 1px,
+      transparent 1px 5px
+    ),
+    repeating-linear-gradient(115deg, rgba(161, 106, 86, 0.08) 0 1px, transparent 1px 6px),
+    linear-gradient(160deg, #f3e6cb, #ead6b4 55%, #f1e3c8);
+  box-shadow:
+    0 0 0 1px rgba(138, 106, 50, 0.45),
+    0 8px 14px -8px rgba(22, 33, 58, 0.55);
+  transform: rotate(2.2deg);
+  pointer-events: none;
+}
+.photography-editorial-visa-inner {
+  position: absolute;
+  inset: 4cqw 3.4cqw 3cqw;
+  display: flex;
+  flex-direction: column;
+  color: #5b4421;
+  font-family: var(--font-sans);
+}
+.photography-editorial-visa-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 1.4cqw;
+  border-bottom: 1px solid rgba(138, 106, 50, 0.5);
+}
+.photography-editorial-visa-top b {
+  color: #8a6a32;
+  font-family: var(--font-serif);
+  font-size: 7.2cqw;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+.photography-editorial-visa-top span {
+  font-size: 1.55cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+}
+.photography-editorial-visa-body {
+  display: flex;
+  flex: 1;
+  gap: 2.4cqw;
+  min-height: 0;
+  margin-top: 2.6cqw;
+}
+.photography-editorial-visa-portrait {
+  flex: none;
+  width: 9cqw;
+  height: 11cqw;
+  border: 1px solid rgba(138, 106, 50, 0.5);
+  background: rgba(248, 241, 228, 0.6);
+}
+.photography-editorial-visa-portrait svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.photography-editorial-visa-body dl {
+  display: grid;
+  align-content: start;
+  row-gap: 0.5cqw;
+  margin: 0;
+}
+.photography-editorial-visa-body dt {
+  color: rgba(91, 68, 33, 0.65);
+  font-size: 1.4cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+}
+.photography-editorial-visa-body dd {
+  margin: 0 0 1cqw;
+  font-size: 2.15cqw;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+}
+.photography-editorial-visa-mrz {
+  overflow: hidden;
+  color: rgba(91, 68, 33, 0.8);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 1.55cqw;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.photography-editorial-visa-hologram {
+  position: absolute;
+  inset: -4cqw;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 45%,
+    rgba(201, 230, 255, 0.35) 50%,
+    rgba(255, 220, 240, 0.3) 55%,
+    transparent 65%
+  );
+  mix-blend-mode: soft-light;
+  transform: translateX(120%);
+  pointer-events: none;
+}
+.photography-editorial-complete-seal {
+  position: absolute;
+  z-index: 4;
+  left: 8%;
+  top: 63%;
+  width: 58%;
+  opacity: 0.9;
+  mix-blend-mode: multiply;
+  transform: translateY(-50%) rotate(-11deg);
+  pointer-events: none;
+}
+.photography-editorial-complete-seal svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.photography-editorial-complete-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin: -6px 5px 18px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #f8f1e4;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color var(--interaction-duration) var(--motion-ease),
+    color var(--interaction-duration) var(--motion-ease);
+}
+.photography-editorial .photography-editorial-complete-link:focus-visible {
+  background: var(--interaction-gold);
+  color: var(--navy);
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+.photography-editorial-complete-link:active {
+  background: var(--btn-active-bg);
+  color: var(--navy);
+}
+@media (hover: hover) and (pointer: fine) {
+  .photography-editorial-complete-link:hover {
+    background: var(--interaction-gold);
+    color: var(--navy);
+  }
 }
 .photography-editorial-passport-grid {
   list-style: none;
@@ -3177,6 +3467,18 @@ header .interaction-link.header-underline:focus-visible {
   .photography-editorial-map-plane,
   .photography-editorial-route-plane {
     display: none !important;
+  }
+  .photography-editorial-visa,
+  .photography-editorial-complete-seal,
+  .photography-editorial-complete-seal-compact,
+  .photography-editorial-complete-link,
+  .photography-editorial-complete-link-compact {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+  .photography-editorial-visa-hologram {
+    display: none;
   }
   .photography-editorial-row:hover .photography-editorial-row-arrow,
   .photography-editorial-row:focus-visible .photography-editorial-row-arrow,

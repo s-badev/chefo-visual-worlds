@@ -391,6 +391,107 @@ describe("Photography album overview", () => {
     setItemSpy.mockRestore();
   });
 
+  it("reveals the English VISA, seal and AI link in order only after the real hover path completes the passport", () => {
+    activeLocale = "en";
+    vi.useFakeTimers();
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1920);
+    const { container } = render(<PhotographyView />);
+    const rows = Array.from(
+      container.querySelectorAll<HTMLLIElement>(
+        ".photography-editorial-destination-list li[data-album-slug]",
+      ),
+    );
+
+    expect(rows).toHaveLength(13);
+    expect(container.querySelector(".photography-editorial-complete-link")).toBeNull();
+    rows.slice(0, -1).forEach((row) => fireEvent.mouseEnter(row));
+    expect(container.querySelector(".photography-editorial-visa")).toBeNull();
+    fireEvent.mouseEnter(rows.at(-1)!);
+    expect(container.querySelector(".photography-editorial-complete-link")).toBeNull();
+
+    act(() => vi.advanceTimersByTime(649));
+    expect(container.querySelector(".photography-editorial-visa")).toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(container.querySelector(".photography-editorial-visa-top")).toHaveTextContent(
+      "VISACHEFO VISUAL WORLDS",
+    );
+    expect(container.querySelector(".photography-editorial-visa-body")).toHaveTextContent(
+      "TYPEAI WORLDSENTRIESMULTIPLEGRANTED FOR13 / 13 REAL PLACESHOLDERYOU",
+    );
+    expect(container.querySelector(".photography-editorial-visa-mrz")).toHaveTextContent(
+      "13<13<REAL<PLACES<<AI<WORLDS<<<<<",
+    );
+    expect(container.querySelector(".photography-editorial-complete-seal")).toBeNull();
+    expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
+      "Passport complete: all 13 albums",
+    );
+
+    act(() => vi.advanceTimersByTime(1050));
+    expect(container.querySelector(".photography-editorial-complete-seal")).toHaveTextContent(
+      "COMPLETE13 / 13 · TRAVEL PASSPORT",
+    );
+    expect(container.querySelector(".photography-editorial-complete-link")).toBeNull();
+    act(() => vi.advanceTimersByTime(450));
+    expect(screen.getAllByRole("link", { name: "To the AI worlds" })).toHaveLength(2);
+
+    fireEvent.mouseEnter(rows[0]!);
+    expect(container.querySelectorAll("[data-passport-live]")).toHaveLength(1);
+    expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
+      "Passport complete: all 13 albums",
+    );
+
+    width.mockRestore();
+    media.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("completes through the touch path and renders the compact Bulgarian finale immediately with reduced motion", () => {
+    activeLocale = "bg";
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches:
+            query.includes("pointer: coarse") || query.includes("prefers-reduced-motion: reduce"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(390);
+    const { container } = render(<PhotographyView />);
+    const links = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        ".photography-editorial-destination-list li[data-album-slug] > a",
+      ),
+    );
+
+    expect(container.querySelector('a[href="/ai-worlds"]')).toBeNull();
+    links.forEach((link) => fireEvent.click(link, { detail: 1 }));
+
+    expect(container.querySelector(".photography-editorial-list-head")).toHaveAttribute(
+      "data-done",
+      "true",
+    );
+    expect(container.querySelector(".photography-editorial-complete-seal-compact")).not.toBeNull();
+    expect(screen.getAllByRole("link", { name: "Към AI световете" })).toHaveLength(2);
+    expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
+      "Паспортът е завършен: всички 13 албума",
+    );
+    expect(container.querySelector(".photography-editorial-passport-hint")).toBeNull();
+
+    width.mockRestore();
+    media.mockRestore();
+  });
+
   it("renders English-only passport stamps on both bg and en, and keeps the English Albums section completely free of Cyrillic", () => {
     const media = vi.spyOn(window, "matchMedia").mockImplementation(
       (query: string) =>
