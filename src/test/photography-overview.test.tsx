@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
@@ -389,6 +389,271 @@ describe("Photography album overview", () => {
     expect(setItemSpy).not.toHaveBeenCalled();
     media.mockRestore();
     setItemSpy.mockRestore();
+  });
+
+  it("renders English-only passport stamps on both bg and en, and keeps the English Albums section completely free of Cyrillic", () => {
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+
+    // 1. Bulgarian locale: row displays "София", stamp displays "SOFIA" and "PHOTOS", badge displays "№ 01 / 13 · СОФИЯ".
+    activeLocale = "bg";
+    const bgView = render(<PhotographyView />);
+    const bgIndex = bgView.container.querySelector(".photography-editorial-destination-list")!;
+    const bgSofiaLi = within(bgIndex as HTMLElement)
+      .getByText("София")
+      .closest("li")!;
+    expect(
+      bgView.container.querySelector(".photography-editorial-preview-badge"),
+    ).toHaveTextContent("№ 01 / 13 · СОФИЯ");
+    fireEvent.mouseEnter(bgSofiaLi);
+    const bgStampSvg = bgSofiaLi.querySelector(".photography-editorial-row-stamp svg")!;
+    expect(bgStampSvg.textContent).toContain("SOFIA");
+    expect(bgStampSvg.textContent).toContain("PHOTOS");
+    expect(bgStampSvg.textContent).not.toMatch(/[\u0400-\u04FF]/);
+    const bgStampText = bgStampSvg.textContent;
+    const bgStampNormalizedHtml = bgStampSvg.innerHTML.replace(/stamp-path-[^"]+/g, "stamp-path");
+    cleanup();
+
+    // 2. English locale: stamp is identical, badge is "No. 01 / 13 · SOFIA", and zero Cyrillic appears in the Albums section.
+    activeLocale = "en";
+    const enView = render(<PhotographyView />);
+    const enAlbumsSection = enView.container.querySelector(".photography-editorial-index")!;
+    expect(
+      enView.container.querySelector(".photography-editorial-preview-badge"),
+    ).toHaveTextContent("No. 01 / 13 · SOFIA");
+    expect(
+      enView.container.querySelector(".photography-editorial-passport-empty"),
+    ).toHaveTextContent(messages.en.photos.passportEmpty);
+    expect(enAlbumsSection.textContent).not.toMatch(/[\u0400-\u04FF]/);
+
+    const enIndex = enView.container.querySelector(".photography-editorial-destination-list")!;
+    const enSofiaLi = within(enIndex as HTMLElement)
+      .getByText("Sofia")
+      .closest("li")!;
+    fireEvent.mouseEnter(enSofiaLi);
+    const enStampSvg = enSofiaLi.querySelector(".photography-editorial-row-stamp svg")!;
+    expect(enStampSvg.textContent).toBe(bgStampText);
+    expect(enStampSvg.innerHTML.replace(/stamp-path-[^"]+/g, "stamp-path")).toBe(
+      bgStampNormalizedHtml,
+    );
+    expect(enAlbumsSection.textContent).not.toMatch(/[\u0400-\u04FF]/);
+
+    media.mockRestore();
+  });
+
+  it("renders the lazy album map only at >=1680px with fine pointer, switches europe/balkans layers, activates the coast lens, and suppresses airplane flight under reduced motion", async () => {
+    activeLocale = "bg";
+
+    // Below a 1680px albums section (fine pointer, desktop preview on): map does not render.
+    const narrowMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("pointer: fine"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const narrowWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1679);
+    const narrow = render(<PhotographyView />);
+    expect(narrow.container.querySelector(".photography-editorial-map")).toBeNull();
+    narrowWidth.mockRestore();
+    narrowMedia.mockRestore();
+    cleanup();
+
+    // A wide section without a fine pointer: no map either.
+    const coarseMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const coarseWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1920);
+    const coarse = render(<PhotographyView />);
+    expect(coarse.container.querySelector(".photography-editorial-map")).toBeNull();
+    coarseWidth.mockRestore();
+    coarseMedia.mockRestore();
+    cleanup();
+
+    // At >=1680px + fine pointer + reduced-motion: map renders lazily.
+    const wideMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches:
+            query.includes("pointer: fine") || query.includes("prefers-reduced-motion: reduce"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const wideWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(1680);
+    const { container } = render(<PhotographyView />);
+    await waitFor(() => {
+      expect(container.querySelector(".photography-editorial-map")).not.toBeNull();
+    });
+
+    vi.useFakeTimers();
+    const mapZone = () => container.querySelector<HTMLElement>(".photography-editorial-map")!;
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const plane = () => container.querySelector<SVGGElement>(".photography-editorial-map-plane")!;
+    const lens = () => container.querySelector<HTMLElement>(".photography-editorial-map-lens")!;
+
+    // Default initial album is Sofia (albums[0]) -> "balkans" layer.
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(plane().style.display).toBe("none");
+    expect(mapZone().querySelectorAll(".photography-editorial-map-bg")).toHaveLength(2);
+    expect(mapZone().querySelectorAll(".photography-editorial-map-borders")).toHaveLength(2);
+    expect(mapZone().querySelectorAll("image.photography-editorial-map-relief")).toHaveLength(2);
+    expect(mapZone().querySelector(".photography-editorial-map-lens-land")).not.toBeNull();
+    expect(mapZone().querySelector(".photography-editorial-map-attr")).toHaveTextContent(
+      messages.bg.photos.mapCredits,
+    );
+
+    // Hover Paris -> after 350ms dwell, map switches to "europe", no airplane under reduced-motion.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("Париж")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "europe");
+    expect(lens()).not.toHaveAttribute("data-hot");
+    expect(plane().style.display).toBe("none");
+
+    // Hover Sunny Beach -> after 350ms dwell, map switches to "balkans" and coast lens is hot.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("Слънчев бряг")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(mapZone()).toHaveAttribute("data-coast", "true");
+    expect(lens()).toHaveAttribute("data-hot", "true");
+    expect(
+      lens().querySelector('[data-pin-slug="sunny-beach"].photography-editorial-map-pin--active'),
+    ).not.toBeNull();
+    expect(plane().style.display).toBe("none");
+
+    // Hover Sofia -> after 350ms dwell, stays on "balkans" and clears coast lens hot state.
+    fireEvent.mouseEnter(
+      within(index as HTMLElement)
+        .getByText("София")
+        .closest("li")!,
+    );
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(mapZone()).toHaveAttribute("data-layer", "balkans");
+    expect(lens()).not.toHaveAttribute("data-hot");
+
+    vi.useRealTimers();
+    wideWidth.mockRestore();
+    wideMedia.mockRestore();
+  });
+
+  it("implements the mobile two-tap selection model with route strip, open link, and polite live announcement", () => {
+    activeLocale = "bg";
+    const mobileMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches:
+            query.includes("pointer: coarse") || query.includes("prefers-reduced-motion: reduce"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const mobileWidth = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(390);
+
+    const { container } = render(<PhotographyView />);
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const parisLink = within(index as HTMLElement)
+      .getByText("Париж")
+      .closest("a")!;
+    const onBubbleClick = vi.fn((event: MouseEvent) => event.preventDefault());
+    parisLink.addEventListener("click", onBubbleClick);
+    const mobileOpen = () =>
+      container.querySelector<HTMLAnchorElement>(".photography-editorial-mobile-open")!;
+    const liveRegion = () => container.querySelector<HTMLElement>("[data-mobile-live]")!;
+    const counters = () =>
+      Array.from(container.querySelectorAll(".photography-editorial-passport-count")).map(
+        (el) => el.textContent,
+      );
+
+    expect(container.querySelector(".photography-editorial-route")).not.toBeNull();
+    expect(mobileOpen()).toHaveAttribute("href", "/photography/albums/sofia");
+    expect(counters()).toEqual(["0 / 13", "0 / 13"]);
+
+    // First tap on Paris: prevents navigation in capture phase, stamps Paris (1 / 13), updates mobile open link & live text.
+    const firstTapAllowed = fireEvent.click(parisLink, { detail: 1 });
+    expect(firstTapAllowed).toBe(false);
+    expect(onBubbleClick).not.toHaveBeenCalled();
+    expect(parisLink).toHaveAttribute("data-mobile-selected", "true");
+    expect(counters()).toEqual(["1 / 13", "1 / 13"]);
+    expect(mobileOpen()).toHaveAttribute("href", "/photography/albums/paris");
+    expect(liveRegion()).toHaveTextContent("Избрано: Париж, 57 кадъра");
+    expect(container.querySelector('[data-current="true"]')).toHaveAttribute(
+      "cx",
+      String(14 + 8 * (330 / 12)),
+    );
+
+    // Second tap on Paris: reaches the link bubble listener and navigates.
+    fireEvent.click(parisLink, { detail: 1 });
+    expect(onBubbleClick).toHaveBeenCalledTimes(1);
+
+    // Keyboard (or assistive) activation never uses the two-tap rule: Enter on Lyon opens at once.
+    const lyonLink = within(index as HTMLElement)
+      .getByText("Лион")
+      .closest("a")!;
+    const onLyon = vi.fn((event: MouseEvent) => event.preventDefault());
+    lyonLink.addEventListener("click", onLyon);
+    fireEvent.click(lyonLink, { detail: 0 });
+    expect(onLyon).toHaveBeenCalledTimes(1);
+    expect(lyonLink).not.toHaveAttribute("data-mobile-selected");
+
+    mobileWidth.mockRestore();
+    mobileMedia.mockRestore();
+  });
+
+  it("opens an album with one mouse click on a narrow section (the two-tap rule is touch only)", () => {
+    activeLocale = "bg";
+    const media = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(700);
+    const { container } = render(<PhotographyView />);
+    const index = container.querySelector(".photography-editorial-destination-list")!;
+    const link = within(index as HTMLElement)
+      .getByText("Париж")
+      .closest("a")!;
+    const onClick = vi.fn((event: MouseEvent) => event.preventDefault());
+    link.addEventListener("click", onClick);
+    fireEvent.click(link, { detail: 1 });
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(container.querySelector(".photography-editorial-route")).not.toBeNull();
+    width.mockRestore();
+    media.mockRestore();
   });
 
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
