@@ -454,43 +454,48 @@ describe("Photography album overview", () => {
     vi.useRealTimers();
   });
 
-  it("completes through the touch path and renders the compact Bulgarian finale immediately with reduced motion", () => {
-    activeLocale = "bg";
-    const media = vi.spyOn(window, "matchMedia").mockImplementation(
-      (query: string) =>
-        ({
-          matches:
-            query.includes("pointer: coarse") || query.includes("prefers-reduced-motion: reduce"),
-          media: query,
-          addEventListener: () => {},
-          removeEventListener: () => {},
-        }) as unknown as MediaQueryList,
-    );
-    const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(390);
-    const { container } = render(<PhotographyView />);
-    const links = Array.from(
-      container.querySelectorAll<HTMLAnchorElement>(
-        ".photography-editorial-destination-list li[data-album-slug] > a",
-      ),
-    );
+  it.each([390, 1440])(
+    "completes through the touch path at %ipx and renders the compact Bulgarian finale immediately with reduced motion",
+    (sectionWidth) => {
+      activeLocale = "bg";
+      const media = vi.spyOn(window, "matchMedia").mockImplementation(
+        (query: string) =>
+          ({
+            matches:
+              query.includes("pointer: coarse") || query.includes("prefers-reduced-motion: reduce"),
+            media: query,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+          }) as unknown as MediaQueryList,
+      );
+      const width = vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(sectionWidth);
+      const { container } = render(<PhotographyView />);
+      const links = Array.from(
+        container.querySelectorAll<HTMLAnchorElement>(
+          ".photography-editorial-destination-list li[data-album-slug] > a",
+        ),
+      );
 
-    expect(container.querySelector('a[href="/ai-worlds"]')).toBeNull();
-    links.forEach((link) => fireEvent.click(link, { detail: 1 }));
+      expect(container.querySelector('a[href="/ai-worlds"]')).toBeNull();
+      links.forEach((link) => fireEvent.click(link, { detail: 1 }));
 
-    expect(container.querySelector(".photography-editorial-list-head")).toHaveAttribute(
-      "data-done",
-      "true",
-    );
-    expect(container.querySelector(".photography-editorial-complete-seal-compact")).not.toBeNull();
-    expect(screen.getAllByRole("link", { name: "Към AI световете" })).toHaveLength(2);
-    expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
-      "Паспортът е завършен: всички 13 албума",
-    );
-    expect(container.querySelector(".photography-editorial-passport-hint")).toBeNull();
+      expect(container.querySelector(".photography-editorial-list-head")).toHaveAttribute(
+        "data-done",
+        "true",
+      );
+      expect(
+        container.querySelector(".photography-editorial-complete-seal-compact"),
+      ).not.toBeNull();
+      expect(screen.getAllByRole("link", { name: "Към AI световете" })).toHaveLength(2);
+      expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
+        "Паспортът е завършен: всички 13 албума",
+      );
+      expect(container.querySelector(".photography-editorial-passport-hint")).toBeNull();
 
-    width.mockRestore();
-    media.mockRestore();
-  });
+      width.mockRestore();
+      media.mockRestore();
+    },
+  );
 
   it("renders English-only passport stamps on both bg and en, and keeps the English Albums section completely free of Cyrillic", () => {
     const media = vi.spyOn(window, "matchMedia").mockImplementation(

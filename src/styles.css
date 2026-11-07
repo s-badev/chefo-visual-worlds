@@ -3256,6 +3256,17 @@ header .interaction-link.header-underline:focus-visible {
   }
 }
 
+/* Coarse pointers retain the single-column album list at every width. Its compact passport
+   header is therefore the visible completion surface instead of the fine-pointer side book. */
+@media (min-width: 768px) and (hover: none), (min-width: 768px) and (pointer: coarse) {
+  .photography-editorial-index-grid {
+    row-gap: 0;
+  }
+  .photography-editorial-list-head {
+    display: flex;
+  }
+}
+
 .photography-editorial a:focus-visible,
 .photography-editorial button:focus-visible {
   outline: 3px solid var(--foreground);
