@@ -21,6 +21,10 @@ import { LocaleLink } from "@/i18n/link";
 import {
   addStamp,
   EMPTY_PASSPORT,
+  isPassportComplete,
+  PASSPORT_FINALE_TIMINGS,
+  passportCountText,
+  passportMrzLines,
   stampRotation,
   stampSpot,
   type PassportState,
@@ -71,6 +75,110 @@ const stripPhotosOf = (album: Album): Photo[] => {
 };
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
+
+type PassportFinaleStage = 0 | 1 | 2 | 3;
+
+function CompletionSeal({ total, compact = false }: { total: number; compact?: boolean }) {
+  const width = compact ? 78 : 300;
+  const height = compact ? 26 : 110;
+  const inset = compact ? 5 : 8;
+  const count = passportCountText(total);
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} focusable="false" aria-hidden="true">
+      <rect
+        x="2"
+        y="2"
+        width={width - 4}
+        height={height - 4}
+        rx="4"
+        fill="none"
+        stroke="#A16A56"
+        strokeWidth={compact ? 1.8 : 3}
+      />
+      <rect
+        x={inset}
+        y={inset}
+        width={width - inset * 2}
+        height={height - inset * 2}
+        rx="2"
+        fill="none"
+        stroke="#A16A56"
+        strokeWidth="1"
+      />
+      <text
+        x={width / 2}
+        y={compact ? height * 0.66 : height * 0.47}
+        textAnchor="middle"
+        fontFamily={
+          compact ? "Manrope, system-ui, sans-serif" : "Cormorant Garamond, Georgia, serif"
+        }
+        fontWeight={compact ? 700 : 600}
+        fontSize={compact ? height * 0.42 : height * 0.36}
+        letterSpacing={compact ? 1 : 4}
+        fill="#A16A56"
+      >
+        COMPLETE
+      </text>
+      {!compact && (
+        <text
+          x={width / 2}
+          y={height * 0.75}
+          textAnchor="middle"
+          fontFamily="Manrope, system-ui, sans-serif"
+          fontWeight="600"
+          fontSize={height * 0.12}
+          letterSpacing="2.4"
+          fill="#A16A56"
+        >
+          {count} · TRAVEL PASSPORT
+        </text>
+      )}
+    </svg>
+  );
+}
+
+function PassportVisa({ total }: { total: number }) {
+  const [firstMrz, secondMrz] = passportMrzLines(total);
+  return (
+    <div className="photography-editorial-visa" data-passport-count={total} aria-hidden="true">
+      <div className="photography-editorial-visa-inner">
+        <div className="photography-editorial-visa-top">
+          <b>VISA</b>
+          <span>CHEFO VISUAL WORLDS</span>
+        </div>
+        <div className="photography-editorial-visa-body">
+          <div className="photography-editorial-visa-portrait">
+            <svg viewBox="0 0 40 48" focusable="false">
+              <circle cx="20" cy="17" r="8" fill="none" stroke="#8A6A32" strokeWidth="1.4" />
+              <path
+                d="M6 44c2-9 8-13 14-13s12 4 14 13"
+                fill="none"
+                stroke="#8A6A32"
+                strokeWidth="1.4"
+              />
+            </svg>
+          </div>
+          <dl>
+            <dt>TYPE</dt>
+            <dd>AI WORLDS</dd>
+            <dt>ENTRIES</dt>
+            <dd>MULTIPLE</dd>
+            <dt>GRANTED FOR</dt>
+            <dd>{passportCountText(total)} REAL PLACES</dd>
+            <dt>HOLDER</dt>
+            <dd>YOU</dd>
+          </dl>
+        </div>
+        <div className="photography-editorial-visa-mrz">
+          {firstMrz}
+          <br />
+          {secondMrz}
+        </div>
+        <i className="photography-editorial-visa-hologram" />
+      </div>
+    </div>
+  );
+}
 
 /**
  * A tap from a finger or pen (not a mouse click, not keyboard or assistive activation, which
@@ -294,7 +402,10 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const [layers, setLayers] = useState<PreviewLayer[]>([{ key: 0, slug: firstSlug, dir: null }]);
   const [passport, setPassport] = useState<PassportState>(EMPTY_PASSPORT);
   const [justStamped, setJustStamped] = useState<string | null>(null);
+  const [finaleStage, setFinaleStage] = useState<PassportFinaleStage>(0);
+  const [completionAnnouncement, setCompletionAnnouncement] = useState("");
   const passportRef = useRef<PassportState>(EMPTY_PASSPORT);
+  const completionAnnouncedRef = useRef(false);
   const currentRef = useRef(firstSlug);
   const nextKey = useRef(1);
   const warmed = useRef(new Set<string>([firstSlug]));
@@ -491,7 +602,11 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   );
   const totalAlbums = albums.length;
   const stampedCount = passport.size;
-  const allStamped = stampedCount >= totalAlbums && totalAlbums > 0;
+  const allStamped = isPassportComplete(passport, totalAlbums);
+  const finaleStarted = finaleStage >= 1;
+  const finaleSealVisible = finaleStage >= 2;
+  const finaleCtaVisible = finaleStage >= 3;
+  const passportHintCount = allStamped && !finaleStarted ? totalAlbums - 1 : stampedCount;
   const currentStamped = passport.has(currentAlbum.slug);
   const currentJustStamped = currentStamped && justStamped === currentAlbum.slug;
   const currentSource = previewOf(currentAlbum);
@@ -507,6 +622,44 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
       : "";
   const headingWords = t.home.photoTitle.split(" ");
   const headingLastWord = headingWords.pop();
+
+  useEffect(() => {
+    if (!allStamped) return;
+
+    const advanceFinale = (next: PassportFinaleStage) => {
+      setFinaleStage((currentStage) => (next > currentStage ? next : currentStage));
+    };
+    const announce = () => {
+      if (completionAnnouncedRef.current) return;
+      completionAnnouncedRef.current = true;
+      setCompletionAnnouncement(t.photos.passportCompleteLive(totalAlbums));
+    };
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      advanceFinale(3);
+      announce();
+      return;
+    }
+
+    const visaTimer = window.setTimeout(() => {
+      advanceFinale(1);
+      announce();
+    }, PASSPORT_FINALE_TIMINGS.startMs);
+    const sealTimer = window.setTimeout(
+      () => advanceFinale(2),
+      PASSPORT_FINALE_TIMINGS.startMs + PASSPORT_FINALE_TIMINGS.sealAfterVisaMs,
+    );
+    const ctaTimer = window.setTimeout(
+      () => advanceFinale(3),
+      PASSPORT_FINALE_TIMINGS.startMs + PASSPORT_FINALE_TIMINGS.ctaAfterVisaMs,
+    );
+
+    return () => {
+      window.clearTimeout(visaTimer);
+      window.clearTimeout(sealTimer);
+      window.clearTimeout(ctaTimer);
+    };
+  }, [allStamped, t.photos, totalAlbums]);
 
   return (
     <div className="photography-editorial">
@@ -565,20 +718,34 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
             )}
             <div
               className="photography-editorial-list-head"
-              data-done={allStamped ? "true" : undefined}
+              data-done={finaleStarted ? "true" : undefined}
             >
-              <span>
+              <span className="photography-editorial-passport-summary">
                 {t.photos.passport} ·{" "}
                 <span className="photography-editorial-passport-count">
                   {t.photos.passportOf(stampedCount, totalAlbums)}
                 </span>
+                {finaleStarted && (
+                  <span className="photography-editorial-complete-seal-compact" aria-hidden="true">
+                    <CompletionSeal total={totalAlbums} compact />
+                  </span>
+                )}
               </span>
-              <span className="photography-editorial-passport-hint">
-                {t.photos.passportHint(stampedCount, totalAlbums)}
-              </span>
+              {finaleStarted ? (
+                <LocaleLink to="/ai-worlds" className="photography-editorial-complete-link-compact">
+                  {t.photos.passportToAi}
+                </LocaleLink>
+              ) : (
+                <span className="photography-editorial-passport-hint">
+                  {t.photos.passportHint(passportHintCount, totalAlbums)}
+                </span>
+              )}
             </div>
             <div className="sr-only" aria-live="polite" data-mobile-live>
               {mobileLiveText}
+            </div>
+            <div className="sr-only" aria-live="polite" data-passport-live>
+              {completionAnnouncement}
             </div>
             <ul
               ref={listRef}
@@ -704,7 +871,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                           title={albumText(currentAlbum.title, "en")}
                           count={currentAlbum.photos.length}
                           total={totalAlbums}
-                          size={62}
+                          size={64}
                         />
                       )}
                     </div>
@@ -799,9 +966,12 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
             <aside className="photography-editorial-passport" aria-label={t.photos.passport}>
               <div
                 className="photography-editorial-zone-title"
-                data-done={allStamped ? "true" : undefined}
+                data-done={finaleStarted ? "true" : undefined}
               >
-                <span>{t.photos.passport}</span>
+                <span className="photography-editorial-zone-name">
+                  {t.photos.passport}
+                  {finaleStarted && <small>{t.photos.passportCompleteHint}</small>}
+                </span>
                 <span className="photography-editorial-passport-count">
                   {t.photos.passportOf(stampedCount, totalAlbums)}
                 </span>
@@ -854,7 +1024,18 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 <i className="photography-editorial-passport-page-num photography-editorial-passport-page-num--right">
                   03
                 </i>
+                {finaleStarted && <PassportVisa total={totalAlbums} />}
+                {finaleSealVisible && (
+                  <div className="photography-editorial-complete-seal" aria-hidden="true">
+                    <CompletionSeal total={totalAlbums} />
+                  </div>
+                )}
               </div>
+              {finaleCtaVisible && (
+                <LocaleLink to="/ai-worlds" className="photography-editorial-complete-link">
+                  {t.photos.passportToAi}
+                </LocaleLink>
+              )}
               <ul className="photography-editorial-passport-grid">
                 {albums.map((album, index) => {
                   const isStamped = passport.has(album.slug);

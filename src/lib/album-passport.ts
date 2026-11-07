@@ -2,6 +2,26 @@ export type PassportState = ReadonlySet<string>;
 
 export const EMPTY_PASSPORT: PassportState = new Set<string>();
 
+export const PASSPORT_FINALE_TIMINGS = {
+  startMs: 650,
+  sealAfterVisaMs: 1050,
+  ctaAfterVisaMs: 1500,
+} as const;
+
+export function isPassportComplete(state: PassportState, total: number): boolean {
+  return total > 0 && state.size === total;
+}
+
+export function passportCountText(total: number): string {
+  const count = String(Math.max(0, Math.trunc(total))).padStart(2, "0");
+  return `${count} / ${count}`;
+}
+
+export function passportMrzLines(total: number): readonly [string, string] {
+  const count = String(Math.max(0, Math.trunc(total))).padStart(2, "0");
+  return ["V<AIW<CHEFO<<VISUAL<WORLDS<<<<<<", `${count}<${count}<REAL<PLACES<<AI<WORLDS<<<<<`];
+}
+
 /**
  * Thirteen spread positions [x%, y%] across the left (02) and right (03) pages of the passport book.
  * Selected via `(index * 5) % 13` so neighbouring albums in the list land on different parts of the spread.
