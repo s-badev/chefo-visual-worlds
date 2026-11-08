@@ -939,7 +939,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 to="/photography/albums/$slug"
                 slug={currentAlbum.slug}
                 className="photography-editorial-preview-open"
-                aria-label={t.photos.openAlbumFor(albumText(currentAlbum.title, locale))}
               >
                 <span className="photography-editorial-open-stamp" aria-hidden="true">
                   <AlbumStamp

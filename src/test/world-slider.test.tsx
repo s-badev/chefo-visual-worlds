@@ -180,20 +180,19 @@ describe("WorldSlider", () => {
     const backdrop = body(".world-slider-backdrop");
     expect(backdrop).toContain("z-index: -1");
     expect(backdrop).toContain("pointer-events: none");
-    expect(backdrop).toContain(
-      "mask-image: linear-gradient(180deg, transparent 0, #000 16%, #000 84%, transparent 100%)",
-    );
-    expect(backdrop).toContain("-webkit-mask-image:");
+    // Stage 9a: the mock's backdrop (.sl-bg + .sl::after): a lighter blur, a top-to-bottom wash
+    // into the navy of the next section, no mask.
+    expect(backdrop).not.toContain("mask-image");
     const wash = body(".world-slider-backdrop::after");
-    expect(wash).toContain("color-mix(in oklch, var(--navy) 62%, transparent)");
-    expect(wash).toContain("color-mix(in oklch, var(--navy) 28%, transparent) 62%");
-    expect(wash).toContain("color-mix(in oklch, var(--navy) 40%, transparent)");
+    expect(wash).toContain(
+      "linear-gradient(180deg, rgb(12 23 41 / 0.55), rgb(12 23 41 / 0.25) 40%, #0c1729)",
+    );
     const layer = body(".world-slider-backdrop-layer");
-    expect(layer).toContain("inset: -8%");
-    expect(layer).toContain("filter: blur(34px) saturate(1.05) brightness(0.5)");
+    expect(layer).toContain("inset: -5%");
+    expect(layer).toContain("filter: blur(18px) saturate(0.9) brightness(0.7)");
     expect(layer).toContain("opacity: 0");
-    expect(layer).toContain("transition: opacity 1s ease");
-    expect(body(".world-slider-backdrop-layer.is-active")).toContain("opacity: 0.95");
+    expect(layer).toContain("transition: opacity 700ms cubic-bezier(0.65, 0, 0.25, 1)");
+    expect(body(".world-slider-backdrop-layer.is-active")).toContain("opacity: 0.55");
     expect(css).toMatch(
       /@media \(prefers-reduced-motion: reduce\) \{ [^}]*\.world-slider-backdrop-layer[^{]*\{ transition: none;/,
     );

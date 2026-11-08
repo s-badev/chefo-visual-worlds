@@ -134,7 +134,6 @@ export function HomeView() {
       >
         {/* Stacked below lg; the width cap keeps the frame under 75dvh tall on short screens. */}
         <PortraitSwitch
-          compact
           className="w-full max-w-[min(380px,calc(75dvh*var(--about-portrait-ratio)))]"
           aiImage={aboutAiRoyal}
         />

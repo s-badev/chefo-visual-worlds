@@ -211,7 +211,7 @@ describe("Home hero styles", () => {
   it("uses the shared horizontal padding token and one Hero button size contract", () => {
     expect(css).toContain("--btn-pad-x: 28px");
     expect(css).toContain(
-      ".home-hero-button { min-height: 52px; padding-block: 0.75rem; padding-inline: var(--btn-pad-x); justify-content: center; border-radius: 6px; font-size: 0.875rem; font-weight: 600; }",
+      ".home-hero-button { min-height: 48px; padding-block: 0; padding-inline: 22px; justify-content: center; border-radius: 999px; font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; }",
     );
     expect(css).toContain(
       ".interaction-primary, .interaction-secondary { min-height: 44px; align-items: center; justify-content: center; gap: 12px; border-width: 2px; border-style: solid; border-radius: 6px; padding-block: 16px; padding-inline: var(--btn-pad-x); font-weight: 600; }",

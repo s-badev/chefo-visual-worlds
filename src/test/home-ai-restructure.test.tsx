@@ -107,7 +107,10 @@ describe("Home structure", () => {
     expect(container.querySelector(".world-slider-section, #slider")).toBeNull();
     expect(container.querySelector(".ai-halls, .ai-hall, [data-ai-section-background]")).toBeNull();
     expect(container.textContent).not.toContain(m.worldSlider.title);
-    expect(container.textContent).not.toContain(m.worldsLabel);
+    // The old pinned scene's label (its i18n key was removed with the scene in stage 9a).
+    expect(container.textContent).not.toContain(
+      locale === "bg" ? "Едно лице, четири свята" : "One face, four worlds",
+    );
     expect(container.querySelector('a[href^="/ai-worlds/collections/"]')).toBeNull();
   });
 });

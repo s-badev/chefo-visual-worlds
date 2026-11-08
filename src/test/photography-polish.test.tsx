@@ -90,15 +90,18 @@ const listRow = (container: HTMLElement, name: string) =>
 
 describe("open-album pill", () => {
   it.each([
-    ["bg", "Париж", "Отвори албума: Париж", "Отвори албума"],
-    ["en", "Paris", "Open album: Paris", "Open album"],
+    ["bg", "Париж", "Отвори албума", "Отвори албума"],
+    ["en", "Paris", "Open album", "Open album"],
   ] as const)("is a real link for the previewed album (%s)", (locale, name, label, visible) => {
     activeLocale = locale;
     desktop();
     const { container } = render(<PhotographyView />);
     fireEvent.mouseEnter(listRow(container, name));
-    const pill = screen.getByRole("link", { name: label });
-    expect(pill).toHaveClass("photography-editorial-preview-open");
+    const pill = container.querySelector<HTMLAnchorElement>(".photography-editorial-preview-open")!;
+    // One accessible name, exactly the visible text: the stamp and the arrow are hidden.
+    expect(pill).toHaveAccessibleName(label);
+    expect(pill).not.toHaveAttribute("aria-label");
+    expect(screen.getAllByRole("link", { name: label })).toContain(pill);
     expect(pill).toHaveAttribute("href", "/photography/albums/paris");
     expect(pill).toHaveTextContent(visible);
     // Not inside the decorative, inert preview figure: people can click and focus it.
@@ -117,7 +120,7 @@ describe("open-album pill", () => {
     desktop();
     const { container } = render(<PhotographyView />);
     fireEvent.mouseEnter(listRow(container, "Лион"));
-    expect(screen.getByRole("link", { name: "Отвори албума: Лион" })).toHaveAttribute(
+    expect(container.querySelector(".photography-editorial-preview-open")).toHaveAttribute(
       "href",
       "/photography/albums/lyon",
     );
