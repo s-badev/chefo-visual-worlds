@@ -1,12 +1,10 @@
 // Page structure after the Home / AI Worlds restructure: Home carries no world slider and no
-// pinned collections scene; AI Worlds opens on the slider, then its intro and view switch, and its
-// Collections view is the pinned "One face, four worlds" scene.
+// collections surface; AI Worlds opens on the slider, then its intro and view switch, and its
+// Collections view is the halls of the approved mock (stage 6b; the pinned scene is gone).
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { collectionText, getAiCollections } from "@/content/ai-collections";
-import { WORLD_PORTRAITS } from "@/content/home-worlds";
-import { getAiWork } from "@/content/ai-works";
+import { collectionText, getAiCollections, getCollectionWorks } from "@/content/ai-collections";
 import { messages } from "@/i18n/messages";
 import { AiWorldsView } from "@/views/ai-worlds";
 import { HomeView } from "@/views/home";
@@ -107,7 +105,7 @@ describe("Home structure", () => {
     const { container } = render(<HomeView />);
     expect(screen.queryByRole("slider")).toBeNull();
     expect(container.querySelector(".world-slider-section, #slider")).toBeNull();
-    expect(container.querySelector(".home-worlds, .ai-section-background")).toBeNull();
+    expect(container.querySelector(".ai-halls, .ai-hall, [data-ai-section-background]")).toBeNull();
     expect(container.textContent).not.toContain(m.worldSlider.title);
     expect(container.textContent).not.toContain(m.worldsLabel);
     expect(container.querySelector('a[href^="/ai-worlds/collections/"]')).toBeNull();
@@ -132,51 +130,57 @@ describe("AI Worlds structure", () => {
     expect(follows(title, group)).toBe(true);
   });
 
-  it.each(LOCALES)("shows the pinned scene as Collections, after the switch, in %s", (locale) => {
-    activeLocale = locale;
-    const { container } = render(<AiWorldsView />);
-    const group = screen.getByRole("group", { name: messages[locale].ai.view });
-    const scenes = container.querySelectorAll<HTMLElement>("section.home-worlds");
-    expect(scenes).toHaveLength(1);
-    const scene = scenes[0]!;
-    expect(follows(group, scene)).toBe(true);
-    expect(scene).toHaveAttribute("aria-label", messages[locale].home.worldsLabel);
-    // A sibling of the overview, so the old halls' intro-reach rules never apply to it.
-    expect(scene.closest(".ai-overview")).toBeNull();
-    // The rectangular halls are gone.
-    expect(container.querySelector(".ai-presentation, .ai-presentation-media")).toBeNull();
-
-    // Portraits blended into the scene: the same works the Home scene used, in collection order.
-    const collections = getAiCollections();
-    const portraits = Array.from(
-      scene.querySelectorAll<HTMLImageElement>(".home-worlds-portrait img"),
-    );
-    expect(portraits.map((img) => img.getAttribute("src"))).toEqual(
-      collections.map((c) => getAiWork(WORLD_PORTRAITS[c.slug]!.workSlug)!.image),
-    );
-    // The row of short names: the sticky collection tab bar (stage 6) replaced the jump group.
-    const names = within(scene).getByRole("navigation", {
-      name: messages[locale].home.worldsJump,
-    });
-    expect(
-      within(names)
-        .getAllByRole("button")
-        .map((b) => b.textContent),
-    ).toEqual(collections.map((c) => collectionText(c.shortTitle, locale)));
-    // "Explore the collection" keeps its target: the collection page.
-    const actions = within(scene).getAllByText(messages[locale].ai.exploreCollection);
-    expect(new Set(actions.map((a) => a.closest("a")!.getAttribute("href")))).toEqual(
-      new Set(collections.map((c) => `/ai-worlds/collections/${c.slug}`)),
-    );
-    for (const action of actions) {
-      const label = action.closest("a")!.getAttribute("aria-label")!;
+  it.each(LOCALES)(
+    "shows the collection halls as Collections, after the switch, in %s",
+    (locale) => {
+      activeLocale = locale;
+      const { container } = render(<AiWorldsView />);
+      const group = screen.getByRole("group", { name: messages[locale].ai.view });
+      const surfaces = container.querySelectorAll<HTMLElement>(".ai-halls");
+      expect(surfaces).toHaveLength(1);
+      const halls = surfaces[0]!;
+      expect(follows(group, halls)).toBe(true);
+      // One hall system only: the pinned scene and the old presentations are gone.
       expect(
-        collections.map(
-          (c) => `${messages[locale].ai.exploreCollection}: ${collectionText(c.title, locale)}`,
-        ),
-      ).toContain(label);
-    }
-  });
+        container.querySelector(".home-worlds, .ai-presentation, .ai-overview-hall"),
+      ).toBeNull();
+      const collections = getAiCollections();
+      const articles = [...halls.querySelectorAll<HTMLElement>("article.ai-hall")];
+      expect(articles).toHaveLength(collections.length);
+      // Each hall shows the first three works of its collection, in collection order.
+      articles.forEach((hall, i) => {
+        expect(
+          [...hall.querySelectorAll<HTMLImageElement>(".ai-hall-shot img")].map((img) =>
+            img.getAttribute("src"),
+          ),
+        ).toEqual(
+          getCollectionWorks(collections[i]!, locale)
+            .slice(0, 3)
+            .map((w) => w.image),
+        );
+      });
+      // The row of short names: the sticky collection tab band.
+      const names = within(halls).getByRole("navigation", { name: messages[locale].ai.hallsNav });
+      expect(
+        within(names)
+          .getAllByRole("button")
+          .map((b) => b.textContent),
+      ).toEqual(collections.map((c) => collectionText(c.shortTitle, locale)));
+      // "Explore the collection" keeps its target: the collection page.
+      const actions = within(halls).getAllByText(messages[locale].ai.exploreCollection);
+      expect(actions.map((a) => a.closest("a")!.getAttribute("href"))).toEqual(
+        collections.map((c) => `/ai-worlds/collections/${c.slug}`),
+      );
+      for (const action of actions) {
+        const label = action.closest("a")!.getAttribute("aria-label")!;
+        expect(
+          collections.map(
+            (c) => `${messages[locale].ai.exploreCollection}: ${collectionText(c.title, locale)}`,
+          ),
+        ).toContain(label);
+      }
+    },
+  );
 
   it("switches between Collections and All Artworks, keeping the slider on top", () => {
     const view = render(<AiWorldsView />);
@@ -186,14 +190,14 @@ describe("AI Worlds structure", () => {
     fireEvent.click(tabs()[1]!);
     view.rerender(<AiWorldsView />);
     expect(tabs()[1]).toHaveAttribute("aria-pressed", "true");
-    expect(view.container.querySelector("section.home-worlds")).toBeNull();
+    expect(view.container.querySelector(".ai-halls")).toBeNull();
     expect(screen.getByRole("region", { name: messages.bg.ai.allWorks })).toBeInTheDocument();
     expect(view.container.firstElementChild).toHaveClass("world-slider-section");
 
     fireEvent.click(tabs()[0]!);
     view.rerender(<AiWorldsView />);
     expect(tabs()[0]).toHaveAttribute("aria-pressed", "true");
-    expect(view.container.querySelectorAll("section.home-worlds")).toHaveLength(1);
+    expect(view.container.querySelectorAll(".ai-halls")).toHaveLength(1);
     expect(screen.queryByRole("region", { name: messages.bg.ai.allWorks })).toBeNull();
     expect(view.container.firstElementChild).toHaveClass("world-slider-section");
   });

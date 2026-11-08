@@ -10,7 +10,7 @@ import {
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { CollectionHalls } from "@/components/ai-exhibition";
+import { AiHalls } from "@/components/ai-halls";
 import {
   aiCollections,
   collectionText,
@@ -110,52 +110,56 @@ const POINTER = "@media (hover: hover) and (pointer: fine)";
 
 afterEach(cleanup);
 
+// Stage 6b: the halls of the approved mock (AiHalls) and the compact collection grid replaced
+// the old halls, the pinned scenes and the wall of large works.
 describe("AI Worlds overview halls", () => {
   it.each(["bg", "en"] as const)(
-    "enters each %s collection through one named link that leaves the photo outside",
+    "enters each %s collection through one named link, with its photos linking to their works",
     async (locale) => {
       const m = messages[locale].ai;
-      const { container } = await renderAt(`${prefix[locale]}/ai-worlds`, () => (
-        <CollectionHalls />
-      ));
+      const { container } = await renderAt(`${prefix[locale]}/ai-worlds`, () => <AiHalls />);
       const halls = [...container.querySelectorAll("article")];
       expect(halls).toHaveLength(aiCollections.length);
       halls.forEach((hall, index) => {
         const collection = aiCollections[index]!;
         const title = collectionText(collection.title, locale);
-        // One stop per hall: the link is its only interactive element.
-        expect(hall.querySelectorAll(INTERACTIVE)).toHaveLength(1);
-        const link = within(hall).getByRole("link", { name: `${m.exploreCollection}: ${title}` });
-        expect(link).toHaveAttribute(
-          "href",
-          `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
+        const toCollection = hall.querySelectorAll(
+          `a[href$="/ai-worlds/collections/${collection.slug}"]`,
         );
+        expect(toCollection).toHaveLength(1);
+        const link = within(hall).getByRole("link", { name: `${m.exploreCollection}: ${title}` });
+        expect(link).toBe(toCollection[0]);
         expect(link).toHaveTextContent(m.exploreCollection);
-        expect(link.querySelector(".ai-artwork-action-primary")).toHaveClass("interaction-primary");
+        expect(link).toHaveClass("ai-fan");
         expect(link.querySelector(`${INTERACTIVE}, img`)).toBeNull();
-        // Title and photo stay readable content next to the link, not inside it.
+        // Title and photos stay outside the collection link.
         expect(within(hall).getByRole("heading", { level: 2, name: title })).not.toContainElement(
           link,
         );
-        const cover = getCollectionCover(collection, locale);
-        if (cover) {
-          const photo = within(hall).getByAltText(cover.alt);
-          expect(link).not.toContainElement(photo);
-        }
+        // The three photos are the collection's first three works, each linking to its page.
+        const works = getCollectionWorks(collection, locale).slice(0, 3);
+        const shots = [...hall.querySelectorAll<HTMLAnchorElement>("a.ai-hall-shot")];
+        expect(shots.map((a) => a.getAttribute("href"))).toEqual(
+          works.map((w) => `${prefix[locale]}/ai-worlds/${w.slug}`),
+        );
+        shots.forEach((shot, k) => {
+          expect(shot).toHaveAccessibleName(works[k]!.alt);
+          expect(link).not.toContainElement(shot);
+        });
       });
     },
   );
 
-  it("adds one inert responsive atmosphere to each overview hall, never to an artwork page", async () => {
+  it("adds one inert responsive scene to each hall, never to an artwork page", async () => {
     const expected = ["historical", "professions", "cinema", "world"];
-    const { container, unmount } = await renderAt("/ai-worlds", () => <CollectionHalls />);
-    const halls = [...container.querySelectorAll<HTMLElement>(".ai-overview-hall")];
+    const { container, unmount } = await renderAt("/ai-worlds", () => <AiHalls />);
+    const halls = [...container.querySelectorAll<HTMLElement>(".ai-hall")];
     expect(halls).toHaveLength(4);
     halls.forEach((hall, index) => {
       const name = expected[index]!;
       const layer = hall.querySelector<HTMLElement>(`[data-ai-section-background="${name}"]`)!;
       expect(layer).toHaveAttribute("aria-hidden", "true");
-      expect(layer).toHaveClass("ai-section-background");
+      expect(layer).toHaveClass("ai-hall-bg");
       expect(layer.closest("a, button")).toBeNull();
       const source = layer.querySelector("source")!;
       expect(source).toHaveAttribute("media", "(max-width: 767px)");
@@ -176,7 +180,7 @@ describe("AI Worlds overview halls", () => {
     const detailView = await renderAt(`/ai-worlds/${work.slug}`, () => (
       <AiDetailView work={work} />
     ));
-    expect(detailView.container.querySelector(".ai-section-background")).toBeNull();
+    expect(detailView.container.querySelector("[data-ai-section-background]")).toBeNull();
     detailView.unmount();
   });
 
@@ -203,7 +207,7 @@ describe("AI collection page atmosphere", () => {
   } as const;
 
   it.each(["bg", "en"] as const)(
-    "shows each %s collection page its own overview scene behind the whole page",
+    "shows each %s collection page its own hall scene behind the whole page",
     async (locale) => {
       expect(aiCollections.map((c) => c.slug)).toEqual(Object.keys(scenes));
       for (const collection of aiCollections) {
@@ -212,116 +216,99 @@ describe("AI collection page atmosphere", () => {
           `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
           () => <AiCollectionView collection={collection} />,
         );
-        const page = container.querySelector<HTMLElement>("article.ai-collection-page")!;
+        const page = container.querySelector<HTMLElement>("article.ai-col-page")!;
         expect(page).toHaveClass("surface-dark");
-        const layers = page.querySelectorAll<HTMLElement>(".ai-section-background");
+        const layers = page.querySelectorAll<HTMLElement>("[data-ai-section-background]");
         expect(layers).toHaveLength(1);
         const layer = layers[0]!;
         // First in the page, a sibling of the content, so everything else paints over it.
         expect(page.firstElementChild).toBe(layer);
         expect(layer).toHaveAttribute("data-ai-section-background", name);
-        expect(layer).toHaveClass("ai-section-background", "ai-section-background--page");
+        expect(layer).toHaveClass("ai-col-bd");
         expect(layer).toHaveAttribute("aria-hidden", "true");
         expect(layer.querySelector(INTERACTIVE)).toBeNull();
-        // The same two files as the overview hall, so they come from the browser cache.
+        // The same two files as the hall, so they come from the browser cache.
         expect(layer.querySelector("source")).toHaveAttribute(
           "srcset",
           `/background/ai-bg-${name}-960.webp`,
         );
+        expect(layer.querySelector("picture")).toHaveClass("ai-col-st");
         const image = layer.querySelector("img")!;
         expect(image).toHaveAttribute("src", `/background/ai-bg-${name}-1600.webp`);
         expect(image).toHaveAttribute("alt", "");
         expect(image).toHaveAttribute("loading", "eager");
         expect(image).toHaveAttribute("width", "1600");
         expect(image).toHaveAttribute("height", "900");
-        // Title block and works sit on top, with the local text scrim behind the title block.
-        expect(page.querySelector(":scope > header")).toHaveClass("ai-collection-copy");
-        expect(page.querySelectorAll("[data-exhibit-copy-content]").length).toBeGreaterThan(0);
+        // Header, tab row, grid and cards sit on top of it.
+        expect(page.querySelector(":scope > header")).toHaveClass("ai-col-head");
+        expect(page.querySelector("ol.ai-thumb-grid")).toBeInTheDocument();
         unmount();
       }
     },
     20_000,
   );
 
-  it("reads every scene's look from the overview's tokens and stays behind the content", () => {
-    const shared = ":is(.ai-overview-hall, .ai-collection-page)";
-    expect(rule(shared)!.body).toContain("--bg-blur: 6px");
-    for (const name of Object.values(scenes)) {
-      expect(rule(`${shared}:has([data-ai-section-background="${name}"])`)).toBeDefined();
-    }
-    // The backdrop spans the article; its viewport-tall scene is sticky inside it, so it stops
-    // at the end of the article (never over the footer), and clip keeps sticky working.
-    expect(rule(".ai-section-background--page")!.body).toContain("overflow: clip");
-    const scene = rule(".ai-section-background--page picture")!.body;
+  it("keeps the scene sticky behind the article, blurred as in the mock, and never over the footer", () => {
+    const scene = rule(".ai-col-st")!.body;
     expect(scene).toContain("position: sticky");
     expect(scene).toContain("top: 0");
-    expect(scene).toContain("height: 100lvh");
-    expect(
-      rules.some(
-        (r) => r.selector === ".ai-collection-page" && r.body.includes("overflow-x: clip"),
-      ),
-    ).toBe(true);
-    expect(rule(".ai-collection-page > :not(.ai-section-background)")!.body).toContain(
-      "z-index: 1",
+    expect(scene).toContain("height: 100svh");
+    expect(rule(".ai-col-st img")!.body).toContain(
+      "filter: blur(6px) saturate(0.9) brightness(1.35)",
     );
-    // Collection text blocks never get a lighter scrim than 0.8, and the overview keeps its own.
+    expect(rule(".ai-col-bd")!.body).toContain("z-index: -1");
     expect(
-      rules.some(
-        (r) =>
-          r.selector === ".ai-collection-page" &&
-          r.body.includes("--bg-scrim-text: max(var(--bg-scrim), 0.8)"),
-      ),
+      rules.some((r) => r.selector === ".ai-col-page" && r.body.includes("overflow-x: clip")),
     ).toBe(true);
+    expect(rule(".ai-hall-bg img")!.body).toContain(
+      "filter: blur(6px) saturate(0.9) brightness(1.5)",
+    );
     expect(rule(".ai-overview-hall")).toBeUndefined();
   });
 });
 
-describe("AI Worlds overview hall clicks", () => {
-  it("opens the collection from the description and the photo through the one link", async () => {
+describe("AI Worlds hall links", () => {
+  it("opens the collection from its button and a work from its photo", async () => {
     const collection = aiCollections[0]!;
-    const target = `/ai-worlds/collections/${collection.slug}`;
-    for (const part of ["p", "img"] as const) {
-      const { container, router, unmount } = await renderAt("/ai-worlds", () => (
-        <CollectionHalls />
-      ));
-      const hall = container.querySelector<HTMLElement>("article")!;
-      fireEvent.click(hall.querySelector(part)!);
+    const work = getCollectionWorks(collection, "bg")[0]!;
+    for (const [selector, target] of [
+      [".ai-fan", `/ai-worlds/collections/${collection.slug}`],
+      ["a.ai-hall-shot", `/ai-worlds/${work.slug}`],
+    ] as const) {
+      const { container, router, unmount } = await renderAt("/ai-worlds", () => <AiHalls />);
+      fireEvent.click(container.querySelector("article")!.querySelector(selector)!);
       await waitFor(() => expect(router.state.location.pathname).toBe(target));
       unmount();
     }
   });
 });
 
-describe("AI collection presentations", () => {
+describe("AI collection tiles", () => {
   it.each(["bg", "en"] as const)(
     "keep a separate artwork link and full-screen button for every %s work",
     async (locale) => {
-      const m = messages[locale].ai;
       for (const collection of aiCollections) {
         const works = getCollectionWorks(collection, locale);
         const { container, unmount } = await renderAt(
           `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
           () => <AiCollectionView collection={collection} />,
         );
-        const presentations = [...container.querySelectorAll("ol.container-page > li > article")];
-        expect(presentations).toHaveLength(works.length);
-        presentations.forEach((presentation, index) => {
+        const tiles = [...container.querySelectorAll("ol.ai-thumb-grid > li")];
+        expect(tiles).toHaveLength(works.length);
+        tiles.forEach((tile, index) => {
           const work = works[index]!;
-          const view = within(presentation as HTMLElement).getByRole("link", {
-            name: `${m.viewWork}: ${work.title}`,
-          });
-          const fullscreen = within(presentation as HTMLElement).getByRole("button", {
-            name: m.fullscreen,
+          const view = within(tile as HTMLElement).getByRole("link", { name: work.title });
+          const fullscreen = within(tile as HTMLElement).getByRole("button", {
+            name: messages[locale].common.openFullscreen(work.title),
           });
           expect(view).toHaveAttribute("href", `${prefix[locale]}/ai-worlds/${work.slug}`);
-          expect(view).toHaveClass("interaction-primary");
-          expect(fullscreen).toHaveClass("interaction-secondary");
+          expect(view).toHaveClass("ai-thumb-title");
+          expect(fullscreen).toHaveClass("ai-thumb-im");
           expect(fullscreen).toHaveAttribute("type", "button");
-          // Keyboard order within the actions: the link, then the button.
-          expect(view.compareDocumentPosition(fullscreen)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-          // The presentation itself is not a link, and controls are never nested.
-          expect(presentation.closest("a")).toBeNull();
-          for (const control of presentation.querySelectorAll("a, button")) {
+          // Keyboard order within a tile: the image button, then the title link.
+          expect(fullscreen.compareDocumentPosition(view)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+          // Controls are never nested.
+          for (const control of tile.querySelectorAll("a, button")) {
             expect(control.querySelector("a, button")).toBeNull();
           }
         });
@@ -331,14 +318,16 @@ describe("AI collection presentations", () => {
     20_000,
   );
 
-  it("opens the full-screen viewer from a presentation's button", async () => {
+  it("opens the full-screen viewer from a tile's image", async () => {
     const collection = aiCollections[0]!;
     const work = getCollectionWorks(collection, "bg")[0]!;
     const { container } = await renderAt(`/ai-worlds/collections/${collection.slug}`, () => (
       <AiCollectionView collection={collection} />
     ));
-    const first = container.querySelector<HTMLElement>("ol.container-page > li > article")!;
-    fireEvent.click(within(first).getByRole("button", { name: messages.bg.ai.fullscreen }));
+    const first = container.querySelector<HTMLElement>("ol.ai-thumb-grid > li")!;
+    fireEvent.click(
+      within(first).getByRole("button", { name: messages.bg.common.openFullscreen(work.title) }),
+    );
     expect(await screen.findByRole("dialog")).toHaveTextContent(work.title);
   });
 });
@@ -406,80 +395,51 @@ describe("Design A interaction system", () => {
     );
   });
 
-  it("lights title and button together when the pointer is over the button", () => {
+  it("keeps the shared primary hover a calm fill change", () => {
     const hover = rule(".interaction-primary:hover", POINTER)!.body;
     expect(hover).toContain("background-color: var(--btn-hover-bg)");
     expect(hover).toContain("border-color: var(--btn-hover-border)");
     expect(hover).toContain("color: var(--btn-hover-fg)");
     // A calm fill change: no glow around the button.
     expect(hover).toContain("box-shadow: none");
-    expect(
-      rule(
-        ".ai-presentation-title:hover, .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title",
-        POINTER,
-      )!.body,
-    ).toBe("color: var(--btn-hover-bg);");
   });
 
-  it("lights title and button together when the pointer is over the title", () => {
-    const pair = ".ai-presentation:has(.ai-presentation-title:hover)";
-    expect(rule(`${pair} .ai-artwork-action-primary`, POINTER)!.body).toContain(
-      "background-color: var(--btn-hover-bg)",
+  it("sweeps the hall button's gold in on hover and keyboard focus, and presses without movement", () => {
+    expect(rule(".ai-fan::before")!.body).toContain("background-color: var(--btn-hover-bg)");
+    expect(rule(".ai-fan::before")!.body).toContain("transform: scaleX(0)");
+    expect(rule(".ai-fan:hover::before", POINTER)!.body).toBe("transform: scaleX(1);");
+    expect(rule(".ai-fan:focus-visible::before")!.body).toBe("transform: scaleX(1);");
+    const motion = `${POINTER} and (prefers-reduced-motion: no-preference)`;
+    expect(rule(".ai-fan:hover .ai-fan-arrow", motion)!.body).toBe(
+      "transform: scaleX(1.7) translateX(3px);",
+    );
+    expect(rule(".ai-fan:active")!.body).toBe("background-color: var(--btn-active-bg);");
+  });
+
+  it("fans the hall's works out only while its button is hovered or focused", () => {
+    const motion = `${POINTER} and (prefers-reduced-motion: no-preference)`;
+    expect(rule(".ai-hall:has(.ai-fan:hover) .ai-hall-shot", motion)!.body).toContain(
+      "transform: translate(8px, -6px)",
+    );
+    expect(
+      rule(
+        ".ai-hall:has(.ai-fan:focus-visible) .ai-hall-shot",
+        "@media (prefers-reduced-motion: no-preference)",
+      )!.body,
+    ).toContain("transform: translate(8px, -6px)");
+  });
+
+  it("lights a tile with a soft gold hairline and a slight zoom (fine pointers only)", () => {
+    expect(rule(".ai-thumb:hover .ai-thumb-im", POINTER)!.body).toContain(
+      "0 0 0 1px rgb(201 164 107 / 0.7)",
     );
     const motion = `${POINTER} and (prefers-reduced-motion: no-preference)`;
-    expect(rule(`${pair} .ai-artwork-action-primary`, motion)!.body).toBe("translate: 0 -2px;");
-    expect(rule(`${pair} .ai-artwork-action-arrow`, motion)!.body).toBe("translate: 6px 0;");
-    // The title hover zone is its own text box, not the full column.
-    expect(rule(".ai-presentation-title")!.body).toContain("width: fit-content");
-  });
-
-  it("leaves description, count, image and empty space out of the pair", () => {
-    const hovers = rules.filter(
-      (r) => r.selector.includes(".ai-presentation") && r.selector.includes(":hover"),
-    );
-    expect(hovers.length).toBeGreaterThan(0);
-    for (const r of hovers) {
-      // Hovering the container itself (which covers the empty space) never triggers anything.
-      expect(r.selector).not.toMatch(/\.ai-presentation:hover/);
-      for (const part of r.selector.match(/[.\w-]+:hover/g) ?? []) {
-        expect([
-          ".ai-presentation-title:hover",
-          ".ai-artwork-action-primary:hover",
-          ".ai-presentation-media:hover",
-        ]).toContain(part);
-      }
-    }
-    // Hovering the photo only zooms it.
-    expect(
-      rule(
-        ".ai-presentation-media:hover img",
-        `${POINTER} and (prefers-reduced-motion: no-preference)`,
-      )!.body,
-    ).toBe("scale: 1.03;");
-  });
-
-  it("lights title and button together on keyboard focus", () => {
-    expect(rule(".interaction-primary:focus-visible")!.body).toContain(
-      "background-color: var(--interaction-gold)",
-    );
-    const focused = rules.find(
-      (r) =>
-        r.selector.includes(".ai-presentation-link") &&
-        r.selector.endsWith(".ai-presentation-title"),
-    )!;
-    expect(focused.selector).toContain(":focus-visible");
-    expect(focused.body).toBe("color: var(--interaction-gold);");
-  });
-
-  it("never paints the description or the count with the title", () => {
-    for (const r of rules.filter((r) => r.selector.startsWith(".ai-presentation"))) {
-      expect(r.selector).not.toMatch(/(\sp\b|lead|count)/);
-    }
+    expect(rule(".ai-thumb:hover .ai-thumb-im img", motion)!.body).toBe("transform: scale(1.05);");
   });
 
   it("keeps hover pointer-only and every movement optional", () => {
     for (const r of rules.filter((r) =>
-      /interaction-|ai-presentation|ai-artwork/.test(r.selector),
+      /interaction-|ai-hall|ai-fan|ai-thumb|ai-filter|collection-tab/.test(r.selector),
     )) {
       if (r.selector.includes(":hover")) expect(r.context).toContain(POINTER);
       if (/translate: (0 -2px|6px 0)|scale: 0\.98/.test(r.body)) {
@@ -594,8 +554,8 @@ describe("Design A interaction system", () => {
     const { container } = await renderAt(`/ai-worlds/collections/${collection.slug}`, () => (
       <AiCollectionView collection={collection} />
     ));
-    const second = container.querySelectorAll<HTMLElement>("ol.container-page > li > article")[1]!;
-    const opener = within(second).getByRole("button", { name: messages.bg.ai.fullscreen });
+    const second = container.querySelectorAll<HTMLElement>("ol.ai-thumb-grid > li")[1]!;
+    const opener = within(second).getByRole("button", { name: /в цял екран/ });
     opener.focus();
     fireEvent.click(opener);
     const dialog = await screen.findByRole("dialog");
@@ -625,45 +585,45 @@ describe("AI Worlds view switch", () => {
     },
   );
 
-  it("paints rest, selected, hover and focus with the approved values", () => {
+  it("paints rest, selected, hover and focus with the mock's values", () => {
     const container = rule(".ai-view-switch")!.body;
     expect(container).toContain("border-radius: 999px");
-    expect(container).toContain("padding: 5px");
-    expect(container).toContain("gap: 4px");
-    expect(container).toContain("border: 1px solid rgb(244 238 225 / 0.22)");
-    expect(container).toContain("background-color: rgb(244 238 225 / 0.04)");
+    expect(container).toContain("padding: 4px");
+    expect(container).toContain("background-color: rgb(244 238 226 / 0.06)");
+    expect(container).toContain("box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16)");
     const tab = rule(".ai-view-switch-tab")!.body;
-    expect(tab).toContain("min-height: 44px");
+    expect(tab).toContain("min-height: 40px");
     expect(tab).toContain("border-radius: 999px");
     expect(tab).toContain("background-color: transparent");
-    expect(tab).toContain("color: #cfcabd");
+    expect(tab).toContain("color: rgb(244 238 226 / 0.74)");
+    expect(tab).toContain("font-size: 12.5px");
     expect(tab).not.toMatch(/border-bottom|inset/);
+    // Coarse pointers keep the 44px touch minimum.
+    expect(rule(".ai-view-switch-tab", "@media (pointer: coarse)")!.body).toBe("min-height: 44px;");
     const selected = rule('.ai-view-switch-tab[aria-pressed="true"]')!.body;
     expect(selected).toContain("background-color: var(--interaction-cream)");
-    expect(selected).toContain("color: var(--interaction-ink-on-gold)");
-    const hover = rule(".ai-view-switch-tab:hover", POINTER)!.body;
-    expect(hover).toContain("background-color: var(--btn-hover-bg)");
-    expect(hover).toContain("color: var(--btn-hover-fg)");
-    expect(hover).not.toContain("box-shadow");
+    expect(selected).toContain("color: var(--navy)");
+    const hover = rule('.ai-view-switch-tab:not([aria-pressed="true"]):hover', POINTER)!.body;
+    expect(hover).toBe("color: var(--interaction-cream);");
     const focus = rule(".ai-view-switch-tab:focus-visible")!.body;
     expect(focus).toContain("outline: 2px solid var(--interaction-gold)");
-    expect(focus).toContain("outline-offset: 3px");
+    expect(focus).toContain("outline-offset: 2px");
   });
 
-  it("keeps the switch hover pointer-only and its movement optional", () => {
+  it("keeps the switch hover pointer-only and without movement", () => {
     const own = rules.filter((r) => r.selector.includes("ai-view-switch"));
     expect(own.some((r) => r.selector.includes(":hover"))).toBe(true);
     for (const r of own) {
       if (r.selector.includes(":hover")) expect(r.context).toContain(POINTER);
-      if (/translate: 0 -1px|scale: 0\.98/.test(r.body)) {
-        expect(r.context).toContain("(prefers-reduced-motion: no-preference)");
-      }
+      // Only the shared reduced-motion reset may name a transform (to switch it off).
+      if (!r.context.includes("prefers-reduced-motion: reduce"))
+        expect(r.body).not.toMatch(/translate|scale/);
     }
   });
 
   it("keeps switch text readable in every state (WCAG >= 4.5:1)", () => {
-    // Rest: #cfcabd over the 4% cream wash on navy (#162134).
-    expect(contrast("#cfcabd", "#162134")).toBeGreaterThanOrEqual(4.5);
+    // Rest: cream at 74% over the 6% cream wash on the page navy (#0c1729) ~ #b9b7b2 on #171f30.
+    expect(contrast("#b9b7b2", "#171f30")).toBeGreaterThanOrEqual(4.5);
     expect(contrast(INK, CREAM)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(INK, GOLD)).toBeGreaterThanOrEqual(4.5);
   });

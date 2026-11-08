@@ -1,13 +1,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ExhibitWork } from "@/components/ai-exhibition";
 import { futureAiConcepts } from "@/content/ai-concepts";
-import { getAiWork, localizeAiWork } from "@/content/ai-works";
+import { collectionText, getAiCollections, getCollectionWorks } from "@/content/ai-collections";
+import { aiWorks } from "@/content/ai-works";
+import { legacyFilterCollection } from "@/lib/ai-filters";
 import { messages } from "@/i18n/messages";
-import { AiWorldsView } from "@/views/ai-worlds";
+import { AiWorldsView, validateAiSearch } from "@/views/ai-worlds";
 
 let activeLocale: "bg" | "en" = "bg";
 let currentSearch: Record<string, unknown> = {};
@@ -59,6 +61,8 @@ afterEach(() => {
   currentSearch = {};
 });
 
+const LOCALES = ["bg", "en"] as const;
+
 const expectNoPrivateIdeas = (container: HTMLElement, locale: "bg" | "en") => {
   expect(container.querySelector("#future-ai-concepts, #planned-for-collection")).toBeNull();
   for (const concept of futureAiConcepts) {
@@ -70,31 +74,29 @@ const expectNoPrivateIdeas = (container: HTMLElement, locale: "bg" | "en") => {
   }
 };
 
-const openDesktopFilters = (container: HTMLElement) =>
-  fireEvent.click(container.querySelector('button[aria-controls="ai-filter-panel"]')!);
-
 describe("AI Worlds overview", () => {
-  it.each(["bg", "en"] as const)(
-    "keeps the %s intro on its own and gives each world of the scene one inert backdrop",
+  it.each(LOCALES)(
+    "opens on the %s intro (title, intro, chips, switch) and one inert scene per hall",
     (locale) => {
       activeLocale = locale;
+      const m = messages[locale].ai;
       const { container } = render(<AiWorldsView />);
-      const overview = container.querySelector<HTMLElement>(".ai-overview")!;
-      expect(overview).toHaveClass("surface-dark");
-      // Intro text and tabs share one shrink-wrapped block.
-      const intro = overview.querySelector<HTMLElement>(
-        ".ai-overview-intro .ai-overview-intro-text",
-      )!;
-      expect(within(intro).getByRole("heading", { level: 1 })).toHaveTextContent(
-        messages[locale].ai.title,
-      );
-      expect(within(intro).getByRole("group", { name: messages[locale].ai.view })).toBeTruthy();
-      // The Collections scene follows the overview; no backdrop sits inside the overview itself.
-      expect(overview.querySelector(".ai-section-background, .ai-overview-hall")).toBeNull();
-      const scene = container.querySelector<HTMLElement>("section.home-worlds")!;
-      const layers = [
-        ...scene.querySelectorAll<HTMLElement>(".home-worlds-layer > .ai-section-background"),
-      ];
+      const index = container.querySelector<HTMLElement>(".ai-index")!;
+      expect(index).toHaveClass("surface-dark");
+      const intro = index.querySelector<HTMLElement>(".ai-intro")!;
+      expect(within(intro).getByRole("heading", { level: 1 })).toHaveTextContent(m.title);
+      expect(within(intro).getByText(m.intro)).toBeInTheDocument();
+      // The eyebrow and the AI chip share their words; the chip is the second one.
+      expect(
+        within(intro)
+          .getAllByText(messages[locale].common.aiBadge)
+          .some((el) => el.classList.contains("ai-chip--ai")),
+      ).toBe(true);
+      expect(within(intro).getByText(m.summary(4, 64))).toHaveClass("ai-chip");
+      expect(within(intro).getByRole("group", { name: m.view })).toBeTruthy();
+      // The intro itself carries no scene; each hall carries its own, decorative and inert.
+      expect(intro.querySelector("[data-ai-section-background]")).toBeNull();
+      const layers = [...container.querySelectorAll<HTMLElement>(".ai-hall > .ai-hall-bg")];
       expect(
         layers.map((layer) => {
           expect(layer).toHaveAttribute("aria-hidden", "true");
@@ -106,62 +108,48 @@ describe("AI Worlds overview", () => {
     },
   );
 
-  it("keeps All Artworks flat, without any backdrop", () => {
+  it("keeps All Artworks flat, without any scene", () => {
     currentSearch = { view: "works" };
     const { container } = render(<AiWorldsView />);
-    expect(container.querySelector(".ai-overview-intro-text h1")).toBeTruthy();
-    expect(container.querySelector(".ai-section-background")).toBeNull();
+    expect(container.querySelector(".ai-intro h1")).toBeTruthy();
+    expect(container.querySelector("[data-ai-section-background]")).toBeNull();
+    expect(container.querySelector(".ai-hall")).toBeNull();
   });
 
-  it("extends only the first hall's layer, by the intro reach, and clips it at the top", () => {
-    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .replace(/\s+/g, " ");
-    const body = (selector: string) =>
-      css.match(
-        new RegExp(`(?:^|[}\\s])${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
-      )?.[1] ?? "";
-    expect(body(".ai-overview")).toContain("--ai-intro-reach: 26rem");
-    expect(body(".ai-overview:has(.ai-overview-hall)")).toContain("overflow: clip");
-    expect(body(".ai-overview:has(.ai-overview-hall) .ai-overview-intro")).toContain("z-index: 1");
-    const first = body(".ai-overview .ai-overview-hall:first-child > .ai-section-background");
-    expect(first).toContain("top: calc(-1 * var(--ai-intro-reach))");
-    // The bottom fade keeps its old length, so the hand-over to the second hall is unchanged.
-    expect(first).toContain("#000 calc(91% + 0.09 * var(--ai-intro-reach))");
-    expect(body(".ai-overview .ai-overview-hall:first-child")).toContain("overflow: clip visible");
-    // No other hall is singled out.
-    expect(css).not.toMatch(/ai-overview-hall:(nth-child|last-child|nth-of-type)/);
+  it("no longer carries the old intro reach or pinned scene rules", () => {
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8");
+    expect(css).not.toContain("--ai-intro-reach");
+    expect(css).not.toContain(".ai-overview-hall");
+    expect(css).not.toContain(".home-worlds");
   });
 
-  it.each(["bg", "en"] as const)("opens on the four curated collections in %s", (locale) => {
+  it.each(LOCALES)("opens on the four curated collection halls in %s", (locale) => {
     activeLocale = locale;
+    const m = messages[locale].ai;
     const { container } = render(<AiWorldsView />);
-    // The stacked fallback list enters each collection through one action, in collection order.
-    const stack = container.querySelector<HTMLElement>(".home-worlds-stack")!;
-    const links = Array.from(stack.querySelectorAll('a[href^="/ai-worlds/collections/"]'));
-    expect(links.map((a) => a.getAttribute("href"))).toEqual([
-      "/ai-worlds/collections/historical-eras-rulers",
-      "/ai-worlds/collections/professions-roles",
-      "/ai-worlds/collections/cinema-archetypes",
-      "/ai-worlds/collections/chefo-around-the-world",
-    ]);
-    expect(container.textContent).not.toMatch(/0[1-4]\s*\/\s*04/);
-    // Each action is named after its collection.
-    const collectionActions = within(stack).getAllByText(messages[locale].ai.exploreCollection);
-    expect(collectionActions).toHaveLength(4);
-    for (const action of collectionActions) {
-      const link = action.closest("a")!;
-      const title = within(link.closest("li")!).getByRole("heading", { level: 2 });
-      expect(link).toHaveAccessibleName(
-        `${messages[locale].ai.exploreCollection}: ${title.textContent}`,
-      );
-    }
-    // The professions world shows the taxi driver portrait.
-    const professions = links[1]!.closest("li")!;
+    const halls = [...container.querySelectorAll<HTMLElement>("article.ai-hall")];
+    const collections = getAiCollections();
+    expect(halls).toHaveLength(4);
+    halls.forEach((hall, i) => {
+      const collection = collections[i]!;
+      const title = collectionText(collection.title, locale);
+      expect(within(hall).getByRole("heading", { level: 2 })).toHaveTextContent(title);
+      expect(hall).toHaveAccessibleName(title);
+      const action = within(hall).getByRole("link", { name: `${m.exploreCollection}: ${title}` });
+      expect(action).toHaveAttribute("href", `/ai-worlds/collections/${collection.slug}`);
+      expect(action).toHaveTextContent(m.exploreCollection);
+    });
+    // The professions hall opens on its own first three works.
+    const professions = halls[1]!;
     expect(
-      professions.querySelector("img.home-worlds-stack-portrait")?.getAttribute("src"),
-    ).toContain("chefo-taxi-driver.webp");
-    expect(professions.querySelector(".ai-frame-portal")).toBeNull();
+      [...professions.querySelectorAll<HTMLImageElement>(".ai-hall-shot img")].map((img) =>
+        img.getAttribute("src"),
+      ),
+    ).toEqual(
+      getCollectionWorks(collections[1]!, locale)
+        .slice(0, 3)
+        .map((w) => w.image),
+    );
     expect(professions.textContent).not.toMatch(/coming soon|очаква|подготвя/i);
     expect(container.textContent).not.toContain(
       locale === "bg" ? "Едно лице. Много култури." : "One Face. Many Cultures.",
@@ -172,145 +160,120 @@ describe("AI Worlds overview", () => {
     expect(container.textContent).not.toContain(
       locale === "bg" ? "Ретро колажи" : "Retro Collages",
     );
-    // Filters belong to All Artworks, not to the exhibition.
-    expect(screen.queryByRole("group", { name: messages[locale].ai.role })).toBeNull();
+    // Filters belong to All Artworks, not to the halls.
+    expect(screen.queryByRole("group", { name: m.filterLabel })).toBeNull();
     expectNoPrivateIdeas(container, locale);
   });
 
-  it.each(["bg", "en"] as const)(
-    "shows only completed works in %s",
+  it.each(LOCALES)(
+    "shows only completed works in All Artworks in %s",
     (locale) => {
       activeLocale = locale;
       currentSearch = { view: "works" };
       const { container } = render(<AiWorldsView />);
       const gallery = screen.getByRole("region", { name: messages[locale].ai.allWorks });
-      const galleryCards = Array.from(gallery.querySelectorAll(":scope > article"));
-      expect(galleryCards).toHaveLength(64);
-      expect(galleryCards.every((card) => card.querySelector(".ai-frame-compact"))).toBe(true);
-      expect(galleryCards.some((card) => card.querySelector(".ai-frame-portal"))).toBe(false);
-      expect(gallery.className).toContain("sm:grid-cols-2");
-      expect(gallery.className).toContain("lg:grid-cols-3");
-      expect(screen.queryByRole("heading", { name: "The Wild West" })).toBeNull();
-      expect(screen.getByText(messages[locale].ai.count(64))).toBeInTheDocument();
-      expect(container.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(64);
+      const tiles = Array.from(gallery.querySelectorAll(".ai-thumb"));
+      expect(tiles).toHaveLength(64);
+      expect(screen.getByRole("status")).toHaveTextContent(messages[locale].ai.shown(64));
+      expect(gallery.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(64);
+      // All works in collection order.
+      expect(Array.from(gallery.querySelectorAll("a")).map((a) => a.getAttribute("href"))).toEqual(
+        getAiCollections()
+          .flatMap((c) => getCollectionWorks(c, locale))
+          .map((w) => `/ai-worlds/${w.slug}`),
+      );
       expect(
         within(gallery).queryByRole("button", { name: /copy.*prompt|копирай.*промпт/i }),
       ).toBeNull();
       for (const title of locale === "bg"
-        ? ["Владетел на морското кралство", "Лято на морето — AI колаж"]
-        : ["Ruler of the sea kingdom", "Summer by the sea — AI collage"]) {
-        expect(within(gallery).queryByRole("heading", { name: title })).not.toBeInTheDocument();
+        ? ["Владетел на морското кралство", "Лято на морето — AI колаж", "The Wild West"]
+        : ["Ruler of the sea kingdom", "Summer by the sea — AI collage", "The Wild West"]) {
+        expect(gallery.textContent).not.toContain(title);
       }
       expectNoPrivateIdeas(container, locale);
     },
     10_000,
   );
 
-  it("shows only approved provider attribution on artwork cards", () => {
-    activeLocale = "en";
-    for (const [slug, provider] of [
-      ["chefo-srednovekoven-ritsar", "ChatGPT Image Generation"],
-      ["rainy-neon-noir", "Gemini Nano Banana"],
-    ] as const) {
-      const work = localizeAiWork(getAiWork(slug)!, "en");
-      const { container, unmount } = render(<ExhibitWork work={work} index={0} />);
-      expect(container.querySelector("article > div:last-child p")).toHaveTextContent(provider);
-      expect(container.textContent).not.toContain(" · ");
-      unmount();
-    }
-
-    for (const slug of ["chefo-v-badeshteto", "angry-roman-emperor-in-senate"]) {
-      const work = localizeAiWork(getAiWork(slug)!, "en");
-      const { container, unmount } = render(<ExhibitWork work={work} index={0} />);
-      expect(container.querySelector("article > div:last-child p")).toBeNull();
-      unmount();
-    }
-  });
-
-  it("opens All Artworks from an old filter deep link", () => {
-    activeLocale = "en";
-    currentSearch = { role: "ruler" };
+  it("shows no AI tool names on the tiles (the mock tiles carry only the AI chip)", () => {
+    currentSearch = { view: "works" };
     render(<AiWorldsView />);
-    expect(screen.getByText("1 artwork")).toBeInTheDocument();
-    expect(
-      within(screen.getByRole("group", { name: "Active filters" })).getByRole("button", {
-        name: "Remove filter “Ruler”",
-      }),
-    ).toBeInTheDocument();
+    const gallery = screen.getByRole("region", { name: messages.bg.ai.allWorks });
+    expect(gallery.textContent).not.toMatch(/ChatGPT|Gemini|Grok/);
+    const chips = gallery.querySelectorAll(".ai-thumb-chip");
+    expect(chips).toHaveLength(64);
+    expect(chips[0]).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("combines role and AI tool without exposing future concepts", () => {
-    activeLocale = "en";
+  it.each(LOCALES)("filters All Artworks by collection in %s", (locale) => {
+    activeLocale = locale;
     currentSearch = { view: "works" };
+    const m = messages[locale].ai;
     const view = render(<AiWorldsView />);
-    openDesktopFilters(view.container);
-    fireEvent.click(
-      within(screen.getByRole("group", { name: "Profession / Role" })).getByRole("button", {
-        name: "Explorer",
-      }),
-    );
+    const group = () => screen.getByRole("group", { name: m.filterLabel });
+    const buttons = () => within(group()).getAllByRole("button");
+    expect(buttons().map((b) => b.textContent)).toEqual([
+      messages[locale].common.all,
+      ...getAiCollections().map((c) => collectionText(c.shortTitle, locale)),
+    ]);
+    expect(buttons().map((b) => b.getAttribute("aria-pressed"))).toEqual([
+      "true",
+      "false",
+      "false",
+      "false",
+      "false",
+    ]);
+    fireEvent.click(buttons()[3]!);
+    expect(currentSearch["collection"]).toBe("cinema-archetypes");
+    expect(currentSearch["view"]).toBe("works");
     view.rerender(<AiWorldsView />);
-    fireEvent.click(
-      within(screen.getByRole("group", { name: "AI Tool" })).getByRole("button", { name: "Grok" }),
-    );
+    expect(buttons()[3]).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("status")).toHaveTextContent(m.shown(16));
+    expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
+    expect(
+      screen.getByRole("region", { name: m.allWorks }).querySelectorAll(".ai-thumb"),
+    ).toHaveLength(16);
+    fireEvent.click(buttons()[0]!);
+    expect(currentSearch["collection"]).toBeUndefined();
     view.rerender(<AiWorldsView />);
+    expect(screen.getByRole("status")).toHaveTextContent(m.shown(64));
+  });
 
-    expect(screen.getByText("1 artwork")).toBeInTheDocument();
-    expect(view.container.querySelectorAll('a[href^="/ai-worlds/"]')).toHaveLength(1);
-    expect(screen.getByText("The Red Planet")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "The Wild West" })).not.toBeInTheDocument();
-    expectNoPrivateIdeas(view.container, "en");
-
-    fireEvent.click(
-      within(screen.getByRole("group", { name: "Historical Era" })).getByRole("button", {
-        name: "Medieval",
-      }),
-    );
-    view.rerender(<AiWorldsView />);
-    expect(screen.getByText("0 artworks")).toBeInTheDocument();
-    expect(screen.getByText(messages.en.ai.empty)).toBeInTheDocument();
-    expectNoPrivateIdeas(view.container, "en");
-
-    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
-    view.rerender(<AiWorldsView />);
-    expect(screen.getByText("64 artworks")).toBeInTheDocument();
-    expectNoPrivateIdeas(view.container, "en");
-  }, 10_000);
-
-  it("applies, discards and resets a draft in the mobile filter sheet", async () => {
+  it("opens All Artworks from an old filter deep link and picks the closest collection", () => {
     activeLocale = "en";
-    currentSearch = { view: "works" };
-    const view = render(<AiWorldsView />);
-    const sheetTrigger = () => view.container.querySelector('button[aria-haspopup="dialog"]')!;
+    currentSearch = validateAiSearch({ role: "ruler" });
+    render(<AiWorldsView />);
+    const group = screen.getByRole("group", { name: "Collection" });
+    const pressed = within(group)
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("aria-pressed") === "true");
+    const mapped = legacyFilterCollection({ role: "ruler" });
+    expect(mapped).toBe("historical-eras-rulers");
+    expect(pressed.map((b) => b.textContent)).toEqual(["Historical"]);
+    expect(screen.getByRole("status")).toHaveTextContent("16 artworks shown");
+  });
 
-    fireEvent.click(sheetTrigger());
-    let sheet = await screen.findByRole("dialog", { name: "Filters" });
-    fireEvent.click(
-      within(within(sheet).getByRole("group", { name: "Profession / Role" })).getByRole("button", {
-        name: "Ruler",
-      }),
-    );
-    expect(currentSearch["role"]).toBeUndefined(); // still a draft
-    fireEvent.click(within(sheet).getByRole("button", { name: "Show 1 artwork" }));
-    expect(currentSearch["role"]).toBe("ruler");
-    view.rerender(<AiWorldsView />);
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  it("reads every old filter parameter without errors and ignores unknown values", () => {
+    expect(validateAiSearch({ category: "nope", tool: 3, collection: "nope", view: "x" })).toEqual({
+      view: undefined,
+      collection: undefined,
+      category: undefined,
+      role: undefined,
+      era: undefined,
+      setting: undefined,
+      tool: undefined,
+    });
+    // A filter whose matches span several collections opens All works without a collection.
+    const tool = aiWorks[0]!.tool;
+    expect(legacyFilterCollection({ tool })).toBeUndefined();
+    currentSearch = validateAiSearch({ tool });
+    render(<AiWorldsView />);
+    expect(screen.getByRole("status")).toHaveTextContent(messages.bg.ai.shown(64));
+  });
 
-    fireEvent.click(sheetTrigger());
-    sheet = await screen.findByRole("dialog", { name: "Filters" });
-    fireEvent.click(
-      within(within(sheet).getByRole("group", { name: "AI Tool" })).getByRole("button", {
-        name: "Grok",
-      }),
-    );
-    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(currentSearch["tool"]).toBeUndefined(); // Escape discards the draft
-
-    fireEvent.click(sheetTrigger());
-    sheet = await screen.findByRole("dialog", { name: "Filters" });
-    fireEvent.click(within(sheet).getByRole("button", { name: "Reset" }));
-    fireEvent.click(within(sheet).getByRole("button", { name: "Show 64 artworks" }));
-    expect(currentSearch["role"]).toBeUndefined();
+  it("ships every hall visible in the server HTML", () => {
+    const html = renderToString(<AiWorldsView />);
+    expect(html.match(/class="ai-hall surface-dark"/g)).toHaveLength(4);
+    expect(html).not.toContain("data-hall-reveal");
   });
 });

@@ -1,23 +1,22 @@
-// Redesign stage 6 · AI Worlds: the sticky collection tabs that follow the scroll, the sliding
-// indicator, the view switch and the collection page tab row.
+// AI Worlds (stage 6 behaviour, stage 6b halls): the sticky collection tab band that follows the
+// scroll over the mock's halls, the halls themselves, the view switch and the collection page tabs.
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HomeWorlds } from "@/components/home-worlds";
-import { collectionText, getAiCollections } from "@/content/ai-collections";
+import { AiHalls } from "@/components/ai-halls";
+import { HALL_GLOW, hallId } from "@/lib/ai-halls";
+import { collectionText, getAiCollections, getCollectionWorks } from "@/content/ai-collections";
 import { messages } from "@/i18n/messages";
 import {
   ACTIVE_LINE,
   TAB_LOCK_IDLE_MS,
   TAB_LOCK_MAX_MS,
   activeSceneIndex,
-  pinnedSlotTops,
   tabScrollTarget,
 } from "@/lib/world-tabs";
-import { WORLD_COUNT, exposedIndex, progressAt } from "@/lib/worlds-motion";
 import { AiCollectionView, AiWorldsView } from "@/views/ai-worlds";
 
 let activeLocale: "bg" | "en" = "bg";
@@ -80,16 +79,16 @@ afterEach(() => {
 
 describe("activeSceneIndex", () => {
   const line = 470;
-  it("defaults to the first scene when every slot is below the line", () => {
+  it("defaults to the first hall when every hall is below the line", () => {
     expect(activeSceneIndex([600, 1200, 1800, 2400], line)).toBe(0);
   });
-  it("takes the last scene when every slot is above the line", () => {
+  it("takes the last hall when every hall is above the line", () => {
     expect(activeSceneIndex([-2400, -1800, -1200, -600], line)).toBe(3);
   });
-  it("counts a slot exactly on the line as reached", () => {
+  it("counts a hall exactly on the line as reached", () => {
     expect(activeSceneIndex([-200, line, line + 1, 2000], line)).toBe(1);
   });
-  it("handles a single scene and an empty list", () => {
+  it("handles a single hall and an empty list", () => {
     expect(activeSceneIndex([900], line)).toBe(0);
     expect(activeSceneIndex([-900], line)).toBe(0);
     expect(activeSceneIndex([], line)).toBe(-1);
@@ -97,40 +96,159 @@ describe("activeSceneIndex", () => {
   it("uses a reading line at 47% of the viewport", () => {
     expect(ACTIVE_LINE).toBe(0.47);
   });
-});
-
-describe("pinned slots", () => {
-  it("agree with the world the pinned stage shows, all the way through the track", () => {
-    const vh = 900;
-    const height = 3 * vh;
-    for (let step = 0; step <= 200; step++) {
-      const p = step / 200;
-      // Skip the exact handover point, where the two rules may round differently.
-      const { i0, t } = progressAt(p);
-      if (Math.abs(t - 0.5) < 0.01) continue;
-      const tops = pinnedSlotTops(-p * (height - vh), height, vh);
-      expect(tops).toHaveLength(WORLD_COUNT);
-      expect(activeSceneIndex(tops, vh * ACTIVE_LINE), `p=${p}`).toBe(exposedIndex(i0, t));
-    }
-  });
-  it("keeps the first world before the track and the last one after it", () => {
-    expect(activeSceneIndex(pinnedSlotTops(400, 2700, 900), 423)).toBe(0);
-    expect(activeSceneIndex(pinnedSlotTops(-5000, 2700, 900), 423)).toBe(3);
-  });
-  it("lands a stacked scene just under the header and the tab bar", () => {
+  it("lands a hall just under the header and the tab band", () => {
     expect(tabScrollTarget(2000, 65, 62)).toBe(2000 - 65 - 62 - 8);
     expect(tabScrollTarget(50, 65, 62)).toBe(0);
   });
 });
 
-describe("collection tabs on the One face, four worlds section", () => {
+describe("collection halls", () => {
+  it("has a BG and EN short name for every collection", () => {
+    const collections = getAiCollections();
+    expect(collections.map((c) => c.shortTitle.bg)).toEqual([
+      "Исторически",
+      "Професии",
+      "Кино",
+      "По света",
+    ]);
+    expect(collections.map((c) => c.shortTitle.en)).toEqual([
+      "Historical",
+      "Professions",
+      "Cinema",
+      "Around the world",
+    ]);
+  });
+
+  it.each(LOCALES)(
+    "shows one hall per collection in data order with its counter, title, three works and link in %s",
+    (locale) => {
+      activeLocale = locale;
+      const m = messages[locale].ai;
+      const prefix = locale === "en" ? "/en" : "";
+      const { container } = render(<AiHalls />);
+      const halls = [...container.querySelectorAll<HTMLElement>("article.ai-hall")];
+      const collections = getAiCollections();
+      expect(halls).toHaveLength(collections.length);
+      halls.forEach((hall, i) => {
+        const collection = collections[i]!;
+        const works = getCollectionWorks(collection, locale);
+        const title = collectionText(collection.title, locale);
+        expect(hall.id).toBe(hallId(collection.slug));
+        expect(hall).toHaveAccessibleName(title);
+        expect(hall.style.getPropertyValue("--glow")).toBe(HALL_GLOW[collection.slug]);
+        expect(hall.querySelector(".ai-hall-count")).toHaveTextContent(
+          `${String(i + 1).padStart(2, "0")} · ${m.count(works.length)}`,
+        );
+        expect(within(hall).getByRole("heading", { level: 2 })).toHaveTextContent(title);
+        expect(hall.querySelector(".ai-hall-intro")).toHaveTextContent(
+          collectionText(collection.intro, locale),
+        );
+        const shots = [...hall.querySelectorAll<HTMLAnchorElement>("a.ai-hall-shot")];
+        expect(shots).toHaveLength(3);
+        shots.forEach((shot, k) => {
+          const work = works[k]!;
+          expect(shot).toHaveAttribute("href", `${prefix}/ai-worlds/${work.slug}`);
+          const img = shot.querySelector("img")!;
+          expect(img).toHaveAttribute("alt", work.alt);
+          expect(img).toHaveAttribute("width");
+          expect(img).toHaveAttribute("height");
+          expect(img).toHaveAttribute("loading", i === 0 ? "eager" : "lazy");
+          expect(shot.querySelector(".ai-hall-cap")).toHaveAttribute("aria-hidden", "true");
+        });
+        expect(
+          within(hall).getByRole("link", { name: `${m.exploreCollection}: ${title}` }),
+        ).toHaveAttribute("href", `${prefix}/ai-worlds/collections/${collection.slug}`);
+      });
+      // No "AI" badge on the hall images (the mock shows none there).
+      expect(container.querySelector(".ai-hall .ai-thumb-chip, .ai-hall .ai-chip")).toBeNull();
+      expect(container.textContent).not.toMatch(/Закачен скрол|Идея|Idea|Pinned scroll/);
+    },
+  );
+
+  it("ships every hall visible: no reveal pre-state in the server HTML", () => {
+    const html = renderToString(<AiHalls />);
+    expect(html.match(/<article/g)).toHaveLength(4);
+    expect(html).not.toContain("data-hall-reveal");
+  });
+
+  describe("reveal", () => {
+    let observers: { callback: IntersectionObserverCallback }[] = [];
+    class FakeObserver {
+      constructor(readonly callback: IntersectionObserverCallback) {
+        observers.push(this);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    const setup = (reduced: boolean) => {
+      observers = [];
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      vi.stubGlobal("IntersectionObserver", FakeObserver);
+      vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) =>
+        setTimeout(() => cb(0), 16),
+      );
+      vi.stubGlobal("cancelAnimationFrame", (id: number) => clearTimeout(id));
+      vi.spyOn(window, "matchMedia").mockImplementation(
+        (query: string) =>
+          ({
+            matches: query.includes("reduce") ? reduced : false,
+            media: query,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+          }) as unknown as MediaQueryList,
+      );
+      const original = HTMLElement.prototype.getBoundingClientRect;
+      vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+        this: HTMLElement,
+      ) {
+        if (this.hasAttribute("data-hall")) {
+          const i = [...this.parentElement!.querySelectorAll("[data-hall]")].indexOf(this);
+          return { top: i === 0 ? 100 : 2000 + i * 700, height: 700 } as DOMRect;
+        }
+        return original.call(this);
+      });
+    };
+
+    it("hides only the halls below the fold, after mount, until they enter", async () => {
+      setup(false);
+      const { container } = render(<AiHalls />);
+      const halls = [...container.querySelectorAll<HTMLElement>("[data-hall]")];
+      expect(halls.every((h) => !h.dataset["hallReveal"])).toBe(true);
+      await act(() => vi.advanceTimersByTimeAsync(20));
+      expect(halls.map((h) => h.dataset["hallReveal"] ?? null)).toEqual([
+        null,
+        "pending",
+        "pending",
+        "pending",
+      ]);
+      const observer = observers.at(-1)!;
+      act(() =>
+        observer.callback(
+          [{ isIntersecting: true, target: halls[1]! } as unknown as IntersectionObserverEntry],
+          observer as unknown as IntersectionObserver,
+        ),
+      );
+      expect(halls[1]!.dataset["hallReveal"]).toBe("shown");
+    });
+
+    it("shows every hall at once with reduced motion", async () => {
+      setup(true);
+      const { container } = render(<AiHalls />);
+      await act(() => vi.advanceTimersByTimeAsync(20));
+      expect(container.querySelector("[data-hall-reveal]")).toBeNull();
+    });
+  });
+});
+
+describe("collection tab band", () => {
   it.each(LOCALES)(
     "renders one tab per collection in data order with a nav label in %s",
     (locale) => {
       activeLocale = locale;
-      const { container } = render(<HomeWorlds />);
-      const nav = screen.getByRole("navigation", { name: messages[locale].home.worldsJump });
-      expect(container.querySelector("section")!.firstElementChild).toBe(nav);
+      const { container } = render(<AiHalls />);
+      const nav = screen.getByRole("navigation", { name: messages[locale].ai.hallsNav });
+      expect(container.querySelector(".ai-halls")!.firstElementChild).toBe(nav);
       const tabs = within(nav).getAllByRole("button");
       const collections = getAiCollections();
       expect(tabs.map((tab) => tab.textContent)).toEqual(
@@ -145,19 +263,23 @@ describe("collection tabs on the One face, four worlds section", () => {
         null,
         null,
       ]);
-      // The old jump group is gone: one row of names only.
-      expect(screen.queryByRole("group", { name: messages[locale].home.worldsJump })).toBeNull();
+      expect(tabs.map((tab) => tab.hasAttribute("data-current"))).toEqual([
+        true,
+        false,
+        false,
+        false,
+      ]);
     },
   );
 
   it("ships the first tab as current, painted by itself until the indicator is measured", () => {
-    const html = renderToString(<HomeWorlds />);
+    const html = renderToString(<AiHalls />);
     expect(html).toMatch(/aria-current="true"[^>]*data-current=""/);
     expect(html).not.toContain("data-indicator");
     expect(html).toContain('class="slide-indicator"');
   });
 
-  describe("scroll sync and the click lock (stacked layout)", () => {
+  describe("scroll sync and the click lock", () => {
     let scrollY = 0;
     const docTops = [1000, 1600, 2200, 2800];
     const scrollTo = vi.fn();
@@ -173,6 +295,7 @@ describe("collection tabs on the One face, four worlds section", () => {
       );
       vi.stubGlobal("cancelAnimationFrame", (id: number) => clearTimeout(id));
       vi.stubGlobal("innerHeight", 1000);
+      vi.stubGlobal("IntersectionObserver", undefined);
       Object.defineProperty(window, "scrollY", { configurable: true, get: () => scrollY });
       window.scrollTo = scrollTo as unknown as typeof window.scrollTo;
       vi.spyOn(window, "matchMedia").mockImplementation(
@@ -189,27 +312,27 @@ describe("collection tabs on the One face, four worlds section", () => {
         this: HTMLElement,
       ) {
         if (this.tagName === "HEADER") return { top: 0, height: 65, bottom: 65 } as DOMRect;
-        if (this.classList.contains("home-worlds-stack-item")) {
-          const i = Array.from(this.parentElement!.children).indexOf(this);
-          return { top: docTops[i]! - scrollY, height: 500 } as DOMRect;
+        if (this.hasAttribute("data-hall")) {
+          const i = [...this.parentElement!.querySelectorAll("[data-hall]")].indexOf(this);
+          return { top: docTops[i]! - scrollY, height: 600 } as DOMRect;
         }
         return original.call(this);
       });
       vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (
         this: HTMLElement,
       ) {
-        return this.classList.contains("home-worlds-tabs") ? 62 : 0;
+        return this.classList.contains("ai-tabs-band") ? 62 : 0;
       });
     });
 
     const renderWithHeader = () => {
       const header = document.createElement("header");
       document.body.prepend(header);
-      const view = render(<HomeWorlds />);
+      const view = render(<AiHalls />);
       return { ...view, done: () => header.remove() };
     };
     const tabs = () =>
-      within(screen.getByRole("navigation", { name: messages.bg.home.worldsJump })).getAllByRole(
+      within(screen.getByRole("navigation", { name: messages.bg.ai.hallsNav })).getAllByRole(
         "button",
       );
     const current = () => tabs().findIndex((tab) => tab.getAttribute("aria-current") === "true");
@@ -219,31 +342,28 @@ describe("collection tabs on the One face, four worlds section", () => {
       await act(() => vi.advanceTimersByTimeAsync(20));
     };
 
-    it("follows the scroll: last scene at or above 47% of the viewport, first at the top", async () => {
+    it("follows the scroll: last hall at or above 47% of the viewport, first at the top", async () => {
       const { done } = renderWithHeader();
       await act(() => vi.advanceTimersByTimeAsync(20));
       expect(current()).toBe(0);
-      await scrollToY(1600 - 470); // scene 2 reaches the line
+      await scrollToY(1600 - 470); // hall 2 reaches the line
       expect(current()).toBe(1);
-      await scrollToY(2200 - 471); // one pixel short of scene 3
+      await scrollToY(2200 - 471); // one pixel short of hall 3
       expect(current()).toBe(1);
-      await scrollToY(9000); // past the last scene
+      await scrollToY(9000); // past the last hall
       expect(current()).toBe(3);
       await scrollToY(0); // back to the top
       expect(current()).toBe(0);
       done();
     });
 
-    it("scrolls to a clicked scene, shows it at once and holds it until scrolling is idle", async () => {
+    it("scrolls to a clicked hall, shows it at once and holds it until scrolling is idle", async () => {
       const { done } = renderWithHeader();
       await act(() => vi.advanceTimersByTimeAsync(20));
       fireEvent.click(tabs()[2]!);
-      expect(scrollTo).toHaveBeenLastCalledWith({
-        top: 2200 - (65 + 62 + 8),
-        behavior: "smooth",
-      });
+      expect(scrollTo).toHaveBeenLastCalledWith({ top: 2200 - (65 + 62 + 8), behavior: "smooth" });
       expect(current()).toBe(2);
-      // On the way there the geometry says scene 1, but the clicked tab is held.
+      // On the way there the geometry says hall 1, but the clicked tab is held.
       await scrollToY(1600 - 400);
       await act(() => vi.advanceTimersByTimeAsync(TAB_LOCK_IDLE_MS - 40));
       await scrollToY(1600 - 300);
@@ -284,9 +404,9 @@ describe("collection tabs on the One face, four worlds section", () => {
 });
 
 describe("AI Worlds view switch", () => {
-  it.each(LOCALES)("shows the tab bar only in the Collections view in %s", (locale) => {
+  it.each(LOCALES)("shows the tab band only in the Collections view in %s", (locale) => {
     activeLocale = locale;
-    const label = messages[locale].home.worldsJump;
+    const label = messages[locale].ai.hallsNav;
     const view = render(<AiWorldsView />);
     expect(screen.getByRole("navigation", { name: label })).toBeInTheDocument();
     const group = screen.getByRole("group", { name: messages[locale].ai.view });
@@ -301,14 +421,15 @@ describe("AI Worlds view switch", () => {
 
     fireEvent.click(collections!);
     expect(currentSearch["view"]).toBeUndefined();
+    expect(currentSearch["collection"]).toBeUndefined();
     view.rerender(<AiWorldsView />);
     expect(screen.getByRole("navigation", { name: label })).toBeInTheDocument();
   });
 
-  it("opens straight on All artworks from the URL, without the tab bar", () => {
+  it("opens straight on All artworks from the URL, without the tab band", () => {
     currentSearch = { view: "works" };
     render(<AiWorldsView />);
-    expect(screen.queryByRole("navigation", { name: messages.bg.home.worldsJump })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: messages.bg.ai.hallsNav })).toBeNull();
     expect(screen.getByRole("region", { name: messages.bg.ai.allWorks })).toBeInTheDocument();
   });
 });
@@ -329,47 +450,91 @@ describe("collection page tab row", () => {
       collections.map((c) => collectionText(c.shortTitle, locale)),
     );
     expect(links.map((a) => a.getAttribute("aria-current"))).toEqual([null, "page", null, null]);
-    // The previous/next cards keep their own navigation.
-    expect(
+    // The previous/next cards keep their own navigation, and the back pill leads to AI Worlds.
+    const cards = within(
       screen.getByRole("navigation", { name: messages[locale].ai.collections }),
-    ).toBeInTheDocument();
-    // Header chips: the AI chip and the work count.
-    const h1 = screen.getByRole("heading", { level: 1 });
-    expect(h1).toHaveClass("ai-collection-title");
-    expect(screen.getByText(messages[locale].common.aiBadge)).toHaveClass("ai-chip");
+    ).getAllByRole("link");
+    expect(cards.map((a) => a.getAttribute("href"))).toEqual([
+      `${prefix}/ai-worlds/collections/${collections[0]!.slug}`,
+      `${prefix}/ai-worlds/collections/${collections[2]!.slug}`,
+    ]);
+    expect(screen.getByRole("link", { name: messages[locale].ai.backToAiWorlds })).toHaveClass(
+      "back-pill",
+    );
+    // Header: the mock's title and the two chips.
+    expect(screen.getByRole("heading", { level: 1 })).toHaveClass("ai-col-title");
+    expect(screen.getByText(messages[locale].common.aiBadge)).toHaveClass("ai-chip--ai");
+    expect(screen.getByText(messages[locale].ai.count(16))).toHaveClass("ai-chip");
+  });
+
+  it("cycles: the first collection's previous is the last, the last's next is the first", () => {
+    activeLocale = "en";
+    const collections = getAiCollections();
+    for (const [index, prev, next] of [
+      [0, collections.length - 1, 1],
+      [collections.length - 1, collections.length - 2, 0],
+    ] as const) {
+      const { unmount } = render(<AiCollectionView collection={collections[index]!} />);
+      const cards = within(screen.getByRole("navigation", { name: "Collections" })).getAllByRole(
+        "link",
+      );
+      expect(cards.map((a) => a.getAttribute("href"))).toEqual([
+        `/en/ai-worlds/collections/${collections[prev]!.slug}`,
+        `/en/ai-worlds/collections/${collections[next]!.slug}`,
+      ]);
+      unmount();
+    }
   });
 });
 
-describe("stage 6 styles", () => {
+describe("stage 6 and 6b styles", () => {
   const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\r\n/g, "\n");
-  const block = css.slice(css.indexOf("/*\n * Redesign stage 6"));
+  const flat = css.replace(/\s+/g, " ");
+  const block6 = css.slice(css.indexOf("/*\n * Redesign stage 6 ·"));
 
-  it("lives in styles.css, where both interaction guards scan it", () => {
-    expect(block.length).toBeGreaterThan(1000);
-    expect(block).toContain(".collection-tab");
-    expect(block).toContain(".slide-indicator");
+  it("keeps the short names on one row of tabs that scrolls instead of wrapping", () => {
+    expect(flat).not.toContain(".home-worlds");
+    const list = flat.match(/\.collection-tabs-list \{([^}]*)\}/)![1]!;
+    expect(list).toContain("display: flex;");
+    expect(list).toContain("overflow-x: auto;");
+    expect(list).not.toContain("flex-wrap: wrap");
+    const tab = flat.match(/\.collection-tab \{([^}]*)\}/)![1]!;
+    expect(tab).toContain("min-height: 40px;");
+    expect(tab).toContain("white-space: nowrap;");
+    expect(tab).toContain("flex: none;");
+    // Touch keeps the 44px minimum.
+    expect(flat).toContain("@media (pointer: coarse) { .collection-tab { min-height: 44px; } }");
   });
 
-  it("slides the pill over 360ms on the one easing, and not at all with reduced motion", () => {
-    expect(block).toMatch(
-      /\[data-indicator="on"\] > \.slide-indicator \{\s*transition:\s*transform 360ms var\(--motion-ease\),\s*width 360ms var\(--motion-ease\)/,
+  it("marks the current tab with a cream pill and keeps hover inside a fine-pointer query", () => {
+    expect(flat).toContain(
+      ".collection-tab[data-current] { box-shadow: none; color: var(--navy); }",
     );
-    const reduced = block.slice(block.indexOf("@media (prefers-reduced-motion: reduce)"));
-    expect(reduced).toMatch(
-      /\[data-indicator\] > \.slide-indicator,\s*\.collection-tab \{\s*transition: none;/,
+    expect(flat).toContain(
+      ".collection-tabs-list:not([data-indicator]) .collection-tab[data-current] { background-color: var(--interaction-cream); }",
     );
-  });
-
-  it("sticks under the measured header and keeps hover inside a fine-pointer query", () => {
-    expect(block).toMatch(
-      /\.collection-tabs\[data-mode="scroll"\] \{\s*position: sticky;\s*top: var\(--worlds-tabs-top, 65px\);/,
-    );
-    const outside = block.replace(
+    expect(flat).toMatch(/\.slide-indicator \{[^}]*background-color: var\(--interaction-cream\);/);
+    const outside = block6.replace(
       /@media \(hover: hover\)[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g,
       "",
     );
     expect(outside).not.toMatch(/:hover/);
-    for (const rule of block.match(/[^{}]*:active[^{]*\{[^}]*\}/g) ?? [])
+  });
+
+  it("slides the pill over 360ms on the one easing, and not at all with reduced motion", () => {
+    expect(block6).toMatch(
+      /\[data-indicator="on"\] > \.slide-indicator \{\s*transition:\s*transform 360ms var\(--motion-ease\),\s*width 360ms var\(--motion-ease\)/,
+    );
+    expect(block6).toMatch(
+      /@media \(prefers-reduced-motion: reduce\) \{\s*\[data-indicator\] > \.slide-indicator,\s*\.collection-tab \{\s*transition: none;/,
+    );
+  });
+
+  it("sticks the band under the measured header, inside its own block only", () => {
+    expect(block6).toMatch(
+      /\.collection-tabs \{\s*position: sticky;\s*top: var\(--ai-tabs-top, 65px\);/,
+    );
+    for (const rule of block6.match(/[^{}]*:active[^{]*\{[^}]*\}/g) ?? [])
       expect(rule).not.toMatch(/scale|translate|rotate/);
   });
 });

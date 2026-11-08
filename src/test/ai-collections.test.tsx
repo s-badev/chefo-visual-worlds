@@ -156,6 +156,8 @@ describe("AI collection page", () => {
     },
   );
 
+  // Stage 6b: the wall of large works became the mock's compact grid. Each tile keeps a
+  // full-screen button (the image) and a link to the artwork page (the caption).
   it.each([
     ["historical-eras-rulers", "The Lion King", "Knight of the Last Wall"],
     ["professions-roles", "The Neighborhood Barber", "Sanitation Worker on an Early Shift"],
@@ -165,21 +167,21 @@ describe("AI collection page", () => {
     "renders %s artwork titles without decorative sequence labels",
     (slug, firstTitle, laterTitle) => {
       const { container } = render(<AiCollectionView collection={getAiCollection(slug)!} />);
-      const wall = container.querySelector("ol.container-page")!;
-      expect(wall.querySelectorAll("li article").length).toBeGreaterThan(0);
-      expect(wall.querySelectorAll(".ai-frame-portal")).toHaveLength(0);
-      expect(wall.querySelector(".eyebrow.tabular-nums")).toBeNull();
-      expect(wall.textContent).not.toContain(" · ");
+      const grid = container.querySelector("ol.ai-thumb-grid")!;
+      expect(grid.querySelectorAll("li").length).toBeGreaterThan(0);
+      expect(grid.querySelectorAll(".ai-frame-portal")).toHaveLength(0);
+      expect(grid.querySelector(".eyebrow.tabular-nums")).toBeNull();
+      expect(grid.textContent).not.toContain(" · ");
+      expect(grid.textContent).not.toMatch(/\b\d+\s*\/\s*\d+\b/);
       for (const title of new Set([firstTitle, laterTitle])) {
-        expect(
-          within(wall as HTMLElement).getByRole("heading", { level: 2, name: title })
-            .previousElementSibling,
-        ).toBeNull();
+        expect(within(grid as HTMLElement).getByRole("link", { name: title })).toHaveClass(
+          "ai-thumb-title",
+        );
       }
     },
   );
 
-  it("hangs each work with a label and opens it full screen", () => {
+  it("shows each work as a tile with its title link and opens it full screen", () => {
     const { container } = render(
       <AiCollectionView collection={getAiCollection("historical-eras-rulers")!} />,
     );
@@ -187,25 +189,27 @@ describe("AI collection page", () => {
       screen.getByRole("heading", { level: 1, name: "Historical Eras & Rulers" }),
     ).toBeInTheDocument();
     expect(container.querySelector("header .tabular-nums")).toBeNull();
-    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    const grid = container.querySelector<HTMLElement>("ol.ai-thumb-grid")!;
+    const titles = [...grid.querySelectorAll(".ai-thumb-title")].map((a) => a.textContent);
     expect(titles).toHaveLength(16);
     expect(titles.slice(0, 3)).toEqual([
       "The Lion King",
       "Roman Emperor",
       "Italian Renaissance Nobleman",
     ]);
-    const viewActions = screen.getAllByRole("link", { name: "View artwork" });
-    const fullscreenActions = screen.getAllByRole("button", { name: "Full screen" });
+    const viewActions = within(grid).getAllByRole("link");
+    const fullscreenActions = within(grid).getAllByRole("button", {
+      name: /^Open “.*” in full screen$/,
+    });
     expect(viewActions).toHaveLength(16);
     expect(fullscreenActions).toHaveLength(16);
-    expect(viewActions[0]).toHaveAttribute(
-      "href",
-      "/ai-worlds/chefo-srednovekoven-ritsar",
-    );
+    expect(viewActions[0]).toHaveAttribute("href", "/ai-worlds/chefo-srednovekoven-ritsar");
     expect(viewActions[0]?.closest("button")).toBeNull();
     expect(fullscreenActions[0]).toHaveAttribute("type", "button");
-    expect(container.querySelector("ol.container-page")?.textContent).not.toContain(" · ");
-    fireEvent.click(screen.getAllByRole("button", { name: "Full screen" })[2]!);
+    expect(fullscreenActions[0]).toHaveAccessibleName(
+      messages.en.common.openFullscreen("The Lion King"),
+    );
+    fireEvent.click(fullscreenActions[2]!);
     const viewer = screen.getByRole("dialog", { name: "Italian Renaissance Nobleman" });
     expect(within(viewer).getByText("3 / 16")).toBeInTheDocument();
     expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
@@ -213,7 +217,7 @@ describe("AI collection page", () => {
 
   it("restores focus to the exact fullscreen action after Escape and close", async () => {
     render(<AiCollectionView collection={getAiCollection("historical-eras-rulers")!} />);
-    const triggers = screen.getAllByRole("button", { name: "Full screen" });
+    const triggers = screen.getAllByRole("button", { name: /^Open “.*” in full screen$/ });
 
     const escapeTrigger = triggers[1]!;
     escapeTrigger.focus();
@@ -232,7 +236,7 @@ describe("AI collection page", () => {
     await waitFor(() => expect(closeTrigger).toHaveFocus());
   });
 
-  it("uses two bounded collection cards and preserves the intentional wraparound order", () => {
+  it("uses two previous/next collection cards and preserves the intentional wraparound order", () => {
     const collection = getAiCollection("historical-eras-rulers")!;
     render(<AiCollectionView collection={collection} />);
     const navigation = screen.getByRole("navigation", { name: "Collections" });
@@ -243,10 +247,13 @@ describe("AI collection page", () => {
       "/ai-worlds/collections/chefo-around-the-world",
     );
     expect(links[1]).toHaveAttribute("href", "/ai-worlds/collections/professions-roles");
+    expect(links[0]).toHaveTextContent(/Previous collection.*Around the World/);
+    expect(links[1]).toHaveTextContent(/Next collection.*Professions & Roles/);
     for (const link of links) {
-      expect(link).toHaveClass("min-h-24", "rounded-sm", "border");
-      expect(link.querySelector("svg")).toBeInTheDocument();
+      expect(link).toHaveClass("ai-col-nav-card");
+      expect(link.querySelector("[aria-hidden='true']")).toBeInTheDocument();
     }
+    expect(links[1]).toHaveClass("ai-col-nav-card--next");
   });
 
   it("exhibits all sixteen professions without exposing planned ideas", () => {
@@ -254,14 +261,14 @@ describe("AI collection page", () => {
     const { container } = render(
       <AiCollectionView collection={getAiCollection("professions-roles")!} />,
     );
-    // Neighbouring-collection thumbnails and the decorative backdrop are not exhibited works.
-    const imagesOutsideNav = Array.from(container.querySelectorAll("img")).filter(
-      (img) => !img.closest("nav, .ai-section-background"),
+    // The decorative scene is not an exhibited work.
+    const imagesOutsideScene = Array.from(container.querySelectorAll("img")).filter(
+      (img) => !img.closest("[data-ai-section-background]"),
     );
-    expect(container.querySelectorAll(".ai-section-background img")).toHaveLength(1);
-    expect(imagesOutsideNav).toHaveLength(16);
+    expect(container.querySelectorAll("[data-ai-section-background] img")).toHaveLength(1);
+    expect(imagesOutsideScene).toHaveLength(16);
     expect(screen.getByRole("heading", { level: 1, name: "Професии и роли" })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(16);
+    expect(container.querySelectorAll(".ai-thumb-title")).toHaveLength(16);
     expect(container.querySelector("#planned-for-collection")).toBeNull();
     for (const concept of futureAiConcepts) {
       expect(container.textContent).not.toContain(concept.title.bg);
