@@ -7,6 +7,8 @@ import { Surface } from "@/components/surface";
 import { NextAlbumCard } from "@/components/next-album-card";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
+import { albumThumb } from "@/lib/lightbox";
+import { photoLightboxItem } from "@/lib/lightbox-items";
 
 const ratioValue = (ratio: EditorialImage["aspectRatio"]) => {
   if (!ratio) return 1;
@@ -212,7 +214,15 @@ export function EditorialAlbumView({ album }: { album: Album }) {
         )}
         {nextAlbum && <NextAlbumCard album={nextAlbum} />}
       </nav>
-      <Lightbox items={items} index={lightbox} onIndex={setLightbox} returnFocusTo={origin} />
+      <Lightbox
+        items={items.map((photo) =>
+          photoLightboxItem(photo, albumText(album.title, locale), locale),
+        )}
+        index={lightbox}
+        onIndex={setLightbox}
+        returnFocusTo={origin}
+        getThumb={(index) => albumThumb(origin.current, index)}
+      />
     </Surface>
   );
 }

@@ -1,7 +1,7 @@
 // The compact artwork grid of the approved mock (.cgrid / .th): 4:5 tiles with a small "AI"
-// chip and a two-line serif caption. All works (a tile opens the artwork page, as before) and
-// a collection page (the image opens the full-screen viewer, the caption opens the artwork page,
-// and each tile carries the return anchor of its work).
+// chip and a two-line serif caption. In both grids the image opens the full-screen viewer (it
+// flies out of the image, found again by data-thumb-index) and the caption opens the artwork
+// page; on a collection page each tile also carries the return anchor of its work.
 import type { CSSProperties } from "react";
 import type { AiWork } from "@/content/ai-works";
 import { artworkAnchor } from "@/components/ai-exhibition";
@@ -34,19 +34,45 @@ function ThumbImage({ work }: { work: AiWork }) {
   );
 }
 
-/** All works: each tile is one link to the artwork page. */
-export function AiWorksGrid({ works, label }: { works: AiWork[]; label: string }) {
+type OpenWork = (index: number, trigger: HTMLButtonElement) => void;
+
+/** The image (opens the viewer) and the caption (opens the artwork page) of one tile. */
+function TileBody({ work, index, onOpen }: { work: AiWork; index: number; onOpen: OpenWork }) {
+  const { t } = useT();
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(event) => onOpen(index, event.currentTarget)}
+        aria-label={t.common.openFullscreen(work.title)}
+        className="ai-thumb-im"
+        data-thumb-index={index}
+      >
+        <ThumbImage work={work} />
+      </button>
+      <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="ai-thumb-title">
+        {work.title}
+      </LocaleLink>
+    </>
+  );
+}
+
+/** All works: the image opens the viewer, the caption opens the artwork page. */
+export function AiWorksGrid({
+  works,
+  label,
+  onOpen,
+}: {
+  works: AiWork[];
+  label: string;
+  onOpen: OpenWork;
+}) {
   return (
     <section aria-label={label}>
       <ul className="ai-thumb-grid">
         {works.map((work, index) => (
           <li key={work.slug} className="ai-thumb" style={tileStyle(index)}>
-            <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="ai-thumb-link">
-              <span className="ai-thumb-im">
-                <ThumbImage work={work} />
-              </span>
-              <span className="ai-thumb-title">{work.title}</span>
-            </LocaleLink>
+            <TileBody work={work} index={index} onOpen={onOpen} />
           </li>
         ))}
       </ul>
@@ -55,14 +81,7 @@ export function AiWorksGrid({ works, label }: { works: AiWork[]; label: string }
 }
 
 /** Collection page: the image opens the viewer, the caption opens the artwork page. */
-export function AiCollectionGrid({
-  works,
-  onOpen,
-}: {
-  works: AiWork[];
-  onOpen: (index: number, trigger: HTMLButtonElement) => void;
-}) {
-  const { t } = useT();
+export function AiCollectionGrid({ works, onOpen }: { works: AiWork[]; onOpen: OpenWork }) {
   useFocusLinkedWork(".ai-thumb-title");
   return (
     <ol className="ai-thumb-grid">
@@ -74,17 +93,7 @@ export function AiCollectionGrid({
           className="ai-thumb"
           style={tileStyle(index)}
         >
-          <button
-            type="button"
-            onClick={(event) => onOpen(index, event.currentTarget)}
-            aria-label={t.common.openFullscreen(work.title)}
-            className="ai-thumb-im"
-          >
-            <ThumbImage work={work} />
-          </button>
-          <LocaleLink to="/ai-worlds/$slug" slug={work.slug} className="ai-thumb-title">
-            {work.title}
-          </LocaleLink>
+          <TileBody work={work} index={index} onOpen={onOpen} />
         </li>
       ))}
     </ol>

@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import {
   localizePhoto,
@@ -17,6 +17,7 @@ import {
 } from "@/content/photo-gallery";
 import {
   albumText,
+  getAlbum,
   getAlbumCover,
   getAlbumForPhoto,
   getAlbumPhotos,
@@ -32,6 +33,8 @@ import { getPilotEditorialAlbum } from "@/content/editorial";
 import { reveal } from "@/hooks/use-reveal";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
+import { thumbAt } from "@/lib/lightbox";
+import { photoLightboxItem } from "@/lib/lightbox-items";
 
 export type PhotoSearch = {
   view?: "photos" | undefined;
@@ -85,9 +88,9 @@ export function PhotographyView() {
       replace: true,
     });
   };
-  const items = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme, location }).map(
-    ({ photo }) => photo,
-  );
+  const gallery = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme, location });
+  const items = gallery.map(({ photo }) => photo);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   if (view !== "photos") {
     return (
@@ -163,9 +166,12 @@ export function PhotographyView() {
           {m.count(items.length)}
         </p>
         {items.length ? (
-          <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            ref={gridRef}
+            className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {items.map((photo, index) => (
-              <div key={photo.slug} {...reveal(index)}>
+              <div key={photo.slug} data-thumb-index={index} {...reveal(index)}>
                 <PhotoCard
                   photo={photo}
                   frame="keyline"
@@ -183,7 +189,15 @@ export function PhotographyView() {
             onClear={() => set({ theme: undefined, location: undefined })}
           />
         )}
-        <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
+        <Lightbox
+          items={gallery.map(({ photo, albumSlug }) => {
+            const album = albumSlug ? getAlbum(albumSlug) : undefined;
+            return photoLightboxItem(photo, album && albumText(album.title, locale), locale);
+          })}
+          index={lightbox}
+          onIndex={setLightbox}
+          getThumb={(index) => thumbAt(gridRef.current, index)?.querySelector("button")}
+        />
       </section>
     </Surface>
   );
@@ -227,6 +241,8 @@ function StandardAlbumView({ album }: { album: Album }) {
   const items = getAlbumPhotos(album, locale);
   const next = getNextAlbum(album);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const title = albumText(album.title, locale);
 
   return (
     <Surface tone="light" as="article" className="container-page py-12 md:py-20">
@@ -259,10 +275,11 @@ function StandardAlbumView({ album }: { album: Album }) {
       </div>
 
       {items.length ? (
-        <div className="mt-10">
+        <div ref={gridRef} className="mt-10">
           <figure>
             <button
               type="button"
+              data-thumb-index={0}
               onClick={() => setLightbox(0)}
               className="interaction-media block w-full overflow-hidden rounded-md bg-secondary text-left shadow-soft"
               aria-label={t.common.openFullscreen(items[0]!.title)}
@@ -293,6 +310,7 @@ function StandardAlbumView({ album }: { album: Album }) {
                 <figure key={photo.slug} className="mb-10 break-inside-avoid" {...reveal(i)}>
                   <button
                     type="button"
+                    data-thumb-index={i + 1}
                     onClick={() => setLightbox(i + 1)}
                     className="interaction-media block w-full overflow-hidden rounded-md bg-muted text-left shadow-soft"
                     aria-label={t.common.openFullscreen(photo.title)}
@@ -321,7 +339,12 @@ function StandardAlbumView({ album }: { album: Album }) {
               ))}
             </div>
           )}
-          <Lightbox items={items} index={lightbox} onIndex={setLightbox} />
+          <Lightbox
+            items={items.map((photo) => photoLightboxItem(photo, title, locale))}
+            index={lightbox}
+            onIndex={setLightbox}
+            getThumb={(index) => thumbAt(gridRef.current, index)}
+          />
         </div>
       ) : (
         <div className="relative isolate mt-10 flex min-h-80 flex-col justify-end overflow-hidden rounded-md bg-secondary p-8 text-foreground shadow-soft sm:p-12">

@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { adjacentWork, getWorkCollectionPosition } from "@/lib/ai-work-nav";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
+import { thumbAt } from "@/lib/lightbox";
 
 export type AiSearch = AiFilterValues & {
   view?: "works" | undefined;
@@ -187,6 +188,8 @@ function AiAllWorks({
   const current = collection ? getAiCollection(collection) : undefined;
   const works = (current ? [current] : collections).flatMap((c) => getCollectionWorks(c, locale));
   const filterRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
   const activeFilter = current ? collections.indexOf(current) + 1 : 0;
   useSlidingIndicator(filterRef, activeFilter, ".ai-filter");
   return (
@@ -216,7 +219,24 @@ function AiAllWorks({
       <p role="status" aria-live="polite" className="ai-works-status">
         {m.shown(works.length)}
       </p>
-      <AiWorksGrid works={works} label={m.allWorks} />
+      <div ref={gridRef}>
+        <AiWorksGrid works={works} label={m.allWorks} onOpen={(index) => setLightbox(index)} />
+      </div>
+      <Lightbox
+        items={works.map((work) => {
+          const home = getCollectionForWork(work.slug);
+          return toLightboxItem(work, {
+            meta: home
+              ? `${t.common.aiBadge} · ${collectionText(home.title, locale)}`
+              : t.common.aiBadge,
+            detail: true,
+          });
+        })}
+        index={lightbox}
+        onIndex={setLightbox}
+        getThumb={(index) => thumbAt(gridRef.current, index)}
+        variant="artwork"
+      />
     </div>
   );
 }
@@ -257,7 +277,8 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const works = getCollectionWorks(collection, locale);
   const { prev, next } = getAdjacentCollections(collection);
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const meta = `${t.common.aiBadge} · ${collectionText(collection.title, locale)}`;
   return (
     <Surface tone="dark" as="article" className="ai-col-page">
       <CollectionAtmosphere collection={collection} eager variant="page" />
@@ -284,21 +305,15 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
         className="ai-col-tabs"
       />
 
-      <div className="container-page">
+      <div ref={gridRef} className="container-page">
         {works.length > 0 && (
           <>
-            <AiCollectionGrid
-              works={works}
-              onOpen={(index, trigger) => {
-                lightboxTrigger.current = trigger;
-                setLightbox(index);
-              }}
-            />
+            <AiCollectionGrid works={works} onOpen={(index) => setLightbox(index)} />
             <Lightbox
-              items={works.map(toLightboxItem)}
+              items={works.map((work) => toLightboxItem(work, { meta, detail: true }))}
               index={lightbox}
               onIndex={setLightbox}
-              returnFocusTo={lightboxTrigger}
+              getThumb={(index) => thumbAt(gridRef.current, index)}
               variant="artwork"
             />
           </>
@@ -389,7 +404,9 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
-  const viewerItems = [toLightboxItem(work)];
+  const artRef = useRef<HTMLElement>(null);
+  // On its own page the viewer offers no link back to the same work.
+  const viewerItems = [toLightboxItem(work, { meta: t.common.aiBadge })];
   const facts: [string, string][] = [
     ...(work.tool ? [[m.tool, toolLabel(work.tool, locale)] as [string, string]] : []),
     ...(work.date ? [[m.created, formatDate(work.date, locale)] as [string, string]] : []),
@@ -498,7 +515,10 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       )}
 
       <div className="ai-work-detail container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="ai-work-art group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
+        <figure
+          ref={artRef}
+          className="ai-work-art group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7"
+        >
           <ArtImage work={work} eager />
           <button
             type="button"
@@ -540,7 +560,13 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
         </div>
       </div>
 
-      <Lightbox items={viewerItems} index={lightbox} onIndex={setLightbox} variant="artwork" />
+      <Lightbox
+        items={viewerItems}
+        index={lightbox}
+        onIndex={setLightbox}
+        getThumb={() => artRef.current?.querySelector("img")}
+        variant="artwork"
+      />
 
       {position && collectionPrev && collectionNext ? (
         <nav aria-label={m.others} className="ai-work-nav container-page">

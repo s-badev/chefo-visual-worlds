@@ -14,6 +14,8 @@ import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
+import { albumThumb } from "@/lib/lightbox";
+import { photoLightboxItem } from "@/lib/lightbox-items";
 import { NextAlbumCard } from "@/components/next-album-card";
 
 function FullGallery({
@@ -255,7 +257,15 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
           {nextAlbum && <NextAlbumCard album={nextAlbum} />}
         </nav>
       )}
-      <Lightbox items={items} index={lightbox} onIndex={setLightbox} returnFocusTo={origin} />
+      <Lightbox
+        items={items.map((photo) =>
+          photoLightboxItem(photo, albumText(album.title, locale), locale),
+        )}
+        index={lightbox}
+        onIndex={setLightbox}
+        returnFocusTo={origin}
+        getThumb={(index) => albumThumb(origin.current, index)}
+      />
     </Surface>
   );
 }

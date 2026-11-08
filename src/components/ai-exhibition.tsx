@@ -100,7 +100,14 @@ export function ArtImage({
   );
 }
 
-export const toLightboxItem = (work: AiWork): LightboxItem => ({
+/**
+ * A work in the viewer. `meta` is the gold eyebrow line (AI generation · collection); `detail`
+ * offers the artwork page, left out when the viewer is opened on that page.
+ */
+export const toLightboxItem = (
+  work: AiWork,
+  options: { meta?: string | undefined; detail?: boolean } = {},
+): LightboxItem => ({
   slug: work.slug,
   image: work.image,
   alt: work.alt,
@@ -108,6 +115,8 @@ export const toLightboxItem = (work: AiWork): LightboxItem => ({
   width: work.width,
   height: work.height,
   caption: work.description,
+  meta: options.meta,
+  detail: options.detail ? { to: "/ai-worlds/$slug", slug: work.slug } : undefined,
 });
 
 /** Anchor of a work on its collection page; detail pages link back to it. */
