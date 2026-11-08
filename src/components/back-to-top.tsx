@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import {
   BACK_TO_TOP,
+  endFinish,
   isBackToTopVisible,
   ringCircumference,
   ringOffset,
@@ -23,13 +24,32 @@ export function BackToTop() {
   useEffect(() => {
     let raf = 0;
     let scrollHeight = 0;
+    let atEnd = false;
     let circumference = ringCircumference(BACK_TO_TOP.size);
+    const node = button.current;
     const circles = () => Array.from(svg.current?.querySelectorAll("circle") ?? []);
+    const clearPulse = () => node?.classList.remove("back-to-top-pulse");
     const update = () => {
       raf = 0;
       const vh = window.innerHeight;
-      const offset = ringOffset(scrollProgress(window.scrollY, scrollHeight, vh), circumference);
+      const progress = scrollProgress(window.scrollY, scrollHeight, vh);
+      const finish = endFinish(progress);
+      const offset = ringOffset(progress, circumference);
       circles()[1]?.setAttribute("stroke-dashoffset", offset.toFixed(2));
+      node?.style.setProperty("--f", finish.toFixed(3));
+      const nextEnd = finish >= 0.55;
+      if (node && nextEnd !== atEnd) {
+        atEnd = nextEnd;
+        node.toggleAttribute("data-end", nextEnd);
+        const label = nextEnd ? t.common.backToTopEnd : t.common.backToTop;
+        node.setAttribute("aria-label", label);
+        node.setAttribute("title", label);
+        if (nextEnd && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          node.classList.add("back-to-top-pulse");
+        } else if (!nextEnd) {
+          node.classList.remove("back-to-top-pulse");
+        }
+      }
       setVisible(isBackToTopVisible(window.scrollY, vh));
     };
     const schedule = () => {
@@ -49,6 +69,7 @@ export function BackToTop() {
     };
     // The page height changes as images and sections load.
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    node?.addEventListener("animationend", clearPulse);
     observer?.observe(document.body);
     measure();
     window.addEventListener("scroll", schedule, { passive: true });
@@ -56,10 +77,11 @@ export function BackToTop() {
     return () => {
       cancelAnimationFrame(raf);
       observer?.disconnect();
+      node?.removeEventListener("animationend", clearPulse);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [t.common.backToTop, t.common.backToTopEnd]);
 
   const toTop = () => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

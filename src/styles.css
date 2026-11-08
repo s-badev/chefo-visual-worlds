@@ -40,7 +40,6 @@
   --color-gold-ink: var(--gold-ink);
   --color-terracotta-ink: var(--terracotta-ink);
   --color-eyebrow: var(--eyebrow-ink);
-  --color-primary-hover: var(--primary-hover);
   --color-surface-raised: var(--surface-raised);
   --color-hairline: var(--hairline);
   --color-tint-sand: var(--tint-sand);
@@ -83,7 +82,6 @@
   --sand: #efe6d4; /* placeholder under loading photographs */
   --terracotta-ink: oklch(0.5 0.12 40); /* small terracotta text on cream, >= 4.5:1 */
   --eyebrow-ink: var(--terracotta-ink);
-  --primary-hover: var(--terracotta);
   --surface-raised: oklch(0.25 0.045 262);
   --hairline: oklch(0.7 0.095 78 / 0.45);
   --horizon-glow: oklch(0.3 0.05 262 / 0.55);
@@ -157,7 +155,6 @@
   --popover-foreground: var(--navy-foreground);
   --primary: var(--gold);
   --primary-foreground: var(--accent-foreground);
-  --primary-hover: var(--navy-foreground);
   --secondary: var(--surface-raised);
   --secondary-foreground: var(--navy-foreground);
   --muted: var(--surface-raised);
@@ -1758,6 +1755,7 @@ header .interaction-link.header-underline:focus-visible {
   z-index: 30;
   right: max(22px, env(safe-area-inset-right));
   bottom: calc(22px + env(safe-area-inset-bottom));
+  --f: 0;
   display: inline-grid;
   place-items: center;
   width: 52px;
@@ -1776,6 +1774,17 @@ header .interaction-link.header-underline:focus-visible {
     background-color var(--interaction-duration) var(--motion-ease),
     color var(--interaction-duration) var(--motion-ease);
 }
+.back-to-top::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: rgb(201 164 107 / 0.17);
+  opacity: calc(var(--f, 0) * 1.6);
+  transform: scale(var(--f, 0));
+  transition: transform 160ms linear;
+  pointer-events: none;
+}
 .back-to-top[data-visible] {
   opacity: 1;
   transform: none;
@@ -1790,6 +1799,10 @@ header .interaction-link.header-underline:focus-visible {
   transform: rotate(-90deg);
   pointer-events: none;
 }
+.back-to-top-ring,
+.back-to-top-arrow {
+  z-index: 1;
+}
 .back-to-top-ring circle {
   fill: none;
   stroke-width: 2px;
@@ -1799,6 +1812,26 @@ header .interaction-link.header-underline:focus-visible {
 }
 .back-to-top-progress {
   stroke: var(--interaction-gold);
+}
+.back-to-top[data-end] {
+  color: var(--gold-hi);
+}
+.back-to-top[data-end] .back-to-top-progress {
+  stroke: var(--gold-hi);
+}
+.back-to-top-pulse {
+  animation: back-to-top-end-pulse 420ms var(--motion-ease);
+}
+.back-to-top:active::before {
+  opacity: 1;
+}
+@keyframes back-to-top-end-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgb(241 223 181 / 0.32);
+  }
+  to {
+    box-shadow: 0 0 0 9px rgb(241 223 181 / 0);
+  }
 }
 .back-to-top-arrow {
   width: 20px;
@@ -1819,6 +1852,12 @@ header .interaction-link.header-underline:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
+  }
+  .back-to-top::before {
+    transition: none;
+  }
+  .back-to-top-pulse {
+    animation: none;
   }
 }
 
@@ -4157,13 +4196,16 @@ a.next-album-card:focus-visible {
   outline: 2px solid var(--interaction-focus-ring);
   outline-offset: 3px;
 }
+a.back-pill:focus-visible {
+  border-color: var(--gold-ink);
+}
 .surface-dark a.back-pill:focus-visible {
   border-color: var(--interaction-gold);
   outline-color: var(--interaction-focus-ring);
 }
 @media (hover: hover) and (pointer: fine) {
   a.back-pill:hover {
-    border-color: var(--btn-hover-border);
+    border-color: var(--gold-ink);
     background-color: var(--btn-hover-bg);
     color: var(--btn-hover-fg);
   }
@@ -4172,7 +4214,7 @@ a.next-album-card:focus-visible {
     color: inherit;
   }
   .surface-dark a.back-pill:hover {
-    border-color: var(--btn-hover-border);
+    border-color: var(--interaction-gold);
     color: var(--btn-hover-fg);
   }
   :is(a, button).action-pill:hover {
