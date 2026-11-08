@@ -1,7 +1,7 @@
 // "Chefo Around the World": the atlas cover, the destination index and destination pages.
 // Planned destinations show elegant placeholders; a published destination shows its
 // finished AiWork (same slug) with full-screen viewing and Copy Prompt.
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import { collectionText, getAiCollection } from "@/content/ai-collections";
 import {
@@ -200,6 +200,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
   const work = getDestinationWork(d, locale);
   const { prev, next } = getAdjacentDestinations(d);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const viewerThumb = useRef<HTMLButtonElement>(null);
   const tool = work ? work.tool : d.tool;
   const details = work?.portraitDetails;
 
@@ -263,6 +264,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
           {work ? (
             <figure className="group relative overflow-hidden rounded-sm">
               <button
+                ref={viewerThumb}
                 type="button"
                 onClick={() => setLightbox(0)}
                 aria-label={t.common.openFullscreen(work.title)}
@@ -341,9 +343,10 @@ export function DestinationView({ destination: d }: { destination: Destination }
 
       {work && (
         <Lightbox
-          items={[toLightboxItem(work)]}
+          items={[toLightboxItem(work, { meta: t.common.aiBadge })]}
           index={lightbox}
           onIndex={setLightbox}
+          getThumb={() => viewerThumb.current}
           variant="artwork"
         />
       )}

@@ -195,6 +195,31 @@ describe("AI Worlds overview", () => {
     10_000,
   );
 
+  it.each(LOCALES)(
+    "opens an artwork of All Artworks in the viewer with its page link in %s",
+    (locale) => {
+      activeLocale = locale;
+      currentSearch = { view: "works" };
+      render(<AiWorldsView />);
+      const gallery = screen.getByRole("region", { name: messages[locale].ai.allWorks });
+      const work = getCollectionWorks(getAiCollections()[1]!, locale)[0]!;
+      const tile = within(gallery).getByRole("button", {
+        name: messages[locale].common.openFullscreen(work.title),
+      });
+      expect(tile).toHaveClass("ai-thumb-im");
+      expect(within(gallery).getByRole("link", { name: work.title })).toHaveClass("ai-thumb-title");
+      fireEvent.click(tile);
+      const dialog = screen.getByRole("dialog", { name: work.title });
+      expect(
+        within(dialog).getByRole("link", { name: messages[locale].lightbox.details }),
+      ).toHaveAttribute("href", `/ai-worlds/${work.slug}`);
+      expect(dialog.querySelector(".lb-meta")).toHaveTextContent(
+        `${messages[locale].common.aiBadge} · ${collectionText(getAiCollections()[1]!.title, locale)}`,
+      );
+      expect(dialog.querySelector(".lb-count")).toHaveTextContent("17 / 64");
+    },
+  );
+
   it("shows no AI tool names on the tiles (the mock tiles carry only the AI chip)", () => {
     currentSearch = { view: "works" };
     render(<AiWorldsView />);

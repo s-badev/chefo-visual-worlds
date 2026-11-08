@@ -211,7 +211,7 @@ describe("AI collection page", () => {
     );
     fireEvent.click(fullscreenActions[2]!);
     const viewer = screen.getByRole("dialog", { name: "Italian Renaissance Nobleman" });
-    expect(within(viewer).getByText("3 / 16")).toBeInTheDocument();
+    expect(within(viewer).getByText("03 / 16")).toBeInTheDocument();
     expect(viewer.querySelector(".ai-frame-portal, .ai-frame-compact")).toBeNull();
   });
 

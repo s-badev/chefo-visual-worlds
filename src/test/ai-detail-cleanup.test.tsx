@@ -169,6 +169,9 @@ describe("AI artwork detail cleanup", () => {
     const dialog = screen.getByRole("dialog", { name: work.en!.title! });
     expect(within(dialog).getAllByRole("img")).toHaveLength(1);
     expect(within(dialog).getByRole("img")).toHaveAttribute("src", work.image);
+    // On its own page the viewer offers no link back to the same work; the eyebrow is the AI badge.
+    expect(within(dialog).queryByRole("link")).toBeNull();
+    expect(dialog.querySelector(".lb-meta")).toHaveTextContent(messages.en.common.aiBadge);
   });
 
   it("keeps every published artwork route resolvable in Bulgarian and English", () => {

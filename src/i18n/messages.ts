@@ -39,6 +39,7 @@ const bg = {
     close: "Затвори",
     zoomIn: "Увеличи изображението",
     zoomOut: "Побери изображението в екрана",
+    details: "Детайли и промпт",
   },
   notFound: {
     title: "Не е намерено",
@@ -319,6 +320,7 @@ const en: Messages = {
     close: "Close",
     zoomIn: "Zoom image",
     zoomOut: "Fit image to screen",
+    details: "Details and prompt",
   },
   notFound: {
     title: "Not found",
