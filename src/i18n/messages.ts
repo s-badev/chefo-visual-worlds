@@ -79,6 +79,9 @@ const bg = {
     photoTitle: "През моя обектив",
     photoText: "Места и моменти, които съм избрал да запазя.",
     allAlbums: (n: number) => `Разгледай всички ${n} албума`,
+    stampsLabel: "Маршрут през всички албуми",
+    stampsPrev: "Печати назад",
+    stampsNext: "Печати напред",
     aiEyebrow: "AI светове",
     aiTitle: "AI светове",
     aiText: "Понякога една снимка е само началото.",
@@ -90,7 +93,6 @@ const bg = {
       "Това е лична колекция — място, където събирам реални фотографии и AI образи, свързани с моите идеи, пътувания и визуални търсения.",
     aboutText:
       "Обичам да улавям атмосферата на местата, които посещавам — от морски залези и градски улици до архитектура, детайли и моменти със собствено настроение. Паралелно с това използвам AI, за да развивам визуални концепции, в които едно и също лице може да оживее в различни епохи, роли и култури.\n\nChefo Visual Worlds съчетава тези две посоки — реалната фотография и въображаемите светове — в една обща визуална история.",
-    more: "Научи повече",
   },
   photos: {
     metaTitle: "Фотографии — CHEFO — VISUAL WORLDS",
@@ -340,6 +342,9 @@ const en: Messages = {
     photoTitle: "Through My Lens",
     photoText: "Places and moments I chose to keep.",
     allAlbums: (n) => `Explore All ${n} Albums`,
+    stampsLabel: "Route through all albums",
+    stampsPrev: "Stamps back",
+    stampsNext: "Stamps forward",
     aiEyebrow: "AI Worlds",
     aiTitle: "AI Worlds",
     aiText: "Sometimes a photo is only the beginning.",
@@ -351,7 +356,6 @@ const en: Messages = {
       "This is a personal collection — a place where I bring together real photography and AI-generated portraits shaped by my ideas, travels, and visual curiosity.",
     aboutText:
       "I enjoy capturing the atmosphere of the places I visit — from seaside sunsets and city streets to architecture, details, and moments with a distinct mood. At the same time, I use AI to explore visual concepts in which the same face can appear across different eras, roles, and cultures.\n\nChefo Visual Worlds brings these two directions together — real photography and imagined worlds — into one visual story.",
-    more: "Learn more",
   },
   photos: {
     metaTitle: "Photography — CHEFO — VISUAL WORLDS",
