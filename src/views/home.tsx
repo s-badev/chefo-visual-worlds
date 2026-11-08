@@ -5,9 +5,12 @@ import { localizePhoto } from "@/content/photos";
 import { albumText, getAlbumCover, getAlbums, getPublishedAlbum } from "@/content/albums";
 import { getAiWork, localizeAiWork } from "@/content/ai-works";
 import { AiCard, SectionHeading, btnPrimary, btnOutline } from "@/components/site";
+import { DeckLink } from "@/components/deck-link";
+import { HomeStampRow } from "@/components/home-stamp-row";
 import { PortraitSwitch } from "@/components/portrait";
 import { Surface } from "@/components/surface";
 import { riseGridStyle, useGridRise } from "@/hooks/use-grid-rise";
+import { useHeroButtonPointer } from "@/hooks/use-hero-button-pointer";
 import { usePhotoViewfinder, viewfinderLabel } from "@/hooks/use-photo-viewfinder";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -107,26 +110,19 @@ export function HomeView() {
       <HomeHero />
 
       <Surface tone="light" id="featured-albums" className="container-page section-y">
-        <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
-        <FeaturedAlbumCards albums={featuredAlbums} />
-        <div className="mt-10 flex justify-center">
-          <LocaleLink to="/photography" className={`${btnPrimary} group`}>
-            {m.allAlbums(getAlbums().length)}
-            <ArrowRight
-              aria-hidden="true"
-              className="interaction-arrow size-4"
-            />
-          </LocaleLink>
+        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
+          <DeckLink to="/photography" kind="albums" label={m.allAlbums(getAlbums().length)} />
         </div>
+        <FeaturedAlbumCards albums={featuredAlbums} />
+        <HomeStampRow />
       </Surface>
 
       <Surface tone="dark" seam>
         <div className="container-page section-y">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
             <SectionHeading eyebrow={m.aiEyebrow} title={m.aiTitle} text={m.aiText} />
-            <LocaleLink to="/ai-worlds" className={btnOutline}>
-              {m.allAi} <ArrowRight className="interaction-arrow size-4" />
-            </LocaleLink>
+            <DeckLink to="/ai-worlds" kind="ai" label={m.allAi} />
           </div>
           <AiCardsGrid works={featuredAiWorks} />
         </div>
@@ -148,12 +144,6 @@ export function HomeView() {
           {m.aboutText.split("\n\n").map((paragraph) => (
             <p key={paragraph} className="mt-5 text-muted-foreground">{paragraph}</p>
           ))}
-          <LocaleLink
-            to="/about"
-            className="interaction-link interaction-text-button mt-8 inline-flex items-center gap-2 border-b border-gold pb-1 font-semibold"
-          >
-            {m.more} <ArrowRight className="size-4" />
-          </LocaleLink>
         </div>
       </Surface>
     </>
@@ -261,6 +251,7 @@ function HomeHero() {
   const { t } = useT();
   const m = t.home;
   const ref = useHeroProgress();
+  const actionsRef = useHeroButtonPointer<HTMLDivElement>();
   preloadHeroImage();
   return (
     <section ref={ref} data-header-theme="dark" className="home-hero surface-dark">
@@ -309,16 +300,28 @@ function HomeHero() {
               <em>{m.h1b}</em>
             </h1>
             <p className="home-hero-sub">{m.heroSub}</p>
-            <div className="home-hero-actions">
+            {/* Lens and portal: interactions in the "Home hero buttons" block of styles.css. */}
+            <div className="home-hero-actions" ref={actionsRef}>
               <LocaleLink
                 to="/photography"
-                className={`home-hero-button ${btnPrimary}`}
+                className={`home-hero-button home-hero-lens ${btnPrimary}`}
               >
-                {m.ctaPhotos}
-                <ArrowRight aria-hidden="true" className="interaction-arrow size-4" />
+                <span className="home-hero-button-label">
+                  {m.ctaPhotos}
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="interaction-arrow home-hero-arrow size-4"
+                  />
+                </span>
               </LocaleLink>
-              <LocaleLink to="/ai-worlds" className={`home-hero-button ${btnOutline}`}>
-                {m.ctaAi}
+              <LocaleLink
+                to="/ai-worlds"
+                className={`home-hero-button home-hero-portal ${btnOutline}`}
+              >
+                <span className="home-hero-button-label">
+                  {m.ctaAi}
+                  <ArrowRight aria-hidden="true" className="home-hero-arrow size-4" />
+                </span>
               </LocaleLink>
             </div>
           </div>

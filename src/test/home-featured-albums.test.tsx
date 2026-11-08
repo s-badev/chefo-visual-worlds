@@ -161,7 +161,11 @@ describe("homepage featured albums", () => {
       .getByRole("heading", { name: messages[locale].home.photoTitle })
       .closest("section")!;
     const prefix = locale === "en" ? "/en" : "";
-    const links = Array.from(section.querySelectorAll(`a[href^="${prefix}/photography/albums/"]`));
+    // The stamp row under the cards links every album (see home-stamp-row.test.tsx); the three
+    // featured cards are the album links outside that navigation.
+    const links = Array.from(
+      section.querySelectorAll(`a[href^="${prefix}/photography/albums/"]`),
+    ).filter((link) => !link.closest("nav"));
 
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       `${prefix}/photography/albums/nessebar`,

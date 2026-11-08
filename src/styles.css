@@ -4618,3 +4618,703 @@ a.next-album-card:focus-visible .next-album-card-arrow {
     transition: none;
   }
 }
+
+/*
+ * Redesign stage 2 · Home hero buttons: the lens (photos) and the portal (AI worlds).
+ * The hero layout block above stays free of hover and motion; the interactions live here.
+ * Pointer origin and follow come from useHeroButtonPointer (--mx/--my %, --tx/--ty px), mouse
+ * with a fine pointer only. Hover is pointer-only, keyboard focus shows the final hover state,
+ * pressed is a fill change only, reduced motion keeps the colour changes and drops the movement.
+ */
+@property --arc {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 72%;
+}
+@property --ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.home-hero-lens,
+.home-hero-portal {
+  position: relative;
+  isolation: isolate;
+}
+.home-hero-button-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transform: translate(var(--tx, 0px), var(--ty, 0px));
+  transition: transform 180ms var(--motion-ease);
+}
+.home-hero-lens::before,
+.home-hero-portal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 4px;
+  pointer-events: none;
+}
+/* Lens: a gold disc opens from the pointer; viewfinder corners close in on the label. */
+.home-hero-lens::before {
+  background-color: var(--btn-hover-bg);
+  clip-path: circle(0 at var(--mx, 50%) var(--my, 50%));
+  transition: clip-path 560ms var(--motion-ease);
+}
+.home-hero-lens::after {
+  --corner: var(--navy);
+  content: "";
+  position: absolute;
+  inset: 8px 12px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1.14);
+  background:
+    linear-gradient(var(--corner), var(--corner)) 0 0 / 9px 1.5px,
+    linear-gradient(var(--corner), var(--corner)) 0 0 / 1.5px 9px,
+    linear-gradient(var(--corner), var(--corner)) 100% 0 / 9px 1.5px,
+    linear-gradient(var(--corner), var(--corner)) 100% 0 / 1.5px 9px,
+    linear-gradient(var(--corner), var(--corner)) 0 100% / 9px 1.5px,
+    linear-gradient(var(--corner), var(--corner)) 0 100% / 1.5px 9px,
+    linear-gradient(var(--corner), var(--corner)) 100% 100% / 9px 1.5px,
+    linear-gradient(var(--corner), var(--corner)) 100% 100% / 1.5px 9px;
+  background-repeat: no-repeat;
+  transition:
+    opacity 220ms var(--motion-ease),
+    transform 380ms var(--motion-ease);
+}
+/* Portal: a dark layer opens from the centre and a thin gold ring runs around the border. */
+.home-hero-portal::before {
+  background-color: rgb(7 13 24 / 0.62);
+  clip-path: circle(0 at 50% 50%);
+  transition: clip-path 520ms var(--motion-ease);
+}
+.home-hero-portal::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: 0;
+  padding: 2px;
+  border-radius: 6px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--ang, 0deg),
+    transparent 0 var(--arc, 72%),
+    var(--interaction-gold) calc(var(--arc, 72%) + 14%),
+    var(--gold-hi) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: hero-portal-spin 5.5s linear infinite;
+  transition: --arc 520ms var(--motion-ease);
+}
+.home-hero-portal .home-hero-arrow {
+  transform-origin: 0 50%;
+  transition: transform 380ms var(--motion-ease);
+}
+@keyframes hero-portal-spin {
+  to {
+    --ang: 360deg;
+  }
+}
+@keyframes hero-arrow-fly {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  42% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  43% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+/* Keyboard focus: the final hover state, with the hero's cream focus ring. */
+.home-hero-lens:focus-visible::before {
+  clip-path: circle(150% at 50% 50%);
+}
+.home-hero-lens:focus-visible::after {
+  opacity: 1;
+  transform: scale(1);
+}
+.home-hero .home-hero-portal:focus-visible {
+  border-color: rgb(244 238 225 / 0.12);
+  background-color: oklch(0.21 0.045 262 / 0.56);
+  color: var(--interaction-cream);
+}
+.home-hero-portal:focus-visible::before {
+  clip-path: circle(150% at 50% 50%);
+}
+.home-hero-portal:focus-visible::after {
+  --arc: 0%;
+  animation-duration: 2.4s;
+}
+@media (hover: hover) and (pointer: fine) {
+  /* The gold arrives through the lens layer, so the fill under it stays cream. */
+  .home-hero .home-hero-lens:hover {
+    background-color: var(--interaction-cream);
+    translate: none;
+  }
+  .home-hero .home-hero-lens:hover .home-hero-arrow {
+    translate: none;
+  }
+  .home-hero-lens:hover::before {
+    clip-path: circle(150% at var(--mx, 50%) var(--my, 50%));
+  }
+  .home-hero-lens:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .home-hero .home-hero-portal:hover {
+    border-color: rgb(244 238 225 / 0.12);
+    background-color: oklch(0.21 0.045 262 / 0.56);
+    color: var(--interaction-cream);
+  }
+  .home-hero-portal:hover::before {
+    clip-path: circle(150% at 50% 50%);
+  }
+  .home-hero-portal:hover::after {
+    --arc: 0%;
+    animation-duration: 2.4s;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-hero-lens:hover .home-hero-arrow {
+    animation: hero-arrow-fly 640ms var(--motion-ease);
+  }
+  .home-hero-portal:hover .home-hero-arrow {
+    transform: scaleX(1.7) translateX(3px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-lens:focus-visible .home-hero-arrow {
+    animation: hero-arrow-fly 640ms var(--motion-ease);
+  }
+  .home-hero-portal:focus-visible .home-hero-arrow {
+    transform: scaleX(1.7) translateX(3px);
+  }
+}
+/* Pressed: colour and fill only, at once, on mouse, keyboard and touch. */
+.home-hero-lens:active::before {
+  clip-path: circle(150% at var(--mx, 50%) var(--my, 50%));
+  background-color: var(--btn-active-bg);
+  transition: none;
+}
+.home-hero .home-hero-portal:active {
+  border-color: var(--interaction-gold);
+  background-color: oklch(0.21 0.045 262 / 0.56);
+  color: var(--interaction-cream);
+}
+.home-hero-portal:active::before {
+  clip-path: circle(150% at 50% 50%);
+  background-color: color-mix(in srgb, var(--interaction-gold) 30%, transparent);
+  transition: none;
+}
+/* Without mask compositing the ring cannot be cut out: a plain gold border stands in for it. */
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .home-hero-portal::after {
+    display: none;
+  }
+  .home-hero .home-hero-portal:focus-visible {
+    border-color: var(--interaction-gold);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .home-hero .home-hero-portal:hover {
+      border-color: var(--interaction-gold);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-button-label {
+    transform: none;
+    transition: none;
+  }
+  .home-hero-lens::before,
+  .home-hero-portal::before,
+  .home-hero-portal::after {
+    transition: none;
+  }
+  .home-hero-lens::after {
+    transform: none;
+    transition: none;
+  }
+  .home-hero-portal::after {
+    animation: none;
+  }
+  .home-hero-arrow {
+    animation: none;
+    transition: none;
+  }
+}
+
+/*
+ * Redesign stage 2 · Home stamp row: every album's stamp under the featured cards, scrolling
+ * sideways. Navigation only (the Photography passport is not involved).
+ */
+.home-stamps {
+  position: relative;
+  margin-top: 2.25rem;
+  padding-top: 1.125rem;
+  border-top: 1px dashed color-mix(in srgb, var(--navy) 30%, transparent);
+}
+.home-stamps-row {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.home-stamps-row::-webkit-scrollbar {
+  display: none;
+}
+.home-stamps-list {
+  display: flex;
+  width: max-content;
+  gap: clamp(10px, 1.6vw, 22px);
+  margin: 0;
+  padding: 14px 6px 12px;
+  list-style: none;
+}
+.home-stamps-item {
+  scroll-snap-align: start;
+  scroll-margin-inline: 6px;
+}
+.home-stamp {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 132px;
+  padding: 6px 4px 8px;
+  border-radius: 6px;
+  color: var(--foreground);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 420ms var(--motion-ease);
+}
+.home-stamp-art {
+  display: block;
+  opacity: 0.86;
+  transform: rotate(var(--stamp-tilt, 0deg));
+  transition:
+    transform 420ms var(--motion-ease),
+    opacity 220ms var(--motion-ease);
+}
+.home-stamp-art svg {
+  display: block;
+  width: 112px;
+  height: 112px;
+  overflow: visible;
+}
+.home-stamp-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+.home-stamp-count {
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  transition: color 220ms var(--motion-ease);
+}
+.home-stamp:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+.home-stamp:focus-visible .home-stamp-art {
+  opacity: 1;
+}
+.home-stamp:focus-visible .home-stamp-count {
+  color: var(--gold-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-stamp:hover .home-stamp-art {
+    opacity: 1;
+  }
+  .home-stamp:hover .home-stamp-count {
+    color: var(--gold-ink);
+  }
+}
+/* The card straightens and lifts; with reduced motion only the colours change. */
+@media (prefers-reduced-motion: no-preference) {
+  .home-stamp:focus-visible {
+    transform: translateY(-6px);
+  }
+  .home-stamp:focus-visible .home-stamp-art {
+    transform: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-stamp:hover {
+    transform: translateY(-6px);
+  }
+  .home-stamp:hover .home-stamp-art {
+    transform: none;
+  }
+}
+.home-stamp:active .home-stamp-count {
+  color: var(--gold-ink);
+}
+/* Edge fades, only on a side that can still scroll. */
+.home-stamps::before,
+.home-stamps::after {
+  content: "";
+  position: absolute;
+  top: 1.125rem;
+  bottom: 0;
+  z-index: 1;
+  width: 48px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 380ms var(--motion-ease);
+}
+.home-stamps::before {
+  left: 0;
+  background: linear-gradient(to right, var(--background), transparent);
+}
+.home-stamps::after {
+  right: 0;
+  background: linear-gradient(to left, var(--background), transparent);
+}
+.home-stamps[data-fade-start]::before,
+.home-stamps[data-fade-end]::after {
+  opacity: 1;
+}
+.home-stamps-step {
+  position: absolute;
+  top: calc(50% - 13px);
+  z-index: 2;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background-color: var(--interaction-cream);
+  color: var(--navy);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--navy) 14%, transparent);
+  cursor: pointer;
+  transition: border-color 220ms var(--motion-ease);
+}
+.home-stamps-step[hidden] {
+  display: none;
+}
+.home-stamps-prev {
+  left: -10px;
+}
+.home-stamps-next {
+  right: -10px;
+}
+.home-stamps-step:focus-visible {
+  border-color: var(--gold-ink);
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-stamps-step:hover {
+    border-color: var(--gold-ink);
+  }
+}
+.home-stamps-step:active {
+  border-color: var(--gold-ink);
+  background-color: var(--tint-sand);
+}
+/* Rise-in on first view: set only after mount, for a row that starts below the fold. */
+.home-stamps[data-reveal="pending"] .home-stamps-item {
+  opacity: 0;
+}
+.home-stamps[data-reveal="shown"] .home-stamps-item {
+  animation: home-stamp-rise 640ms var(--motion-ease) backwards;
+  animation-delay: var(--stamp-delay, 0ms);
+}
+@keyframes home-stamp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 767px) {
+  .home-stamp {
+    min-width: 104px;
+  }
+  .home-stamp-art svg {
+    width: 96px;
+    height: 96px;
+  }
+  .home-stamp-name {
+    font-size: 1.125rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-stamp,
+  .home-stamp-art,
+  .home-stamps::before,
+  .home-stamps::after {
+    transition: none;
+  }
+  .home-stamps[data-reveal] .home-stamps-item {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/*
+ * Redesign stage 2 · Deck link: a pill with a small fanned deck, the label and a round arrow.
+ * --dl-base follows the section (cream or navy) so the rings around the thumbs match it.
+ */
+.deck-link {
+  --dl-base: var(--background);
+  --dl-bg: var(--dl-base);
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  min-height: 52px;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 7px 6px 14px;
+  border: 1.5px solid var(--interaction-gold);
+  border-radius: 999px;
+  background-color: var(--dl-bg);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 380ms var(--motion-ease);
+}
+.deck-link-deck {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 68px;
+  height: 40px;
+}
+.deck-link-item {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  z-index: calc(var(--i) + 1);
+  width: 30px;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 5px;
+  background-color: var(--tint-sand);
+  box-shadow:
+    0 0 0 2px var(--dl-bg),
+    0 8px 14px -8px color-mix(in srgb, var(--navy) 55%, transparent);
+  transform: translateX(calc(var(--i) * 14px)) rotate(calc((var(--i) - 1) * 3deg));
+  transform-origin: 50% 100%;
+  transition:
+    transform 560ms var(--motion-ease) calc(var(--i) * 40ms),
+    box-shadow 380ms var(--motion-ease);
+}
+.deck-link-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+.deck-link-item--stamp {
+  top: 3px;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border-radius: 50%;
+  background-color: var(--card);
+  color: var(--gold-ink);
+  box-shadow:
+    0 0 0 2px var(--dl-bg),
+    inset 0 0 0 1px color-mix(in srgb, var(--navy) 16%, transparent);
+}
+.deck-link-item--stamp svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.deck-link-label {
+  min-width: 0;
+}
+.deck-link-arrow {
+  position: relative;
+  display: grid;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--interaction-gold);
+  color: var(--gold-ink);
+  transition: color 380ms var(--motion-ease);
+}
+.deck-link-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--btn-hover-bg);
+  transform: scale(0);
+  transition: transform 520ms var(--motion-ease);
+}
+.deck-link-arrow svg {
+  position: relative;
+  grid-area: 1 / 1;
+  width: 18px;
+  height: 18px;
+  transition: transform 420ms var(--motion-ease);
+}
+.deck-link-arrow-in {
+  transform: translateX(-170%);
+}
+/* Fanned deck, gold disc, arrow hand-over and a 12% gold tint: hover and keyboard focus alike. */
+.deck-link:focus-visible {
+  --dl-bg: color-mix(in srgb, var(--interaction-gold) 12%, var(--dl-base));
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+}
+.surface-dark .deck-link:focus-visible {
+  outline-color: var(--interaction-gold);
+}
+.deck-link:focus-visible .deck-link-arrow {
+  color: var(--navy);
+}
+.deck-link:focus-visible .deck-link-arrow::before {
+  transform: scale(1);
+}
+.deck-link:focus-visible .deck-link-arrow-out {
+  transform: translateX(170%);
+}
+.deck-link:focus-visible .deck-link-arrow-in {
+  transform: none;
+  transition-delay: 90ms;
+}
+.deck-link:focus-visible .deck-link-item {
+  transform: translateX(calc(var(--i) * 19px)) translateY(-3px)
+    rotate(calc((var(--i) - 1) * 9deg));
+}
+@media (hover: hover) and (pointer: fine) {
+  .deck-link:hover {
+    --dl-bg: color-mix(in srgb, var(--interaction-gold) 12%, var(--dl-base));
+  }
+  .deck-link:hover .deck-link-arrow {
+    color: var(--navy);
+  }
+  .deck-link:hover .deck-link-arrow::before {
+    transform: scale(1);
+  }
+  .deck-link:hover .deck-link-arrow-out {
+    transform: translateX(170%);
+  }
+  .deck-link:hover .deck-link-arrow-in {
+    transform: none;
+    transition-delay: 90ms;
+  }
+  .deck-link:hover .deck-link-item {
+    transform: translateX(calc(var(--i) * 19px)) translateY(-3px)
+      rotate(calc((var(--i) - 1) * 9deg));
+  }
+}
+/* Touch: the deck is already fanned; pressing deepens the gold tint. */
+@media (hover: none) {
+  .deck-link-item {
+    transform: translateX(calc(var(--i) * 19px)) translateY(-2px)
+      rotate(calc((var(--i) - 1) * 8deg));
+  }
+}
+.deck-link:active {
+  --dl-bg: color-mix(in srgb, var(--interaction-gold) 24%, var(--dl-base));
+}
+/* Narrow phones: a long label may take a second line instead of pushing past the column. */
+@media (max-width: 419px) {
+  .deck-link {
+    max-width: 100%;
+  }
+  .deck-link-label {
+    white-space: normal;
+  }
+}
+@media (max-width: 359px) {
+  .deck-link {
+    gap: 10px;
+    padding-left: 10px;
+  }
+  .deck-link-deck {
+    width: 52px;
+  }
+  .deck-link-item:nth-child(3) {
+    display: none;
+  }
+  .deck-link-item,
+  .deck-link:focus-visible .deck-link-item {
+    transform: translateX(calc(var(--i) * 16px)) rotate(calc((var(--i) - 1) * 3deg));
+  }
+}
+/* Reduced motion: colour only. The disc fades in; the deck and the arrows stay put. */
+@media (prefers-reduced-motion: reduce) {
+  .deck-link,
+  .deck-link-item,
+  .deck-link-arrow,
+  .deck-link-arrow svg {
+    transition: none;
+  }
+  .deck-link-arrow::before {
+    opacity: 0;
+    transform: none;
+    transition: none;
+  }
+  .deck-link:focus-visible .deck-link-arrow::before {
+    opacity: 1;
+    transform: none;
+  }
+  .deck-link:focus-visible .deck-link-arrow-out {
+    transform: none;
+  }
+  .deck-link:focus-visible .deck-link-arrow-in {
+    transform: translateX(-170%);
+  }
+  .deck-link:focus-visible .deck-link-item {
+    transform: translateX(calc(var(--i) * 14px)) rotate(calc((var(--i) - 1) * 3deg));
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .deck-link:hover .deck-link-arrow::before {
+      opacity: 1;
+      transform: none;
+    }
+    .deck-link:hover .deck-link-arrow-out {
+      transform: none;
+    }
+    .deck-link:hover .deck-link-arrow-in {
+      transform: translateX(-170%);
+    }
+    .deck-link:hover .deck-link-item {
+      transform: translateX(calc(var(--i) * 14px)) rotate(calc((var(--i) - 1) * 3deg));
+    }
+  }
+}
