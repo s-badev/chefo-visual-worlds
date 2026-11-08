@@ -13,6 +13,9 @@ export const BACK_TO_TOP = {
   /** Ring stroke width in px, the same at both sizes. */
   ringStroke: 2,
   fadeMs: 300,
+  /** The final page segment that resolves the calm end state. */
+  endFrom: 0.965,
+  endSpan: 0.03,
 } as const;
 
 /** The ring sits on the button's edge: radius from the diameter and the stroke. */
@@ -28,6 +31,10 @@ export const scrollProgress = (scrollY: number, scrollHeight: number, viewportHe
 /** stroke-dashoffset that shows `progress` (0..1) of a ring with this circumference. */
 export const ringOffset = (progress: number, circumference: number) =>
   circumference * (1 - Math.min(1, Math.max(0, progress)));
+
+/** 0 before the final page segment and 1 once that segment is complete. */
+export const endFinish = (progress: number) =>
+  Math.min(1, Math.max(0, (progress - BACK_TO_TOP.endFrom) / BACK_TO_TOP.endSpan));
 
 export const isBackToTopVisible = (scrollY: number, viewportHeight: number) =>
   scrollY > viewportHeight * BACK_TO_TOP.appearAt;

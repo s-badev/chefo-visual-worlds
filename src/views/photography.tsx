@@ -281,7 +281,7 @@ function StandardAlbumView({ album }: { album: Album }) {
               <LocaleLink
                 to="/photography/$slug"
                 slug={items[0]!.slug}
-                className="text-sm text-muted-foreground hover:text-terracotta-ink"
+                className="interaction-link text-sm text-muted-foreground"
               >
                 {items[0]!.location} <ArrowRight className="inline size-3.5" />
               </LocaleLink>
@@ -311,7 +311,7 @@ function StandardAlbumView({ album }: { album: Album }) {
                     <LocaleLink
                       to="/photography/$slug"
                       slug={photo.slug}
-                      className="font-serif text-xl hover:text-terracotta-ink"
+                      className="interaction-link font-serif text-xl"
                     >
                       {photo.caption ?? photo.title}
                     </LocaleLink>
