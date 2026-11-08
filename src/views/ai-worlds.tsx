@@ -7,7 +7,6 @@ import {
   aiEraLabel,
   aiRoleLabel,
   aiSettingLabel,
-  filterAiWorks,
   getAiFilterOptions,
   localizeAiWork,
   toolLabel,
@@ -15,28 +14,27 @@ import {
 } from "@/content/ai-works";
 import {
   collectionText,
+  getAiCollection,
   getAiCollections,
   getAdjacentCollections,
-  getCollectionCover,
   getCollectionForWork,
   getCollectionWorks,
   type AiCollection,
 } from "@/content/ai-collections";
-import { EmptyState, Lightbox, PageHeader } from "@/components/site";
+import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
-import { AiFilterBar, countActiveFilters, type AiFilterValues } from "@/components/ai-filters";
+import { countActiveFilters, legacyFilterCollection, type AiFilterValues } from "@/lib/ai-filters";
 import {
   ArtEdge,
   ArtImage,
   artworkAnchor,
   CollectionAtmosphere,
-  ExhibitWork,
-  ExhibitionWall,
   PromptNote,
   toLightboxItem,
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
-import { HomeWorlds } from "@/components/home-worlds";
+import { AiHalls } from "@/components/ai-halls";
+import { AiCollectionGrid, AiWorksGrid } from "@/components/ai-thumbs";
 import { CollectionTabs } from "@/components/collection-tabs";
 import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { WorldSlider } from "@/components/world-slider";
@@ -45,12 +43,17 @@ import { cn } from "@/lib/utils";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
-export type AiSearch = AiFilterValues & { view?: "works" | undefined };
+export type AiSearch = AiFilterValues & {
+  view?: "works" | undefined;
+  /** All works filtered to one collection (its slug). */
+  collection?: string | undefined;
+};
 
 export const validateAiSearch = (s: Record<string, unknown>): AiSearch => {
   const options = getAiFilterOptions();
   return {
     view: s["view"] === "works" ? "works" : undefined,
+    collection: getAiCollections().find((c) => c.slug === s["collection"])?.slug,
     category: options.categories.find((value) => value === s["category"]),
     role: options.roles.find((value) => value === s["role"]),
     era: options.eras.find((value) => value === s["era"]),
@@ -64,7 +67,8 @@ export const aiWorldsHead = (locale: Locale) => {
   return pageHead(locale, "/ai-worlds", m.metaTitle, m.metaDesc);
 };
 
-const NO_FILTERS: AiFilterValues = {
+const NO_FILTERS: AiSearch = {
+  collection: undefined,
   category: undefined,
   role: undefined,
   era: undefined,
@@ -73,23 +77,27 @@ const NO_FILTERS: AiFilterValues = {
 };
 
 /**
- * AI Worlds landing: the world slider on top, then the intro with the view switch. Collections
- * is the pinned "One face, four worlds" scene; All Artworks (with filters) is the second view.
+ * AI Worlds landing, as in the approved mock: the world slider, the dark intro (title, intro,
+ * chips and the Collections / All works switch), then either the collection halls with their
+ * sticky tab band or the grid of all works with its collection filter.
  */
 export function AiWorldsView() {
   const { t, locale } = useT();
   const m = t.ai;
   const search = useSearch({ strict: false }) as AiSearch;
-  const filters: AiFilterValues = {
+  const legacy: AiFilterValues = {
     category: search.category,
     role: search.role,
     era: search.era,
     setting: search.setting,
     tool: search.tool,
   };
-  const activeFilters = countActiveFilters(filters);
-  // Any filter in the URL opens All Artworks, so older deep links keep working.
-  const view = search.view === "works" || activeFilters > 0 ? "works" : "collections";
+  // Older filter links (five groups) still open All works and pick a collection when they can.
+  const collection = search.collection ?? legacyFilterCollection(legacy);
+  const view =
+    search.view === "works" || search.collection || countActiveFilters(legacy) > 0
+      ? "works"
+      : "collections";
   const navigate = useNavigate();
   const set = (patch: AiSearch) =>
     navigate({
@@ -97,7 +105,7 @@ export function AiWorldsView() {
       search: (p: Record<string, unknown>) => ({ ...p, ...patch }),
       replace: true,
     });
-  const items = filterAiWorks(aiWorks, filters).map((w) => localizeAiWork(w, locale));
+  const collections = getAiCollections();
   const switchRef = useRef<HTMLDivElement>(null);
   useSlidingIndicator(switchRef, view === "works" ? 1 : 0, ".ai-view-switch-tab");
 
@@ -105,64 +113,107 @@ export function AiWorldsView() {
     <>
       <WorldSlider />
 
-      <Surface tone="dark" as="div" className="ai-overview">
-        <div className="ai-overview-intro container-page pt-16 md:pt-24">
-          {/* Shrink-wrapped so the local text scrim sits behind the text and tabs only. */}
-          <div className="ai-overview-intro-text">
-            <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
-
-            {/* Segmented switch; selected and hover states live in styles.css (.ai-view-switch). */}
-            <div ref={switchRef} role="group" aria-label={m.view} className="ai-view-switch mt-12">
-              <span aria-hidden="true" data-slide-indicator className="slide-indicator" />
-              <button
-                type="button"
-                aria-pressed={view === "collections"}
-                onClick={() => set({ view: undefined, ...NO_FILTERS })}
-                className="ai-view-switch-tab"
-              >
-                {m.collections}
-              </button>
-              <button
-                type="button"
-                aria-pressed={view === "works"}
-                onClick={() => set({ view: "works" })}
-                className="ai-view-switch-tab"
-              >
-                {m.allWorks}
-              </button>
+      <Surface tone="dark" as="div" className="ai-index">
+        <section aria-labelledby="ai-index-title" className="ai-intro">
+          <div className="ai-intro-grid container-page">
+            <div className="ai-intro-a">
+              <p className="ai-eyebrow">{m.eyebrow}</p>
+              <h1 id="ai-index-title" className="ai-intro-title">
+                {m.title}
+              </h1>
             </div>
-          </div>
-        </div>
-
-        {view === "works" && (
-          <div className="pb-16 duration-300 motion-safe:animate-in motion-safe:fade-in-0 md:pb-24">
-            <div className="container-page mt-8">
-              <AiFilterBar values={filters} count={items.length} onChange={(p) => set(p)} />
-              {items.length ? (
-                <section
-                  aria-label={m.allWorks}
-                  className="mt-12 grid grid-cols-1 items-start gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"
+            <div className="ai-intro-b">
+              <p className="ai-intro-text">{m.intro}</p>
+              <p className="ai-meta">
+                <span className="ai-chip ai-chip--ai">{t.common.aiBadge}</span>
+                <span className="ai-chip">{m.summary(collections.length, aiWorks.length)}</span>
+              </p>
+            </div>
+            <div className="ai-intro-c">
+              <div ref={switchRef} role="group" aria-label={m.view} className="ai-view-switch">
+                <span aria-hidden="true" data-slide-indicator className="slide-indicator" />
+                <button
+                  type="button"
+                  aria-pressed={view === "collections"}
+                  onClick={() => set({ view: undefined, ...NO_FILTERS })}
+                  className="ai-view-switch-tab"
                 >
-                  {items.map((work, i) => (
-                    <ExhibitWork key={work.slug} work={work} index={i} />
-                  ))}
-                </section>
-              ) : (
-                <EmptyState text={m.empty} onClear={() => set(NO_FILTERS)} />
-              )}
+                  {m.collections}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "works"}
+                  onClick={() => set({ view: "works" })}
+                  className="ai-view-switch-tab"
+                >
+                  {m.allWorks}
+                </button>
+              </div>
             </div>
           </div>
+        </section>
+
+        {view === "works" ? (
+          <AiAllWorks
+            collection={collection}
+            onFilter={(slug) => set({ ...NO_FILTERS, view: "works", collection: slug })}
+            locale={locale}
+          />
+        ) : (
+          <AiHalls />
         )}
       </Surface>
-
-      {/* A sibling of the overview, so the scene keeps the look it had on Home: the .ai-overview
-          rules for the old halls (intro reach, clip) never reach it. */}
-      {view === "collections" && (
-        <div className="duration-300 motion-safe:animate-in motion-safe:fade-in-0">
-          <HomeWorlds />
-        </div>
-      )}
     </>
+  );
+}
+
+/** All works: the collection filter row, the polite count and the compact grid. */
+function AiAllWorks({
+  collection,
+  onFilter,
+  locale,
+}: {
+  collection: string | undefined;
+  onFilter: (slug: string | undefined) => void;
+  locale: Locale;
+}) {
+  const { t } = useT();
+  const m = t.ai;
+  const collections = getAiCollections();
+  const current = collection ? getAiCollection(collection) : undefined;
+  const works = (current ? [current] : collections).flatMap((c) => getCollectionWorks(c, locale));
+  const filterRef = useRef<HTMLDivElement>(null);
+  const activeFilter = current ? collections.indexOf(current) + 1 : 0;
+  useSlidingIndicator(filterRef, activeFilter, ".ai-filter");
+  return (
+    <div className="ai-works container-page">
+      <div ref={filterRef} role="group" aria-label={m.filterLabel} className="ai-filters">
+        <span aria-hidden="true" data-slide-indicator className="slide-indicator" />
+        <button
+          type="button"
+          aria-pressed={!current}
+          onClick={() => onFilter(undefined)}
+          className="ai-filter"
+        >
+          {t.common.all}
+        </button>
+        {collections.map((c) => (
+          <button
+            key={c.slug}
+            type="button"
+            aria-pressed={current === c}
+            onClick={() => onFilter(c.slug)}
+            className="ai-filter"
+          >
+            {collectionText(c.shortTitle, locale)}
+          </button>
+        ))}
+      </div>
+      <p role="status" aria-live="polite" className="ai-works-status">
+        {m.shown(works.length)}
+      </p>
+      <AiWorksGrid works={works} label={m.allWorks} />
+    </div>
   );
 }
 
@@ -181,14 +232,21 @@ export function AiCollectionNotFoundView() {
   return (
     <Surface tone="dark" as="div" className="px-5 py-32 text-center">
       <h1 className="text-4xl">{t.ai.collectionNotFound}</h1>
-      <LocaleLink to="/ai-worlds" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink
+        to="/ai-worlds"
+        className="interaction-link mt-6 inline-block border-b border-gold pb-1"
+      >
         {t.ai.backToCollections}
       </LocaleLink>
     </Surface>
   );
 }
 
-/** A collection presented as an exhibition wall. */
+/**
+ * A collection page, as in the approved mock: its scene stays behind the page (blurred, sticky),
+ * the header (back link, title, intro, chips), the sticky collection tab row, the compact grid
+ * and the previous/next collection cards.
+ */
 export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const { t, locale } = useT();
   const m = t.ai;
@@ -197,26 +255,18 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
   return (
-    // The same scene as this collection's hall on the overview stays behind the page.
-    <Surface tone="dark" as="article" className="ai-collection-page">
-      <CollectionAtmosphere collection={collection} eager page />
-      <header className="ai-collection-copy container-page pt-10 md:pt-14">
-        <AiBackLink to="/ai-worlds" label={m.backToAiWorlds} />
-        <div className="mt-10 grid gap-6 md:grid-cols-12 md:items-end">
-          <div className="min-w-0 md:col-span-8">
-            <h1 className="ai-collection-title break-words">
-              {collectionText(collection.title, locale)}
-            </h1>
-            {collection.tagline && (
-              <p className="mt-4 font-serif text-2xl italic text-gold md:text-3xl">
-                {collectionText(collection.tagline, locale)}
-              </p>
-            )}
+    <Surface tone="dark" as="article" className="ai-col-page">
+      <CollectionAtmosphere collection={collection} eager variant="page" />
+      <header className="ai-col-head">
+        <div className="ai-col-head-grid container-page">
+          <div className="min-w-0">
+            <AiBackLink to="/ai-worlds" label={m.backToAiWorlds} />
+            <h1 className="ai-col-title">{collectionText(collection.title, locale)}</h1>
           </div>
-          <div className="min-w-0 md:col-span-4">
-            <p className="lead text-muted-foreground">{collectionText(collection.intro, locale)}</p>
-            <p className="mt-4 flex flex-wrap gap-2">
-              <span className="ai-chip ai-chip--gold">{t.common.aiBadge}</span>
+          <div className="ai-col-sc">
+            <p className="ai-intro-text">{collectionText(collection.intro, locale)}</p>
+            <p className="ai-meta">
+              <span className="ai-chip ai-chip--ai">{t.common.aiBadge}</span>
               {works.length > 0 && <span className="ai-chip">{m.count(works.length)}</span>}
             </p>
           </div>
@@ -227,72 +277,57 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
         mode="links"
         label={m.allCollections}
         active={getAiCollections().findIndex((c) => c.slug === collection.slug)}
-        className="ai-collection-tabs mt-10 md:mt-12"
+        className="ai-col-tabs"
       />
 
-      {works.length > 0 && (
-        <>
-          <ExhibitionWall
-            works={works}
-            onOpen={(index, trigger) => {
-              lightboxTrigger.current = trigger;
-              setLightbox(index);
-            }}
-          />
-          <Lightbox
-            items={works.map(toLightboxItem)}
-            index={lightbox}
-            onIndex={setLightbox}
-            returnFocusTo={lightboxTrigger}
-            variant="artwork"
-          />
-        </>
-      )}
-      <nav
-        aria-label={m.collections}
-        className="seam-top container-page grid grid-cols-2 gap-6 py-10 md:py-14"
-      >
-        {[
-          { c: prev, label: m.prevCollection, align: "start" as const, Icon: ArrowLeft },
-          { c: next, label: m.nextCollection, align: "end" as const, Icon: ArrowRight },
-        ].map(({ c, label, align, Icon }) => {
-          const cover = getCollectionCover(c, locale);
-          return (
+      <div className="container-page">
+        {works.length > 0 && (
+          <>
+            <AiCollectionGrid
+              works={works}
+              onOpen={(index, trigger) => {
+                lightboxTrigger.current = trigger;
+                setLightbox(index);
+              }}
+            />
+            <Lightbox
+              items={works.map(toLightboxItem)}
+              index={lightbox}
+              onIndex={setLightbox}
+              returnFocusTo={lightboxTrigger}
+              variant="artwork"
+            />
+          </>
+        )}
+        <nav aria-label={m.collections} className="ai-col-nav">
+          {[
+            { c: prev, label: m.prevCollection, align: "start" as const },
+            { c: next, label: m.nextCollection, align: "end" as const },
+          ].map(({ c, label, align }) => (
             <LocaleLink
               key={align}
               to="/ai-worlds/collections/$slug"
               slug={c.slug}
-              className={cn(
-                "interaction-card group flex min-h-24 items-center gap-4 rounded-sm border border-border bg-surface-raised/30 p-4 transition-[background-color,border-color,color] hover:bg-surface-raised/60 hover:text-interaction-gold focus-visible:text-interaction-gold sm:min-h-28 sm:p-5",
-                align === "end" && "flex-row-reverse text-right",
-              )}
+              className={cn("ai-col-nav-card", align === "end" && "ai-col-nav-card--next")}
             >
-              <span className="relative hidden w-16 shrink-0 overflow-hidden rounded-sm sm:block">
-                {cover ? (
-                  <ArtImage work={cover} />
+              <small>
+                {align === "start" ? (
+                  <>
+                    <span aria-hidden="true">← </span>
+                    {label}
+                  </>
                 ) : (
-                  <span className="grid aspect-[4/5] place-items-center bg-surface-raised text-gold/70">
-                    ✦
-                  </span>
+                  <>
+                    {label}
+                    <span aria-hidden="true"> →</span>
+                  </>
                 )}
-              </span>
-              <Icon
-                aria-hidden="true"
-                className={cn(
-                  "size-5 shrink-0 text-gold transition-transform duration-(--dur-base) ease-cinematic",
-                  align === "end" ? "group-hover:translate-x-1" : "group-hover:-translate-x-1",
-                )}
-              />
-              <span className="min-w-0">
-                <span className="eyebrow block text-muted-foreground">{label}</span>
-                <span className="mt-1 block font-serif text-lg leading-snug sm:text-xl">
-                  {collectionText(c.title, locale)}
-                </span>
-              </span>
+              </small>
+              <b>{collectionText(c.title, locale)}</b>
             </LocaleLink>
-          );
-        })}
-      </nav>
+          ))}
+        </nav>
+      </div>
     </Surface>
   );
 }
@@ -314,7 +349,10 @@ export function AiNotFoundView() {
   return (
     <div className="py-32 text-center">
       <h1 className="text-4xl">{t.notFound.work}</h1>
-      <LocaleLink to="/ai-worlds" className="interaction-link mt-6 inline-block border-b border-gold pb-1">
+      <LocaleLink
+        to="/ai-worlds"
+        className="interaction-link mt-6 inline-block border-b border-gold pb-1"
+      >
         {t.notFound.toAi}
       </LocaleLink>
     </div>

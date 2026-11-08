@@ -47,15 +47,14 @@ describe("returning from an artwork to its collection", () => {
           `${prefix[locale]}/ai-worlds/collections/${collection.slug}`,
           () => <AiCollectionView collection={collection} />,
         );
-        const ids = [...container.querySelectorAll("ol.container-page > li")].map((li) => li.id);
+        // Stage 6b: the anchors sit on the tiles of the compact grid.
+        const ids = [...container.querySelectorAll("ol.ai-thumb-grid > li")].map((li) => li.id);
         expect(ids).toEqual(works.map((w) => artworkAnchor(w.slug)));
         expect(new Set(ids).size).toBe(works.length);
         for (const work of works) {
           const presentation = container.querySelector(`#${artworkAnchor(work.slug)}`)!;
           expect(
-            within(presentation as HTMLElement).getByRole("link", {
-              name: `${messages[locale].ai.viewWork}: ${work.title}`,
-            }),
+            within(presentation as HTMLElement).getByRole("link", { name: work.title }),
           ).toHaveAttribute("href", `${prefix[locale]}/ai-worlds/${work.slug}`);
         }
         unmount();
@@ -110,8 +109,9 @@ describe("returning from an artwork to its collection", () => {
     await renderAt(`/ai-worlds/collections/${historical.slug}`, () => (
       <AiCollectionView collection={historical} />
     ));
-    const action = screen.getByRole("link", {
-      name: `${messages.bg.ai.viewWork}: ${tenth.title}`,
+    // The tile caption is the work's main link (stage 6b).
+    const action = within(document.getElementById(artworkAnchor(tenth.slug))!).getByRole("link", {
+      name: tenth.title,
     });
     await waitFor(() => expect(action).toHaveFocus());
   });

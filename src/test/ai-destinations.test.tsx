@@ -295,8 +295,9 @@ describe("Around the World pages", () => {
     render(<AiCollectionView collection={collection} />);
     expect(screen.queryByText("Едно лице. Много култури.")).toBeNull();
     expect(galleryWorks).toHaveLength(16);
+    // Stage 6b: each destination is a grid tile whose caption links to its page.
     for (const work of galleryWorks) {
-      expect(screen.getByRole("heading", { name: work.title })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: work.title })).toHaveClass("ai-thumb-title");
     }
     expect(screen.queryByRole("region", { name: messages.bg.ai.allDestinations })).toBeNull();
     expect(screen.getByText(messages.bg.ai.count(16))).toBeInTheDocument();

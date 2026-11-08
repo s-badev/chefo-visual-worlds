@@ -954,601 +954,60 @@ header .interaction-link.header-underline:focus-visible {
   .interaction-special,
   .interaction-arrow,
   .ai-artwork-action-arrow,
-  .ai-presentation-title,
   .ai-view-switch-tab {
     transition-duration: 0s !important;
     translate: none !important;
     scale: none !important;
   }
 }
-/* AI Worlds view switch (Collections / All artworks): one segmented control on the dark surface.
-   Selected is cream like the primary button at rest; hover turns any segment the hover gold. */
+/* AI Worlds view switch (Collections / All artworks), as in the approved mock: a quiet pill track,
+   cream text at 74%, full cream on hover/focus, and a cream pill with navy text on the selected
+   view (the pill slides, see .slide-indicator). */
 .ai-view-switch {
   display: inline-flex;
   max-width: 100%;
-  gap: 4px;
-  padding: 5px;
-  border: 1px solid rgb(244 238 225 / 0.22);
+  padding: 4px;
   border-radius: 999px;
-  background-color: rgb(244 238 225 / 0.04);
+  background-color: rgb(244 238 226 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
 }
 .ai-view-switch-tab {
-  min-height: 44px;
-  padding-inline: 22px;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding-inline: 18px;
   border-radius: 999px;
   background-color: transparent;
-  color: #cfcabd;
-  font-size: 0.875rem;
-  font-weight: 500;
+  color: rgb(244 238 226 / 0.74);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   transition:
     background-color var(--interaction-duration) var(--motion-ease),
-    color var(--interaction-duration) var(--motion-ease),
-    translate var(--interaction-duration) var(--motion-ease);
+    color var(--interaction-duration) var(--motion-ease);
 }
 .ai-view-switch-tab[aria-pressed="true"] {
   background-color: var(--interaction-cream);
-  color: var(--interaction-ink-on-gold);
+  color: var(--navy);
+}
+.ai-view-switch-tab:not([aria-pressed="true"]):focus-visible {
+  color: var(--interaction-cream);
 }
 .ai-view-switch-tab:focus-visible {
   outline: 2px solid var(--interaction-gold);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
-/* Narrow phones: two equal segments fill the row instead of wrapping or overflowing. */
-@media (max-width: 400px) {
-  .ai-view-switch {
-    display: flex;
-  }
+@media (pointer: coarse) {
   .ai-view-switch-tab {
-    flex: 1 1 0;
-    padding-inline: 12px;
+    min-height: 44px;
   }
 }
 @media (hover: hover) and (pointer: fine) {
-  .ai-view-switch-tab:hover {
-    background-color: var(--btn-hover-bg);
-    color: var(--btn-hover-fg);
-  }
-}
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ai-view-switch-tab:hover {
-    translate: 0 -1px;
-  }
-}
-
-/* AI artwork actions: collection presentations and the AI Worlds overview entries. */
-.ai-artwork-action {
-  display: inline-flex;
-}
-
-/*
- * AI Worlds collection backdrops: the owner's four empty scenes, edge to edge behind each hall
- * of the overview and behind each collection's own page.
- * RETUNE HERE: one line per value and collection ("mobile" = max-width 767px).
- *   --bg-blur / --bg-blur-mobile          softness; keep it light so the scene stays recognizable
- *   --bg-saturate / --bg-brightness       colour and light (the art is dark by design)
- *   --bg-overlay / --bg-overlay-mobile    navy over the whole scene (lower = more visible)
- *   --bg-scrim / --bg-scrim-mobile        navy behind the text block only (carries readability)
- *   --bg-position / --bg-position-mobile  which part of the scene stays in view
- * If a scene is hard to recognize, lower its overlay rather than raising its blur.
- * Every text over a backdrop was measured at 4.7:1 or more (5th percentile, 360-1920 px).
- */
-:is(.ai-overview-hall, .ai-collection-page) {
-  --bg-blur: 6px;
-  --bg-blur-mobile: 4px;
-  --bg-saturate: 0.9;
-  --bg-brightness: 1.4;
-  --bg-overlay: 0.15;
-  --bg-overlay-mobile: 0.15;
-  --bg-scrim: 0.6;
-  --bg-scrim-mobile: 0.6;
-  --bg-position: 50% 50%;
-  --bg-position-mobile: 50% 50%;
-}
-/* The darkest scene: more light, and a stronger scrim because its torches sit behind the text. */
-:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="historical"]) {
-  --bg-brightness: 1.8;
-  --bg-overlay: 0.08;
-  --bg-overlay-mobile: 0.08;
-  --bg-scrim: 0.85;
-  --bg-scrim-mobile: 0.65;
-  --bg-position-mobile: 78% 50%;
-}
-:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="professions"]) {
-  --bg-overlay: 0.15;
-  --bg-overlay-mobile: 0.15;
-  --bg-position-mobile: 72% 50%;
-}
-:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="cinema"]) {
-  --bg-overlay: 0.04;
-  --bg-overlay-mobile: 0.04;
-  --bg-scrim: 0.7;
-  --bg-position-mobile: 82% 30%;
-}
-:is(.ai-overview-hall, .ai-collection-page):has([data-ai-section-background="world"]) {
-  --bg-overlay: 0.25;
-  --bg-overlay-mobile: 0.25;
-  --bg-scrim: 0.7;
-  --bg-scrim-mobile: 0.75;
-  --bg-position-mobile: 78% 45%;
-}
-
-/* Backdrops are decorative and stay behind every content layer. */
-.ai-overview-hall > :not(.ai-section-background) {
-  position: relative;
-  z-index: 1;
-}
-.ai-section-background {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  /* Top and bottom fade into the page navy, so neighbouring halls never meet at a hard line. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
-}
-.ai-section-background picture,
-.ai-section-background img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.ai-section-background img {
-  object-fit: cover;
-  object-position: var(--bg-position);
-  filter: blur(var(--bg-blur)) saturate(var(--bg-saturate)) brightness(var(--bg-brightness));
-  /* Hides the soft edge that the blur leaves at the borders. */
-  transform: scale(1.05);
-}
-.ai-section-background::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: oklch(0.21 0.045 262 / var(--bg-overlay));
-}
-/*
- * Collection page: the backdrop spans the whole article (like a hall's), and inside it one
- * viewport-tall scene is sticky, so it stays put while the works scroll over it and stops at the
- * end of the article, never over the footer. The last half viewport fades into the page navy,
- * so the article meets the footer without a line. overflow: clip (not hidden) keeps the sticky
- * scene working and stops the text panels from widening the page on phones.
- */
-.ai-collection-page {
-  position: relative;
-  isolation: isolate;
-  overflow-x: clip;
-}
-.ai-collection-page > :not(.ai-section-background) {
-  position: relative;
-  z-index: 1;
-}
-/* Its text blocks pass over more of the scene than a hall's (a long page over a scene that stays
-   put), so their local scrim is never lighter than 0.8; the scene stays open around them. */
-.ai-collection-page {
-  --bg-scrim-text: max(var(--bg-scrim), 0.8);
-  --bg-scrim-text-mobile: max(var(--bg-scrim-mobile), 0.8);
-}
-/* Previous/next collection cards: the same soft panel (seam-top already uses ::before). */
-.ai-collection-page > nav::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0 -3rem;
-  pointer-events: none;
-  background: linear-gradient(
-    to right,
-    transparent,
-    oklch(0.21 0.045 262 / var(--bg-scrim-text)) 3rem,
-    oklch(0.21 0.045 262 / var(--bg-scrim-text)) calc(100% - 3rem),
-    transparent
-  );
-  /* Soft top and bottom, fully dark again where the cards begin (the nav has 2.5rem padding). */
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 2.5rem,
-    #000 calc(100% - 2.5rem),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 2.5rem,
-    #000 calc(100% - 2.5rem),
-    transparent
-  );
-}
-.ai-section-background--page {
-  overflow: clip;
-  -webkit-mask-image: none;
-  mask-image: none;
-}
-.ai-section-background--page picture {
-  position: sticky;
-  inset: auto;
-  top: 0;
-  display: block;
-  height: 100vh;
-  height: 100lvh;
-}
-.ai-section-background--page::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: auto 0 0;
-  height: 50vh;
-  background: linear-gradient(to bottom, transparent, var(--navy));
-}
-/*
- * Overview top: the first hall's own scene reaches up behind the intro block (eyebrow, title,
- * tabs), so the page opens on one continuous scene instead of a flat navy band. The reach is a
- * little more than the measured distance from the top of the page to the first hall (381px from
- * 768px, 329-357px below; one more line of copy still fits); the overview clips the excess at its
- * top, and its first 80px fade in from the header navy. Only the first hall changes: its top fade
- * goes, and its bottom fade keeps its old length, so the hand-over to the second hall is as before.
- */
-.ai-overview {
-  --ai-intro-reach: 26rem;
-  position: relative;
-}
-/* Only with the halls (Collections): All Artworks stays exactly as it was. */
-.ai-overview:has(.ai-overview-hall) {
-  overflow: clip;
-}
-.ai-overview:has(.ai-overview-hall)::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset: 0 0 auto;
-  height: 80px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, var(--navy), transparent);
-}
-.ai-overview:has(.ai-overview-hall) .ai-overview-intro {
-  position: relative;
-  z-index: 1;
-}
-/* With the halls, the intro text and tabs get their local scrim (0.8 on wide screens, as on
-   collection pages; 0.65 on phones, as the first hall); the scene stays open to their right. */
-.ai-overview-intro-text {
-  --bg-scrim-text: 0.8;
-  --bg-scrim-text-mobile: 0.65;
-  width: fit-content;
-  max-width: 100%;
-}
-.ai-overview .ai-overview-hall:first-child {
-  overflow: clip visible;
-}
-.ai-overview .ai-overview-hall:first-child > .ai-section-background {
-  top: calc(-1 * var(--ai-intro-reach));
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 calc(91% + 0.09 * var(--ai-intro-reach)),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 calc(91% + 0.09 * var(--ai-intro-reach)),
-    transparent
-  );
-}
-/*
- * Local scrim: a soft-edged navy panel behind the text block only. It is strongest under the
- * text and fades out within 3-4rem, before the portrait and before the viewport edge.
- */
-.ai-overview-hall-text,
-.ai-overview-intro-text,
-.ai-collection-copy,
-.ai-collection-page [data-exhibit-copy-content] {
-  position: relative;
-}
-.ai-overview-hall-text::before,
-.ai-overview:has(.ai-overview-hall) .ai-overview-intro-text::before,
-.ai-collection-copy::before,
-.ai-collection-page [data-exhibit-copy-content]::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -4rem -3rem;
-  pointer-events: none;
-  background: linear-gradient(
-    to right,
-    transparent,
-    oklch(0.21 0.045 262 / var(--bg-scrim-text, var(--bg-scrim))) 3rem,
-    oklch(0.21 0.045 262 / var(--bg-scrim-text, var(--bg-scrim))) calc(100% - 3rem),
-    transparent
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 4rem,
-    #000 calc(100% - 4rem),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 4rem,
-    #000 calc(100% - 4rem),
-    transparent
-  );
-}
-/* Mobile rules end where the md two-column layout (min-width: 768px) begins. */
-@media (max-width: 767px) {
-  .ai-section-background img {
-    object-position: var(--bg-position-mobile);
-    filter: blur(var(--bg-blur-mobile)) saturate(var(--bg-saturate))
-      brightness(var(--bg-brightness));
-  }
-  .ai-section-background::after {
-    background: oklch(0.21 0.045 262 / var(--bg-overlay-mobile));
-  }
-  .ai-collection-page > nav::after {
-    inset: 0 -1.25rem;
-    background: oklch(0.21 0.045 262 / var(--bg-scrim-text-mobile));
-  }
-  /* The text sits under the portrait and spans the width, so the panel runs edge to edge. */
-  .ai-overview-hall-text::before,
-  .ai-overview:has(.ai-overview-hall) .ai-overview-intro-text::before,
-  .ai-collection-copy::before,
-  .ai-collection-page [data-exhibit-copy-content]::before {
-    inset: -2.5rem -1.25rem;
-    background: oklch(0.21 0.045 262 / var(--bg-scrim-text-mobile, var(--bg-scrim-mobile)));
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      #000 2.5rem,
-      #000 calc(100% - 2rem),
-      transparent
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      #000 2.5rem,
-      #000 calc(100% - 2rem),
-      transparent
-    );
-  }
-}
-
-/*
- * Title + primary action pair (.ai-presentation): pointing at the title or at the primary
- * action lights both in the same bright gold. The photo only zooms, and the description, count
- * and empty space stay quiet. Lift, press and arrow use separate translate/scale properties so
- * they combine instead of overriding each other.
- */
-.ai-presentation-title {
-  width: fit-content;
-  color: var(--interaction-cream);
-  transition: color var(--interaction-duration) var(--motion-ease);
-}
-.ai-presentation-media img {
-  transition-duration: 550ms;
-}
-.ai-presentation-link:focus-visible .ai-artwork-action-primary {
-  border-color: var(--btn-hover-border);
-  background-color: var(--interaction-gold);
-  box-shadow:
-    0 0 0 6px var(--interaction-ring),
-    0 12px 32px var(--interaction-halo);
-}
-/* The ring wraps the whole overview hall; without :has() the link keeps its own outline. */
-@supports selector(:has(*)) {
-  .ai-presentation-link:focus-visible {
-    outline: none;
-  }
-  .ai-presentation:has(.ai-presentation-link:focus-visible) {
-    outline: 2px solid var(--interaction-focus-ring);
-    outline-offset: 8px;
-    border-radius: var(--radius);
-  }
-  .ai-presentation:has(
-      :is(.ai-presentation-link, .ai-artwork-action-primary, .ai-presentation-title a):focus-visible
-    )
-    .ai-presentation-title {
-    color: var(--interaction-gold);
-  }
-  .ai-presentation:has(.ai-presentation-title a:focus-visible) .ai-artwork-action-primary {
-    border-color: var(--btn-hover-border);
-    background-color: var(--interaction-gold);
-    box-shadow:
-      0 0 0 6px var(--interaction-ring),
-      0 12px 32px var(--interaction-halo);
-  }
-}
-/* Without :has() each element still answers its own hover; the pair needs :has(). */
-@media (hover: hover) and (pointer: fine) {
-  .ai-presentation-title:hover,
-  .ai-presentation:has(.ai-artwork-action-primary:hover) .ai-presentation-title {
-    color: var(--btn-hover-bg);
-  }
-  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-primary {
-    border-color: var(--btn-hover-border);
-    background-color: var(--btn-hover-bg);
-    color: var(--btn-hover-fg);
-    box-shadow: none;
-  }
-}
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-primary {
-    translate: 0 -2px;
-  }
-  .ai-presentation:has(.ai-presentation-title:hover) .ai-artwork-action-arrow {
-    translate: 6px 0;
-  }
-  .ai-presentation-media:hover img {
-    scale: 1.03;
-  }
-}
-
-/*
- * "One face, four worlds" (AI Worlds, Collections). Wide windows that allow motion get a 300svh
- * track with a sticky 100svh stage (keep in sync with WORLDS_PIN_QUERY); everything else gets the
- * stacked list.
- * Layers stack by index, so the incoming world always lies above the one it covers.
- */
-.home-worlds-pin {
-  display: none;
-}
-@media (min-width: 900px) and (min-height: 600px) and (prefers-reduced-motion: no-preference) {
-  .home-worlds-pin {
-    display: block;
-    position: relative;
-    height: 300svh;
-  }
-  .home-worlds-stack {
-    display: none;
-  }
-}
-.home-worlds-stage {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  overflow: hidden;
-  isolation: isolate;
-  background: #0c1729;
-}
-.home-worlds-backdrops {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-}
-.home-worlds-layer {
-  position: absolute;
-  inset: -6%;
-  will-change: opacity;
-}
-.home-worlds-scrim {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(to bottom, #0c1729, transparent 14%, transparent 86%, #0c1729),
-    linear-gradient(to right, rgb(12 23 41 / 0.88), rgb(12 23 41 / 0.58) 40%, rgb(12 23 41 / 0.1));
-}
-.home-worlds-grid {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(2rem, 4vw, 4rem);
-  height: 100%;
-  /* Clear of the sticky 4rem header. */
-  padding-top: 4rem;
-}
-.home-worlds-copies {
-  display: grid;
-}
-.home-worlds-copy {
-  grid-area: 1 / 1;
-  will-change: opacity, transform;
-}
-.home-worlds-text {
-  container-type: inline-size;
-}
-.home-worlds-portrait {
-  position: relative;
-  justify-self: center;
-  width: min(540px, 41vw);
-  height: min(80svh, 720px);
-  /* The soft ellipse, intersected with long eased edge fades (28% left/right, 30% top, 18%
-     bottom). The portraits' own tops sit at 8-16% of the box, inside the top fade, so neither an
-     image border nor the box border reads as a straight line; the face (38%) stays opaque. */
-  --worlds-fade-x: linear-gradient(
-    to right,
-    transparent,
-    rgb(0 0 0 / 0.12) 7%,
-    rgb(0 0 0 / 0.45) 14%,
-    rgb(0 0 0 / 0.82) 21%,
-    #000 28%,
-    #000 72%,
-    rgb(0 0 0 / 0.82) 79%,
-    rgb(0 0 0 / 0.45) 86%,
-    rgb(0 0 0 / 0.12) 93%,
-    transparent
-  );
-  --worlds-fade-y: linear-gradient(
-    to bottom,
-    transparent,
-    rgb(0 0 0 / 0.12) 7.5%,
-    rgb(0 0 0 / 0.45) 15%,
-    rgb(0 0 0 / 0.82) 22.5%,
-    #000 30%,
-    #000 82%,
-    rgb(0 0 0 / 0.55) 91%,
-    transparent
-  );
-  -webkit-mask-image:
-    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%), var(--worlds-fade-x),
-    var(--worlds-fade-y);
-  -webkit-mask-composite: source-in, source-in;
-  mask-image:
-    radial-gradient(ellipse 64% 60% at 50% 46%, #000 60%, transparent 100%), var(--worlds-fade-x),
-    var(--worlds-fade-y);
-  mask-composite: intersect;
-}
-/* Placed by computeFaceLayout; their own edges fade so no hard image border ever shows. */
-.home-worlds-portrait img {
-  position: absolute;
-  max-width: none;
-  will-change: opacity, transform, filter;
-  -webkit-mask-image:
-    linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.35) 7%, #000 18%, #000 88%, transparent),
-    linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.35) 7%, #000 18%, #000 88%, transparent),
-    linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
-  mask-composite: intersect;
-}
-.home-worlds-layer:not([data-world-index="0"]),
-.home-worlds-copy:not([data-world-index="0"]),
-.home-worlds-portrait img:not([data-world-index="0"]) {
-  opacity: 0;
-}
-.home-worlds-rail {
-  position: absolute;
-  z-index: 3;
-  inset: auto 0 0;
-  height: 3px;
-}
-.home-worlds-rail span {
-  display: block;
-  width: 0;
-  height: 100%;
-  background: var(--gold);
-}
-/* Compact stacked blocks (fallback): a small 4:5 portrait, a smaller title, 15px+ intro. */
-.home-worlds-stack-portrait {
-  width: min(100%, 11rem);
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-}
-.home-worlds-stack-title {
-  font-size: 1.75rem;
-  line-height: 1.15;
-}
-.home-worlds-stack-intro {
-  font-size: 0.9375rem;
-  line-height: 1.55;
-}
-@media (min-width: 768px) {
-  .home-worlds-stack-portrait {
-    width: min(100%, 18rem);
-  }
-  .home-worlds-stack-title {
-    font-size: 2.25rem;
-    line-height: 1.1;
-  }
-  .home-worlds-stack-intro {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
+  .ai-view-switch-tab:not([aria-pressed="true"]):hover {
+    color: var(--interaction-cream);
   }
 }
 
@@ -5251,8 +4710,8 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 
 /*
  * Redesign stage 6 · AI Worlds collection tabs (CollectionTabs) and the sliding indicator.
- * On /ai-worlds the bar sticks under the header inside the "One face, four worlds" section only;
- * on a collection page it is a plain row of links. Inactive text is cream at 72%, hover and focus
+ * On /ai-worlds the band sticks under the header inside the halls block only; on a collection
+ * page it is a row of links that sticks the same way inside the article. Inactive text is cream at 72%, hover and focus
  * bring it to full cream, the current tab is a cream pill with navy text (the pill slides).
  */
 .collection-tabs {
@@ -5261,17 +4720,18 @@ a.next-album-card:focus-visible .next-album-card-arrow {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
-.collection-tabs[data-mode="scroll"] {
+/* Sticky under the header inside its own block only (the halls, or a collection page), as in
+   the mock; --ai-tabs-top is the measured header height. */
+.collection-tabs {
   position: sticky;
-  top: var(--worlds-tabs-top, 65px);
+  top: var(--ai-tabs-top, 65px);
   z-index: 20;
 }
 .collection-tabs[data-mode="links"] {
-  position: relative;
   background-color: rgb(12 23 41 / 0.82);
 }
 .collection-tabs-inner {
-  padding-block: 4px;
+  padding-block: 6px;
 }
 .collection-tabs-list {
   position: relative;
@@ -5291,13 +4751,13 @@ a.next-album-card:focus-visible .next-album-card-arrow {
   z-index: 1;
   display: inline-flex;
   flex: none;
-  min-height: 44px;
+  min-height: 40px;
   align-items: center;
   padding-inline: 16px;
   border-radius: 999px;
   background-color: transparent;
   box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
-  color: rgb(244 238 225 / 0.72);
+  color: rgb(244 238 226 / 0.74);
   font-family: var(--font-sans);
   font-size: 12.5px;
   font-weight: 700;
@@ -5317,8 +4777,13 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 .collection-tabs-list:not([data-indicator]) .collection-tab[data-current] {
   background-color: var(--interaction-cream);
 }
+@media (pointer: coarse) {
+  .collection-tab {
+    min-height: 44px;
+  }
+}
 .collection-tab:not([data-current]):focus-visible {
-  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.42);
+  box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.56);
   color: var(--interaction-cream);
 }
 .collection-tab:focus-visible {
@@ -5327,7 +4792,7 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 }
 @media (hover: hover) and (pointer: fine) {
   .collection-tab:not([data-current]):hover {
-    box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.42);
+    box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.56);
     color: var(--interaction-cream);
   }
 }
@@ -5358,11 +4823,6 @@ a.next-album-card:focus-visible .next-album-card-arrow {
     width 360ms var(--motion-ease),
     height 360ms var(--motion-ease);
 }
-/* The pinned stage sits under the header and the tab bar: its copy clears both. */
-.home-worlds-tabs ~ .home-worlds-pin .home-worlds-grid {
-  padding-top: calc(4rem + 62px);
-}
-
 /* The Collections / All artworks switch shares the sliding pill. */
 .ai-view-switch {
   position: relative;
@@ -5374,51 +4834,848 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 .ai-view-switch[data-indicator] .ai-view-switch-tab[aria-pressed="true"] {
   background-color: transparent;
 }
-@media (hover: hover) and (pointer: fine) {
-  .ai-view-switch[data-indicator] .ai-view-switch-tab:hover {
-    background-color: var(--btn-hover-bg);
-    color: var(--btn-hover-fg);
-  }
-}
 .ai-view-switch[data-indicator] .ai-view-switch-tab:active {
   background-color: var(--btn-active-bg);
   color: var(--btn-hover-fg);
 }
 
-/* Collection page header: the mock's title range and the two quiet chips. */
-.ai-collection-title {
-  font-size: clamp(44px, 6.4vw, 92px);
-  line-height: 0.95;
+@media (prefers-reduced-motion: reduce) {
+  [data-indicator] > .slide-indicator,
+  .collection-tab {
+    transition: none;
+  }
+}
+
+/*
+ * Redesign stage 6b · AI Worlds index (intro, halls, all works) and collection page, matched to
+ * the approved mock v12. The mock's dark palette lives in local tokens on both page roots.
+ */
+.ai-index,
+.ai-col-page {
+  --ai-navy-0: #0c1729;
+  --ai-navy: #16213a;
+  --ai-on: #f4eee2;
+  --ai-on-2: rgb(244 238 226 / 0.74);
+  --ai-on-3: rgb(244 238 226 / 0.56);
+  --ai-line: rgb(246 240 228 / 0.16);
+  --ai-gold: #c9a46b;
+  background-color: var(--ai-navy-0);
+  color: var(--ai-on);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* The mock's content column on these pages: 1240px wide with 40px gutters (16px on phones). */
+.ai-index .container-page,
+.ai-col-page .container-page {
+  width: min(1240px, 100%);
+  max-width: none;
+  padding-inline: 16px;
+}
+@media (min-width: 768px) {
+  .ai-index .container-page,
+  .ai-col-page .container-page {
+    padding-inline: 40px;
+  }
+}
+
+/* Headings balance their lines, as in the mock. */
+.ai-index :is(h1, h2, h3),
+.ai-col-page :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+/* Intro: eyebrow and title on the left, intro and chips on the right, the switch under the title. */
+.ai-intro {
+  padding-block: clamp(56px, 7vw, 96px) 28px;
+}
+.ai-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30ch);
+  grid-template-areas:
+    "a b"
+    "c b";
+  gap: 28px 48px;
+  align-items: start;
+}
+.ai-intro-a {
+  grid-area: a;
+}
+.ai-intro-b {
+  grid-area: b;
+  align-self: end;
+}
+.ai-intro-c {
+  grid-area: c;
+  align-self: end;
+}
+.ai-eyebrow {
+  color: var(--ai-gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.ai-intro-title {
+  margin-top: 14px;
+  color: var(--ai-on);
+  font-size: clamp(52px, 8vw, 112px);
+  line-height: 0.92;
+}
+.ai-intro-text {
+  color: var(--ai-on-2);
+}
+.ai-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 .ai-chip {
   display: inline-flex;
   min-height: 28px;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   padding-inline: 10px;
   border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
-  color: rgb(244 238 225 / 0.74);
+  box-shadow: inset 0 0 0 1px var(--ai-line);
+  color: var(--ai-on-2);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
   line-height: 1;
   text-transform: uppercase;
 }
-.ai-chip--gold {
+.ai-chip--ai {
+  background-color: rgb(201 164 107 / 0.16);
   box-shadow: inset 0 0 0 1px rgb(201 164 107 / 0.45);
   color: var(--gold-hi);
 }
-.ai-chip--gold::before {
+.ai-chip--ai::before {
   content: "";
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: var(--gold);
+  background-color: var(--ai-gold);
+}
+@media (max-width: 767px) {
+  .ai-intro-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "a"
+      "b"
+      "c";
+    row-gap: 18px;
+  }
+  .ai-intro-b {
+    align-self: auto;
+  }
+}
+
+/* Halls: one per collection, its scene blurred behind, tinted by the collection glow. */
+.ai-hall {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(48px, 7vw, 96px);
+  background-color: var(--ai-navy-0);
+}
+.ai-hall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgb(12 23 41 / 0.34);
+}
+.ai-hall-bg {
+  position: absolute;
+  inset: -3%;
+  z-index: -2;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+}
+.ai-hall-bg picture,
+.ai-hall-bg img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ai-hall-bg img {
+  object-fit: cover;
+  object-position: 50% 50%;
+  filter: blur(6px) saturate(0.9) brightness(1.5);
+}
+.ai-hall-col {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+}
+.ai-hall:nth-of-type(even) .ai-hall-col {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+.ai-hall:nth-of-type(even) .ai-hall-media {
+  order: 2;
+}
+.ai-hall-media {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  aspect-ratio: 5 / 4;
+}
+.ai-hall-shot {
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px;
+  background-color: var(--ai-navy);
+  box-shadow:
+    0 0 0 1px rgb(201 164 107 / 0.28),
+    0 22px 44px -18px rgb(0 0 0 / 0.72),
+    0 40px 90px -38px var(--glow, rgb(201 164 107 / 0.4));
+  color: var(--ai-on);
+  text-decoration: none;
+  transition:
+    transform 380ms var(--motion-ease),
+    box-shadow 380ms var(--motion-ease),
+    filter 380ms var(--motion-ease);
+}
+.ai-hall-shot:first-child {
+  grid-row: 1 / 3;
+}
+.ai-hall-shot:nth-child(2) {
+  --k: 1;
+}
+.ai-hall-shot:nth-child(3) {
+  --k: 2;
+}
+.ai-hall-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  transition: transform 900ms var(--motion-ease);
+}
+.ai-hall-cap {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 12px 14px 13px;
+  background-color: rgb(7 13 24 / 0.95);
+  font-family: var(--font-serif);
+  font-size: clamp(17px, 1.7vw, 22px);
+  line-height: 1.1;
+  transform: translateY(101%);
+  transition: transform 380ms var(--motion-ease);
+}
+.ai-hall-shot:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
+}
+.ai-hall-shot:focus-visible .ai-hall-cap {
+  transform: none;
+}
+.ai-hall-media:focus-within .ai-hall-shot:not(:focus-visible) {
+  filter: brightness(0.72);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-hall-media:hover .ai-hall-shot {
+    filter: brightness(0.66) saturate(0.85);
+  }
+  .ai-hall-media .ai-hall-shot:hover {
+    z-index: 3;
+    box-shadow:
+      0 0 0 1px rgb(201 164 107 / 0.7),
+      0 30px 56px -18px rgb(0 0 0 / 0.8),
+      0 50px 110px -30px var(--glow, rgb(201 164 107 / 0.55));
+    filter: none;
+  }
+  .ai-hall-shot:hover .ai-hall-cap {
+    transform: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ai-hall-media .ai-hall-shot:hover {
+    transform: translateY(-8px) scale(1.018);
+  }
+  .ai-hall-shot:hover img {
+    transform: scale(1.035);
+  }
+}
+@media (hover: none) {
+  .ai-hall-shot:not(:first-child) .ai-hall-cap {
+    display: none;
+  }
+  .ai-hall-shot:first-child .ai-hall-cap {
+    transform: none;
+  }
+}
+.ai-hall-text {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 16px;
+  align-content: center;
+}
+.ai-hall-text::before {
+  content: "";
+  position: absolute;
+  inset: -28px -32px;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    rgb(12 23 41 / 0.78),
+    rgb(12 23 41 / 0.5) 70%,
+    rgb(12 23 41 / 0)
+  );
+}
+.ai-hall-count {
+  color: var(--ai-on-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ai-hall-title {
+  color: var(--ai-on);
+  font-size: clamp(34px, 4vw, 54px);
+  line-height: 1.02;
+}
+.ai-hall-intro {
+  max-width: 46ch;
+  color: var(--ai-on-2);
+}
+@media (max-width: 899px) {
+  .ai-hall-col,
+  .ai-hall:nth-of-type(even) .ai-hall-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ai-hall:nth-of-type(even) .ai-hall-media {
+    order: 0;
+  }
+}
+
+/* "Explore the collection": a cream pill; a gold fill sweeps in, the arrow stretches and the
+   three works fan out (fine pointers and keyboard focus); pressed is a darker gold, no movement. */
+.ai-fan {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  padding-inline: 22px;
+  border-radius: 999px;
+  background-color: var(--ai-on);
+  color: var(--ai-navy);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 220ms var(--motion-ease);
+}
+.ai-fan::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--btn-hover-bg);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 380ms var(--motion-ease);
+}
+.ai-fan-arrow {
+  display: inline-block;
+  transform-origin: 0 50%;
+  transition: transform 380ms var(--motion-ease);
+}
+.ai-fan:focus-visible {
+  outline: 2px solid var(--gold-hi);
+  outline-offset: 4px;
+}
+.ai-fan:focus-visible::before {
+  transform: scaleX(1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-fan:hover::before {
+    transform: scaleX(1);
+  }
+}
+.ai-fan:active {
+  background-color: var(--btn-active-bg);
+}
+.ai-fan:active::before {
+  background-color: var(--btn-active-bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ai-fan:focus-visible .ai-fan-arrow {
+    transform: scaleX(1.7) translateX(3px);
+  }
+  .ai-hall:has(.ai-fan:focus-visible) .ai-hall-shot {
+    transform: translate(8px, -6px);
+    transition-delay: calc(var(--k, 0) * 60ms);
+  }
+  .ai-hall:has(.ai-fan:focus-visible) .ai-hall-shot:first-child {
+    transform: translate(-8px, -6px);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ai-fan:hover .ai-fan-arrow {
+    transform: scaleX(1.7) translateX(3px);
+  }
+  .ai-hall:has(.ai-fan:hover) .ai-hall-shot {
+    box-shadow:
+      0 0 0 1px rgb(201 164 107 / 0.75),
+      0 28px 54px -18px rgb(0 0 0 / 0.8),
+      0 44px 100px -30px var(--glow, rgb(201 164 107 / 0.55));
+    filter: none;
+    transform: translate(8px, -6px);
+    transition-delay: calc(var(--k, 0) * 60ms);
+  }
+  .ai-hall:has(.ai-fan:hover) .ai-hall-shot:first-child {
+    transform: translate(-8px, -6px);
+  }
+}
+
+/* Hall reveal (the mock's .rv): only after mount, only for halls below the fold. */
+.ai-hall[data-hall-reveal="pending"] .ai-hall-shot,
+.ai-hall[data-hall-reveal="pending"] .ai-hall-text {
+  opacity: 0;
+}
+.ai-hall[data-hall-reveal="shown"] .ai-hall-shot {
+  animation: ai-hall-shot-in 820ms var(--motion-ease) backwards;
+  animation-delay: calc(var(--k, 0) * 120ms);
+}
+.ai-hall[data-hall-reveal="shown"] .ai-hall-text {
+  animation: ai-hall-text-in 700ms var(--motion-ease) 200ms backwards;
+}
+@keyframes ai-hall-shot-in {
+  from {
+    opacity: 0;
+    transform: translateY(38px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ai-hall-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* All works: the collection filter row, the count and the grid. */
+.ai-filters {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 28px;
+}
+.ai-filter {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding-inline: 16px;
+  border-radius: 999px;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--ai-line);
+  color: var(--ai-on-2);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--interaction-duration) var(--motion-ease),
+    box-shadow var(--interaction-duration) var(--motion-ease);
+}
+.ai-filter[aria-pressed="true"] {
+  box-shadow: none;
+  color: var(--ai-navy);
+}
+.ai-filters:not([data-indicator]) .ai-filter[aria-pressed="true"] {
+  background-color: var(--interaction-cream);
+}
+.ai-filter:not([aria-pressed="true"]):focus-visible {
+  box-shadow: inset 0 0 0 1px var(--ai-on-3);
+  color: var(--ai-on);
+}
+.ai-filter:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-filter:not([aria-pressed="true"]):hover {
+    box-shadow: inset 0 0 0 1px var(--ai-on-3);
+    color: var(--ai-on);
+  }
+}
+.ai-filter:not([aria-pressed="true"]):active {
+  box-shadow: inset 0 0 0 1px var(--interaction-gold);
+  color: var(--ai-on);
+}
+@media (pointer: coarse) {
+  .ai-filter {
+    min-height: 44px;
+  }
+}
+.ai-works-status {
+  margin-top: 14px;
+  color: var(--ai-on-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* The compact grid (all works and a collection page). */
+.ai-thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin: 0;
+  padding: 36px 0 40px;
+  list-style: none;
+}
+@media (max-width: 1099px) {
+  .ai-thumb-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 599px) {
+  .ai-thumb-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+.ai-thumb {
+  min-width: 0;
+  scroll-margin-top: calc(var(--ai-tabs-top, 65px) + 74px);
+}
+.ai-thumb-link {
+  display: block;
+  color: var(--ai-on);
+  text-decoration: none;
+}
+.ai-thumb-im {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  aspect-ratio: 4 / 5;
+  background-color: var(--ai-navy);
+  box-shadow:
+    0 0 0 1px rgb(201 164 107 / 0.22),
+    0 16px 30px -16px rgb(0 0 0 / 0.7);
+  cursor: pointer;
+  transition:
+    transform 380ms var(--motion-ease),
+    box-shadow 380ms var(--motion-ease);
+}
+.ai-thumb-im img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  transition: transform 800ms var(--motion-ease);
+}
+.ai-thumb-chip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 9px;
+  border-radius: 999px;
+  background-color: rgb(201 164 107 / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(201 164 107 / 0.45);
+  color: var(--gold-hi);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ai-thumb-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--ai-gold);
+}
+.ai-thumb-title {
+  display: -webkit-box;
+  overflow: hidden;
+  padding-top: 10px;
+  color: var(--ai-on-2);
+  font-family: var(--font-serif);
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.15;
+  text-decoration: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transition: color 220ms var(--motion-ease);
+}
+.ai-thumb-link:focus-visible {
+  outline: none;
+}
+.ai-thumb-link:focus-visible .ai-thumb-im,
+.ai-thumb-im:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 1px rgb(201 164 107 / 0.7),
+    0 24px 40px -16px rgb(0 0 0 / 0.85);
+}
+.ai-thumb-link:focus-visible .ai-thumb-title,
+.ai-thumb-title:focus-visible {
+  color: var(--ai-on);
+}
+.ai-col-page .ai-thumb-title:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-thumb:hover .ai-thumb-im {
+    box-shadow:
+      0 0 0 1px rgb(201 164 107 / 0.7),
+      0 24px 40px -16px rgb(0 0 0 / 0.85);
+  }
+  .ai-thumb:hover .ai-thumb-title {
+    color: var(--ai-on);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ai-thumb:hover .ai-thumb-im {
+    transform: translateY(-4px);
+  }
+  .ai-thumb:hover .ai-thumb-im img {
+    transform: scale(1.05);
+  }
+}
+@media (pointer: coarse) {
+  .ai-col-page .ai-thumb-title {
+    min-height: 44px;
+  }
+}
+/* The tile itself (it carries the return anchor) never moves; only its content rises in, so a
+   linked work is scrolled to its real place. */
+@media (prefers-reduced-motion: no-preference) {
+  .ai-thumb > * {
+    animation: ai-thumb-in 560ms var(--motion-ease) backwards;
+    animation-delay: var(--thumb-delay, 0ms);
+  }
+}
+@keyframes ai-thumb-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Collection page: the scene stays (sticky, blurred) behind the whole article. */
+.ai-col-page {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+}
+.ai-col-bd {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 80%, transparent);
+}
+.ai-col-bd::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(12 23 41 / 0.38);
+}
+.ai-col-st {
+  position: sticky;
+  top: 0;
+  display: block;
+  height: 100svh;
+  overflow: hidden;
+}
+.ai-col-st img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  filter: blur(6px) saturate(0.9) brightness(1.35);
+}
+.ai-col-head {
+  position: relative;
+  padding-block: 56px 40px;
+}
+.ai-col-head-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30ch);
+  gap: 18px 48px;
+  align-items: end;
+}
+.ai-col-title {
+  margin-top: 14px;
+  color: var(--ai-on);
+  font-size: clamp(44px, 6.4vw, 92px);
+  line-height: 0.92;
+  overflow-wrap: anywhere;
+}
+.ai-col-sc {
+  position: relative;
+  isolation: isolate;
+}
+.ai-col-sc::before {
+  content: "";
+  position: absolute;
+  inset: -24px -28px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(12 23 41 / 0.75), rgb(12 23 41 / 0));
+}
+@media (max-width: 767px) {
+  .ai-col-head {
+    padding-block: 28px 24px;
+  }
+  .ai-col-head-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* The back pill of the mock on the dark page: a hairline pill; hover and focus light its border. */
+.ai-col-head a.back-pill {
+  min-height: 44px;
+  gap: 10px;
+  padding: 0 18px 0 6px;
+  border: 1px solid var(--ai-line);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--ai-on);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+.ai-col-head a.back-pill .back-pill-badge {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background-color: rgb(244 238 226 / 0.1);
+  color: var(--ai-on);
+}
+.ai-col-head a.back-pill:focus-visible {
+  border-color: var(--interaction-gold);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--ai-on);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-col-head a.back-pill:hover {
+    border-color: var(--interaction-gold);
+    background-color: transparent;
+    color: var(--ai-on);
+  }
+  .ai-col-head a.back-pill:hover .back-pill-badge {
+    background-color: rgb(244 238 226 / 0.1);
+    color: var(--ai-on);
+  }
+}
+/* Previous / next collection. */
+.ai-col-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 80px;
+}
+.ai-col-nav-card {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--ai-line);
+  color: var(--ai-on);
+  text-decoration: none;
+  transition:
+    box-shadow 220ms var(--motion-ease),
+    background-color 220ms var(--motion-ease);
+}
+.ai-col-nav-card--next {
+  text-align: right;
+}
+.ai-col-nav-card small {
+  color: var(--ai-on-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ai-col-nav-card b {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+.ai-col-nav-card:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
+  background-color: rgb(201 164 107 / 0.06);
+  box-shadow: inset 0 0 0 1px var(--interaction-gold);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-col-nav-card:hover {
+    background-color: rgb(201 164 107 / 0.06);
+    box-shadow: inset 0 0 0 1px var(--interaction-gold);
+  }
+}
+.ai-col-nav-card:active {
+  background-color: rgb(201 164 107 / 0.14);
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-indicator] > .slide-indicator,
-  .collection-tab {
+  .ai-hall-shot,
+  .ai-hall-shot img,
+  .ai-hall-cap,
+  .ai-fan::before,
+  .ai-fan-arrow,
+  .ai-thumb-im,
+  .ai-thumb-im img {
     transition: none;
+  }
+  .ai-hall[data-hall-reveal] .ai-hall-shot,
+  .ai-hall[data-hall-reveal] .ai-hall-text {
+    opacity: 1;
+    animation: none;
   }
 }
