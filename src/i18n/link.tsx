@@ -1,5 +1,11 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import type {
+  AriaAttributes,
+  FocusEventHandler,
+  MouseEventHandler,
+  PointerEventHandler,
+  ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 import { localizePath, switchLocaleHref, useLocale, type Locale } from "./index";
 
@@ -13,11 +19,17 @@ type SlugPath =
 type Props = {
   className?: string;
   children?: ReactNode;
-  onClick?: (() => void) | undefined;
+  onClick?: MouseEventHandler<HTMLAnchorElement> | undefined;
+  onPointerEnter?: PointerEventHandler<HTMLAnchorElement> | undefined;
+  onPointerLeave?: PointerEventHandler<HTMLAnchorElement> | undefined;
+  onFocus?: FocusEventHandler<HTMLAnchorElement> | undefined;
+  onBlur?: FocusEventHandler<HTMLAnchorElement> | undefined;
   search?: Record<string, string | undefined>;
   /** Element id to scroll to, without "#". */
   hash?: string | undefined;
   "aria-label"?: string;
+  "aria-current"?: AriaAttributes["aria-current"] | undefined;
+  "data-ai-work-nav"?: "prev" | "next";
   /** Classes applied when the link matches the current page. */
   activeClassName?: string;
 } & ({ to: StaticPath; slug?: never } | { to: SlugPath; slug: string });

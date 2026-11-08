@@ -68,16 +68,11 @@ describe("returning from an artwork to its collection", () => {
     async (locale) => {
       for (const collection of aiCollections) {
         for (const work of getCollectionWorks(collection, locale)) {
-          const destination = getDestination(work.slug);
-          const { unmount } = await renderAt(`${prefix[locale]}/ai-worlds/${work.slug}`, () =>
-            destination && !destination.artworkTemplate ? (
-              <DestinationView destination={destination} />
-            ) : (
-              <AiDetailView work={getAiWork(work.slug)!} />
-            ),
-          );
+          const { unmount } = await renderAt(`${prefix[locale]}/ai-worlds/${work.slug}`, () => (
+            <AiDetailView work={getAiWork(work.slug)!} />
+          ));
           expect(
-            await screen.findByRole("link", { name: messages[locale].ai.backToCollection }),
+            await screen.findByRole("link", { name: messages[locale].ai.backToAiWorlds }),
           ).toHaveAttribute(
             "href",
             `${prefix[locale]}/ai-worlds/collections/${collection.slug}#${artworkAnchor(work.slug)}`,

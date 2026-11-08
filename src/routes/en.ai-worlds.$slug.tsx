@@ -5,13 +5,13 @@ import { AiDetailView, aiDetailHead, AiNotFoundView } from "@/views/ai-worlds";
 import { DestinationView, destinationHead } from "@/components/ai-atlas";
 
 export const Route = createFileRoute("/en/ai-worlds/$slug")({
-  // See ai-worlds.$slug.tsx: destinations resolve first, then finished artworks.
+  // See ai-worlds.$slug.tsx: published portraits share the artwork presentation.
   loader: ({ params }) => {
     const destination = getDestination(params.slug);
-    if (destination && !destination.artworkTemplate) return { destination, work: undefined };
     const work = getAiWork(params.slug);
-    if (!work) throw notFound();
-    return { work, destination: undefined };
+    if (work) return { work, destination };
+    if (destination) return { destination, work: undefined };
+    throw notFound();
   },
   head: ({ loaderData }) =>
     loaderData?.destination
@@ -23,9 +23,5 @@ export const Route = createFileRoute("/en/ai-worlds/$slug")({
 
 function Detail() {
   const { work, destination } = Route.useLoaderData();
-  return destination ? (
-    <DestinationView destination={destination} />
-  ) : (
-    <AiDetailView work={work!} />
-  );
+  return work ? <AiDetailView work={work} /> : <DestinationView destination={destination!} />;
 }

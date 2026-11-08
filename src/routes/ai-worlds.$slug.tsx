@@ -5,15 +5,14 @@ import { AiDetailView, aiDetailHead, AiNotFoundView } from "@/views/ai-worlds";
 import { DestinationView, destinationHead } from "@/components/ai-atlas";
 
 export const Route = createFileRoute("/ai-worlds/$slug")({
-  // A "Chefo Around the World" destination owns its slug; its portrait, once published,
-  // is the AiWork with the same slug and is shown on the destination page, unless the
-  // destination opts into the shared artwork template.
+  // Published destination portraits use the shared artwork presentation while keeping the
+  // destination's established metadata. Planned destinations retain their atlas detail page.
   loader: ({ params }) => {
     const destination = getDestination(params.slug);
-    if (destination && !destination.artworkTemplate) return { destination, work: undefined };
     const work = getAiWork(params.slug);
-    if (!work) throw notFound();
-    return { work, destination: undefined };
+    if (work) return { work, destination };
+    if (destination) return { destination, work: undefined };
+    throw notFound();
   },
   head: ({ loaderData }) =>
     loaderData?.destination
@@ -25,9 +24,5 @@ export const Route = createFileRoute("/ai-worlds/$slug")({
 
 function Detail() {
   const { work, destination } = Route.useLoaderData();
-  return destination ? (
-    <DestinationView destination={destination} />
-  ) : (
-    <AiDetailView work={work!} />
-  );
+  return work ? <AiDetailView work={work} /> : <DestinationView destination={destination!} />;
 }
