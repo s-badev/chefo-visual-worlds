@@ -256,7 +256,7 @@ describe("About iris toggle", () => {
 describe("Back-to-top ring and visibility", () => {
   it("derives the ring from the diameter and the stroke", () => {
     expect(BACK_TO_TOP).toMatchObject({
-      appearAt: 0.8,
+      appearAt: 0.9,
       size: 52,
       mobileSize: 46,
       mobileMax: 600,
@@ -279,9 +279,9 @@ describe("Back-to-top ring and visibility", () => {
     expect(scrollProgress(100, 800, 1000)).toBe(0);
   });
 
-  it("appears after 0.8 viewport heights", () => {
-    expect(isBackToTopVisible(800, 1000)).toBe(false);
-    expect(isBackToTopVisible(801, 1000)).toBe(true);
+  it("appears after 0.9 viewport heights, as in the mock", () => {
+    expect(isBackToTopVisible(900, 1000)).toBe(false);
+    expect(isBackToTopVisible(901, 1000)).toBe(true);
   });
 
   it("matches the CSS sizes and stays below the header and dialogs", () => {

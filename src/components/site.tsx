@@ -1,7 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { photoCategoryLabel, type Photo } from "@/content/photos";
@@ -9,6 +9,8 @@ import { toolLabel, type AiWork } from "@/content/ai-works";
 import { getMessages, useT, type Locale } from "@/i18n";
 import { LanguageSwitcher, LocaleLink } from "@/i18n/link";
 import { siteConfig } from "@/content/site-config";
+import { getAlbums } from "@/content/albums";
+import { getAiCollections } from "@/content/ai-collections";
 import { riseItemStyle } from "@/hooks/use-grid-rise";
 import { reveal } from "@/hooks/use-reveal";
 import { copyText, type CopyResult } from "@/lib/clipboard";
@@ -25,6 +27,9 @@ const NAV = [
   { to: "/ai-worlds", key: "ai" },
   { to: "/about", key: "about" },
 ] as const;
+
+/** The mobile menu adds Home before the three sections, as in the mock. */
+const MENU = [{ to: "/", key: "home" }, ...NAV] as const;
 
 /** Bold CHEFO and regular VISUAL WORLDS separated by space only; no separator glyph. */
 export function Wordmark({ className, onClick }: { className?: string; onClick?: () => void }) {
@@ -182,6 +187,91 @@ function useScrolledHeader() {
   return scrolled;
 }
 
+/**
+ * The mock's header navigation: one gold pill rests on the current page and glides to the item
+ * under the pointer or keyboard focus, then back; the label rolls up to its gold copy (the copy
+ * is hidden from screen readers). A click stamps the pill once. Placed after mount only.
+ */
+function HeaderNav({ pathname }: { pathname: string }) {
+  const { t } = useT();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const indRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const ind = indRef.current;
+    if (!wrap || !ind) return;
+    const links = Array.from(wrap.querySelectorAll<HTMLAnchorElement>(".site-nav-link"));
+    const current = () => wrap.querySelector<HTMLElement>(".site-nav-link.is-current");
+    const place = (target: HTMLElement | null, instant: boolean) => {
+      if (!target) {
+        delete ind.dataset["on"];
+        return;
+      }
+      const r = target.getBoundingClientRect();
+      const n = wrap.getBoundingClientRect();
+      if (!r.width) return;
+      if (instant) ind.style.transition = "none";
+      ind.style.setProperty("--x", `${r.left - n.left}px`);
+      ind.style.setProperty("--y", `${r.top - n.top}px`);
+      ind.style.setProperty("--w", `${r.width}px`);
+      ind.style.setProperty("--h", `${r.height}px`);
+      ind.dataset["on"] = "";
+      if (instant) {
+        void ind.offsetWidth;
+        ind.style.transition = "";
+      }
+    };
+    const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const placed = () => "on" in ind.dataset;
+    place(current(), true);
+    const offs: (() => void)[] = [];
+    const listen = (el: EventTarget, type: string, fn: (e: Event) => void) => {
+      el.addEventListener(type, fn);
+      offs.push(() => el.removeEventListener(type, fn));
+    };
+    for (const a of links) {
+      listen(a, "pointerenter", (e) => {
+        if ((e as PointerEvent).pointerType !== "touch") place(a, !placed());
+      });
+      listen(a, "pointerleave", (e) => {
+        if ((e as PointerEvent).pointerType !== "touch") place(current(), false);
+      });
+      listen(a, "focus", () => place(a, !placed()));
+      listen(a, "blur", () => place(current(), false));
+      listen(a, "click", () => {
+        if (reduced()) return;
+        delete ind.dataset["stamp"];
+        void ind.offsetWidth;
+        ind.dataset["stamp"] = "";
+      });
+    }
+    listen(window, "resize", () => place(current(), true));
+    void document.fonts?.ready.then(() => place(current(), true));
+    return () => offs.forEach((off) => off());
+  }, [pathname]);
+  return (
+    <nav aria-label={t.nav.main} className="site-nav hidden lg:flex lg:items-center">
+      <div ref={wrapRef} className="site-nav-wrap">
+        <ul className="site-nav-list">
+          {NAV.map((n) => (
+            <li key={n.to}>
+              <LocaleLink to={n.to} className="site-nav-link" activeClassName="is-current">
+                <span className="site-nav-roll">
+                  <span className="site-nav-roll-in">
+                    <span>{t.nav[n.key]}</span>
+                    <span aria-hidden="true">{t.nav[n.key]}</span>
+                  </span>
+                </span>
+              </LocaleLink>
+            </li>
+          ))}
+        </ul>
+        <span ref={indRef} aria-hidden="true" className="site-nav-ind" />
+      </div>
+    </nav>
+  );
+}
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
@@ -220,84 +310,52 @@ export function SiteHeader() {
         className="home-header-row flex h-16 items-center justify-between"
       >
         <BrandLockup />
-        <nav aria-label={t.nav.main} className="hidden lg:flex lg:items-center lg:gap-10">
-          <ul className="flex gap-10">
-            {NAV.map((n) => (
-              <li key={n.to}>
-                {/* One 1px underline for the current page and hover (.header-underline). */}
-                <LocaleLink
-                  to={n.to}
-                  className="header-underline interaction-link eyebrow border-b border-transparent pb-1 transition-colors"
-                  activeClassName={dark ? "text-gold" : "text-gold-ink"}
-                >
-                  {t.nav[n.key]}
-                </LocaleLink>
-              </li>
-            ))}
-          </ul>
-          <LanguageSwitcher label={t.nav.language} />
-        </nav>
+        <HeaderNav pathname={pathname} />
+        <LanguageSwitcher label={t.nav.language} className="site-header-lang" />
         <Dialog.Root open={open} onOpenChange={setOpen}>
           {/* The ::after enlarges the touch target to 44px without moving the icon. */}
           <Dialog.Trigger
-            className="interaction-icon relative rounded-full p-2 after:absolute after:-inset-1 lg:hidden"
+            className="site-menu-button lg:hidden"
             aria-label={open ? t.nav.close : t.nav.open}
           >
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+            <span aria-hidden="true" className="site-menu-button-lines" />
           </Dialog.Trigger>
           <Dialog.Portal>
             {/* Radix locks page scroll through the overlay. */}
-            <Dialog.Overlay className="fixed inset-0 z-50 bg-navy duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden" />
-            <Dialog.Content
-              aria-describedby={undefined}
-              className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-navy text-navy-foreground outline-none duration-(--dur-base) ease-cinematic data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 lg:hidden"
-            >
+            <Dialog.Overlay className="site-menu-overlay" />
+            {/* The mock's menu: navy, opening as a circle from the menu button, big serif links. */}
+            <Dialog.Content aria-describedby={undefined} className="site-menu">
               <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
-              {/* Dark header state inside the menu overlay. */}
-              <div
-                data-theme="dark"
-                className="home-header-row flex h-16 shrink-0 items-center justify-between border-b border-navy-border"
-              >
+              <div data-theme="dark" className="home-header-row site-menu-top">
                 <BrandLockup onClick={() => setOpen(false)} />
-                <Dialog.Close
-                  className="interaction-icon relative rounded-full border border-transparent p-2 after:absolute after:-inset-1"
-                  aria-label={t.nav.close}
-                >
-                  <X className="size-5" />
+                <Dialog.Close className="site-menu-close" aria-label={t.nav.close}>
+                  <X aria-hidden="true" className="size-5" />
                 </Dialog.Close>
               </div>
-              <nav
-                aria-label={t.nav.mobile}
-                className="seam-top flex flex-1 flex-col justify-between px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 md:px-8"
-              >
-                <ul className="flex flex-col">
-                  {NAV.map((n, i) => (
-                    <li
-                      key={n.to}
-                      className="border-b border-navy-border duration-500 ease-cinematic fill-mode-both motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2"
-                      style={{ animationDelay: `${80 + i * 70}ms` }}
-                    >
-                      <LocaleLink
-                        to={n.to}
-                        onClick={() => setOpen(false)}
-                        className="interaction-link flex items-center justify-between gap-4 py-5 font-serif text-4xl transition-colors"
-                        activeClassName="text-gold"
-                      >
-                        {t.nav[n.key]}
-                        <ArrowRight aria-hidden="true" className="size-5 text-gold" />
-                      </LocaleLink>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-10 flex items-center justify-between border-t border-navy-border pt-6">
-                  <span className="eyebrow text-navy-muted">{t.nav.language}</span>
-                  <LanguageSwitcher
-                    label={t.nav.language}
-                    onSwitch={() => setOpen(false)}
-                    className="text-sm"
-                  />
-                </div>
+              <nav aria-label={t.nav.mobile} className="site-menu-nav">
+                {MENU.map((n) => (
+                  <LocaleLink
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setOpen(false)}
+                    className="site-menu-link"
+                    activeClassName="is-current"
+                  >
+                    {n.key === "home" ? t.nav.homeShort : t.nav[n.key]}
+                    <small aria-hidden="true">
+                      {n.key === "photography"
+                        ? `${getAlbums().length} / ${t.nav.albums}`
+                        : n.key === "ai"
+                          ? `${getAiCollections().length} / ${t.nav.collections}`
+                          : ""}
+                    </small>
+                  </LocaleLink>
+                ))}
               </nav>
+              <div className="site-menu-foot">
+                <span>{t.nav.menuFoot}</span>
+                <LanguageSwitcher label={t.nav.language} onSwitch={() => setOpen(false)} />
+              </div>
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
@@ -306,44 +364,49 @@ export function SiteHeader() {
   );
 }
 
+/**
+ * The mock's footer (.ft): the logo and the tagline on the left, the three sections on the
+ * right, then a hairline and the copyright with the site's line. Instagram and e-mail join the
+ * links only once they are filled in (site-config.ts).
+ */
 export function SiteFooter() {
   const instagram = siteConfig.instagramUrl.trim();
   const email = siteConfig.contactEmail.trim();
   const { t } = useT();
   return (
-    <footer data-header-theme="dark" className="seam-top bg-navy text-navy-foreground">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 md:flex-row md:items-end md:justify-between md:px-8">
+    <footer data-header-theme="dark" className="site-footer">
+      <div className="site-footer-grid">
         <div>
-          <Wordmark />
-          <p className="mt-3 font-serif text-xl italic text-navy-muted">{t.footer.tagline}</p>
+          <BrandLockup />
+          <p className="site-footer-tag">{t.footer.tagline}</p>
         </div>
-        <div className="flex flex-col gap-4 md:items-end">
-          {(instagram || email) && (
-            <ul className="flex gap-6 eyebrow">
-              {instagram && (
-                <li>
-                  <a
-                    href={instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="interaction-link"
-                  >
-                    Instagram
-                  </a>
-                </li>
-              )}
-              {email && (
-                <li>
-                  <a href={`mailto:${email}`} className="interaction-link">
-                    {t.footer.email}
-                  </a>
-                </li>
-              )}
-            </ul>
+        <nav aria-label={t.footer.nav} className="site-footer-nav">
+          {NAV.map((n) => (
+            <LocaleLink key={n.to} to={n.to} className="site-footer-link">
+              {t.nav[n.key]}
+            </LocaleLink>
+          ))}
+          {instagram && (
+            <a
+              href={instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-footer-link"
+            >
+              Instagram
+            </a>
           )}
-          <p className="text-xs text-navy-muted">
-            © {new Date().getFullYear()} Chefo. {t.footer.rights}
-          </p>
+          {email && (
+            <a href={`mailto:${email}`} className="site-footer-link">
+              {t.footer.email}
+            </a>
+          )}
+        </nav>
+        <div className="site-footer-base">
+          <span>
+            © {new Date().getFullYear()} Chefo Visual Worlds. {t.footer.rights}
+          </span>
+          <span>{t.footer.motto}</span>
         </div>
       </div>
     </footer>
@@ -377,15 +440,28 @@ export function SectionHeading({
   eyebrow,
   title,
   text,
+  emphasis,
 }: {
   eyebrow?: string;
   title: string;
   text?: string;
+  /** "last": the last word in gold italics, as in the mock ("През моя <em>обектив</em>"). */
+  emphasis?: "last";
 }) {
+  const cut = emphasis === "last" ? title.lastIndexOf(" ") : -1;
   return (
     <div className="max-w-2xl" {...reveal()}>
       {eyebrow && <p className="eyebrow text-eyebrow">{eyebrow}</p>}
-      <h2 className="title-section mt-3">{title}</h2>
+      <h2 className="title-section mt-3">
+        {cut > 0 ? (
+          <>
+            {title.slice(0, cut + 1)}
+            <em className="section-title-em">{title.slice(cut + 1)}</em>
+          </>
+        ) : (
+          title
+        )}
+      </h2>
       {text && <p className="lead mt-4 text-muted-foreground">{text}</p>}
     </div>
   );
@@ -532,20 +608,6 @@ export async function copyPromptWithToast(
   return r;
 }
 
-/** Copy action with a short-lived confirmed state for the button (toast still announces it). */
-export function useCopyPrompt(locale: Locale) {
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const id = setTimeout(() => setCopied(false), 2000);
-    return () => clearTimeout(id);
-  }, [copied]);
-  const copy = async (prompt: string | undefined) => {
-    if ((await copyPromptWithToast(prompt, locale)) === "ok") setCopied(true);
-  };
-  return [copied, copy] as const;
-}
-
 /** AI overview card (expects a localized work) (dark sections). */
 export function AiCard({
   work,
@@ -618,4 +680,3 @@ export { Lightbox, type LightboxItem } from "@/components/lightbox";
 const btnMotion = "transition-colors duration-(--interaction-duration) ease-cinematic";
 export const btnPrimary = `interaction-primary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;
 export const btnOutline = `interaction-secondary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;
-export const btnGold = `interaction-primary inline-flex items-center gap-2 rounded-sm text-sm font-semibold tracking-wide ${btnMotion}`;

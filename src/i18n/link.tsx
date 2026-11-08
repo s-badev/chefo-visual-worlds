@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import type {
   AriaAttributes,
@@ -67,22 +68,15 @@ export function LanguageSwitcher({
     select: (s) => ({ pathname: s.location.pathname, searchStr: s.location.searchStr }),
   });
   const opts: Locale[] = ["bg", "en"];
+  // As in the mock: "BG | EN", a thin vertical rule between them, the current language in gold.
   return (
-    <div
-      role="group"
-      aria-label={label}
-      className={cn("flex items-center gap-1 text-xs font-semibold tracking-[0.14em]", className)}
-    >
+    <div role="group" aria-label={label} className={cn("lang-switch", className)}>
       {opts.map((l, i) => {
         const href = switchLocaleHref(pathname, searchStr, l);
         const active = l === locale;
         return (
-          <span key={l} className="flex items-center gap-1">
-            {i > 0 && (
-              <span aria-hidden className="opacity-40">
-                /
-              </span>
-            )}
+          <Fragment key={l}>
+            {i > 0 && <span aria-hidden="true" className="lang-switch-rule" />}
             <a
               href={href}
               hrefLang={l}
@@ -93,19 +87,11 @@ export function LanguageSwitcher({
                 onSwitch?.();
                 if (!active) router.navigate({ href });
               }}
-              // In the header, .header-underline draws the line under the letters (inset by the
-              // padding) and switches the text underline off; the mobile menu keeps the classes below.
-              className={cn(
-                "header-underline interaction-link rounded-sm px-1.5 py-1 transition-colors [--header-underline-inset:0.375rem]",
-                active
-                  ? // On the cream header, gold text needs the deeper ink for contrast.
-                    "text-gold underline decoration-gold underline-offset-4 [[data-theme=light]_&]:text-gold-ink [[data-theme=light]_&]:decoration-gold-ink"
-                  : "opacity-70 hover:opacity-100",
-              )}
+              className="lang-switch-link"
             >
               {l.toUpperCase()}
             </a>
-          </span>
+          </Fragment>
         );
       })}
     </div>

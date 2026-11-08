@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { STAMP_ICONS } from "@/content/stamp-icons";
 
 const STAMP_INKS = ["#A16A56", "#3F5A86", "#8A6A32"] as const;
 
@@ -9,22 +10,61 @@ export interface AlbumStampProps {
   title: string;
   count: number;
   total: number;
+  /** The album slug: its landmark icon sits in the middle of the stamp. */
+  slug?: string | undefined;
   size?: number;
   shape?: StampShape;
+  /** "mini": the deck's small seal, a thick double ring around the landmark only. */
+  variant?: "full" | "mini";
   ink?: string;
   className?: string;
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
+/** The landmark line icon (24 x 24 artwork) placed at (x, y) and scaled, in the stamp's ink. */
+function Landmark({
+  slug,
+  ink,
+  x,
+  y,
+  scale,
+  stroke = 1.2,
+}: {
+  slug: string | undefined;
+  ink: string;
+  x: number;
+  y: number;
+  scale: number;
+  stroke?: number;
+}) {
+  const icon = slug ? STAMP_ICONS[slug] : undefined;
+  if (!icon) return null;
+  return (
+    <g
+      transform={`translate(${x} ${y}) scale(${scale})`}
+      fill="none"
+      stroke={ink}
+      strokeWidth={stroke}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      // Static artwork from src/content/stamp-icons.ts (no user content).
+      dangerouslySetInnerHTML={{ __html: icon.join("") }}
+    />
+  );
+}
 
-/** Decorative English-only passport stamp SVG ported from the approved album reference mockup. */
+/**
+ * Decorative English-only passport stamp, as in the approved mock (stampSVG / miniStamp): round
+ * stamps carry the album and its count around a landmark, rectangular ones the landmark above the
+ * album name and the count. The ink cycles terracotta-brown, blue and bronze by album.
+ */
 export function AlbumStamp({
   index,
   title,
   count,
-  total,
+  slug,
   size = 52,
   shape,
+  variant = "full",
   ink,
   className,
 }: AlbumStampProps) {
@@ -33,8 +73,23 @@ export function AlbumStamp({
 
   const resolvedShape: StampShape = shape ?? (index % 2 === 1 ? "rect" : "round");
   const resolvedInk = ink ?? STAMP_INKS[Math.abs(index) % STAMP_INKS.length]!;
-  const numberLabel = pad2(index + 1);
   const upperTitle = title.toUpperCase();
+
+  if (variant === "mini") {
+    return (
+      <svg
+        viewBox="0 0 100 100"
+        width={size}
+        height={size}
+        aria-hidden="true"
+        className={className}
+      >
+        <circle cx="50" cy="50" r="45" fill="none" stroke={resolvedInk} strokeWidth="5" />
+        <circle cx="50" cy="50" r="36" fill="none" stroke={resolvedInk} strokeWidth="2.4" />
+        <Landmark slug={slug} ink={resolvedInk} x={30.8} y={30.8} scale={1.6} stroke={1.9} />
+      </svg>
+    );
+  }
 
   if (resolvedShape === "rect") {
     const titleFontSize = upperTitle.length > 10 ? 9.6 : upperTitle.length > 7 ? 12.5 : 16;
@@ -48,9 +103,9 @@ export function AlbumStamp({
       >
         <rect
           x="5"
-          y="20"
+          y="14"
           width="90"
-          height="60"
+          height="72"
           rx="7"
           fill="none"
           stroke={resolvedInk}
@@ -58,47 +113,42 @@ export function AlbumStamp({
         />
         <rect
           x="10"
-          y="25"
+          y="19"
           width="80"
-          height="50"
+          height="62"
           rx="4"
           fill="none"
           stroke={resolvedInk}
           strokeWidth="1"
         />
+        <Landmark slug={slug} ink={resolvedInk} x={37.5} y={21} scale={1.05} />
         <text
           x="50"
-          y="47"
+          y="60"
           textAnchor="middle"
-          letterSpacing="0.6"
+          letterSpacing="0.5"
           style={{
-            font: `600 ${titleFontSize}px var(--font-serif)`,
+            font: `600 ${(titleFontSize * 0.8).toFixed(1)}px var(--font-serif)`,
             fill: resolvedInk,
           }}
         >
           {upperTitle}
         </text>
-        <line x1="20" y1="53" x2="80" y2="53" stroke={resolvedInk} strokeWidth="0.8" />
+        <line x1="22" y1="64.5" x2="78" y2="64.5" stroke={resolvedInk} strokeWidth="0.8" />
         <text
           x="50"
-          y="64"
+          y="73"
           textAnchor="middle"
           letterSpacing="0.4"
-          style={{
-            font: "600 6.8px var(--font-sans)",
-            fill: resolvedInk,
-          }}
+          style={{ font: "600 6.2px var(--font-sans)", fill: resolvedInk }}
         >
-          {`${count} PHOTOS · NO. ${numberLabel}`}
+          {`${count} PHOTOS`}
         </text>
       </svg>
     );
   }
 
   const ringText = `${upperTitle} · ${count} PHOTOS · `;
-  const isLongRing = ringText.length > 22;
-  const ringFontSize = isLongRing ? 8.2 : 9.2;
-
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true" className={className}>
       <defs>
@@ -106,44 +156,12 @@ export function AlbumStamp({
       </defs>
       <circle cx="50" cy="50" r="46" fill="none" stroke={resolvedInk} strokeWidth="2.4" />
       <circle cx="50" cy="50" r="27" fill="none" stroke={resolvedInk} strokeWidth="1.1" />
-      <text
-        letterSpacing={isLongRing ? "0.7" : "1"}
-        style={{
-          font: `600 ${ringFontSize}px var(--font-sans)`,
-          fill: resolvedInk,
-        }}
-      >
-        <textPath
-          href={`#${pathId}`}
-          xlinkHref={`#${pathId}`}
-          textLength={isLongRing ? 210 : undefined}
-          lengthAdjust={isLongRing ? "spacingAndGlyphs" : undefined}
-        >
+      <text letterSpacing="1" style={{ font: "600 9.2px var(--font-sans)", fill: resolvedInk }}>
+        <textPath href={`#${pathId}`} xlinkHref={`#${pathId}`}>
           {ringText}
         </textPath>
       </text>
-      <text
-        x="50"
-        y="55"
-        textAnchor="middle"
-        style={{
-          font: "600 20px var(--font-serif)",
-          fill: resolvedInk,
-        }}
-      >
-        {numberLabel}
-      </text>
-      <text
-        x="50"
-        y="67"
-        textAnchor="middle"
-        style={{
-          font: "600 7.5px var(--font-sans)",
-          fill: resolvedInk,
-        }}
-      >
-        {`/ ${total}`}
-      </text>
+      <Landmark slug={slug} ink={resolvedInk} x={32.6} y={32.6} scale={1.45} />
     </svg>
   );
 }

@@ -73,6 +73,8 @@ export function DeckLink({ to, label, kind, items, className }: DeckLinkProps) {
               <AlbumStamp
                 index={item.index}
                 title={item.title}
+                slug={item.key}
+                variant="mini"
                 count={item.count}
                 total={item.total}
                 size={30}

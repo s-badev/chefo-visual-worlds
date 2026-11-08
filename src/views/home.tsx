@@ -21,7 +21,6 @@ import {
   countUpValue,
   heroProgress,
 } from "@/lib/motion";
-import aboutAiRoyal from "@/assets/about-ai-royal-new.webp";
 
 /** Responsive sources for the Home hero portrait: AVIF first, WebP as the fallback. */
 const HERO_IMAGES = {
@@ -111,7 +110,12 @@ export function HomeView() {
 
       <Surface tone="light" id="featured-albums" className="container-page section-y">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-          <SectionHeading eyebrow={m.photoEyebrow} title={m.photoTitle} text={m.photoText} />
+          <SectionHeading
+            eyebrow={m.photoEyebrow}
+            title={m.photoTitle}
+            text={m.photoText}
+            emphasis="last"
+          />
           <DeckLink to="/photography" kind="albums" label={m.allAlbums(getAlbums().length)} />
         </div>
         <FeaturedAlbumCards albums={featuredAlbums} />
@@ -133,10 +137,7 @@ export function HomeView() {
         className="container-page section-y grid gap-10 lg:grid-cols-[clamp(300px,26vw,380px)_1fr] lg:items-start"
       >
         {/* Stacked below lg; the width cap keeps the frame under 75dvh tall on short screens. */}
-        <PortraitSwitch
-          className="w-full max-w-[min(380px,calc(75dvh*var(--about-portrait-ratio)))]"
-          aiImage={aboutAiRoyal}
-        />
+        <PortraitSwitch className="w-full max-w-[min(380px,calc(75dvh*var(--about-portrait-ratio)))]" />
         <div className="max-w-2xl">
           <h2 className="title-section">{m.aboutTitle}</h2>
           <p className="mt-6 font-serif text-2xl leading-snug">{m.aboutLead}</p>

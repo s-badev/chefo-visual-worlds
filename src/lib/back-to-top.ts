@@ -5,7 +5,7 @@
  */
 export const BACK_TO_TOP = {
   /** Visible once scrollY exceeds this many viewport heights. */
-  appearAt: 0.8,
+  appearAt: 0.9,
   /** Button diameter in px (desktop / at `mobileMax` px wide and below). */
   size: 52,
   mobileSize: 46,

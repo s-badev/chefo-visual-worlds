@@ -318,8 +318,10 @@ describe("Deck-link pills", () => {
     const [albums, ai] = Array.from(container.querySelectorAll(".deck-link"));
     const stamps = albums!.querySelectorAll(".deck-link-item--stamp svg");
     expect(stamps).toHaveLength(3);
-    const titles = new Set(Array.from(stamps).map((svg) => svg.textContent));
-    expect(titles.size).toBe(3);
+    // The mock's mini seals: three different landmarks, no text.
+    const marks = new Set(Array.from(stamps).map((svg) => svg.querySelector("g")?.innerHTML));
+    expect(marks.size).toBe(3);
+    expect(Array.from(stamps).every((svg) => svg.textContent === "")).toBe(true);
 
     const images = Array.from(ai!.querySelectorAll<HTMLImageElement>(".deck-link-item img"));
     // The first three collection covers, as their small copies (the deck shows them at 30 x 38 px).

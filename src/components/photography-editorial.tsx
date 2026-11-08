@@ -1,6 +1,4 @@
 import {
-  lazy,
-  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -40,19 +38,7 @@ import {
   type IrisOrigin,
   type PreviewLayer,
 } from "@/lib/album-preview";
-import {
-  ALBUM_MAP,
-  easeInOutQuad,
-  headingDeg,
-  routeArcPoint,
-  routeDotX,
-  routeFlightDuration,
-} from "@/lib/album-map";
-
-// The map (geometry + relief) is its own chunk, fetched only when the map zone is shown.
-const LazyAlbumMap = lazy(() => import("@/components/album-map"));
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import { ALBUM_LAYOUT } from "@/lib/album-layout";
 
 /** The album's preview image: its cover, else its first photo, else a typographic panel. */
 const previewOf = (album: Album) => {
@@ -188,7 +174,7 @@ const isTouchTap = (event: MouseEvent<HTMLElement>): boolean => {
   if (event.detail === 0) return false;
   const pointerType = (event.nativeEvent as PointerEvent).pointerType;
   if (pointerType) return pointerType === "touch" || pointerType === "pen";
-  return window.matchMedia(ALBUM_MAP.coarsePointer).matches;
+  return window.matchMedia(ALBUM_LAYOUT.coarsePointer).matches;
 };
 
 const previewStyle = {
@@ -245,159 +231,20 @@ function PreviewLayerView({ layer, locale }: { layer: PreviewLayer; locale: Loca
   );
 }
 
-/**
- * Mobile route bar (container <= 767px): 13 dots, the selected one larger and gold, visited ones
- * in stamp ink, a gold progress line up to the selected dot and a small plane that arcs there.
- * Decorative: the list and the caption carry the same information.
- */
-function MobileRouteStrip({
-  albums,
-  currentIndex,
-  passport,
-  mobile,
-}: {
-  albums: readonly Album[];
-  currentIndex: number;
-  passport: PassportState;
-  mobile: boolean;
-}) {
-  const progRef = useRef<SVGLineElement | null>(null);
-  const puffsRef = useRef<SVGGElement | null>(null);
-  const planeRef = useRef<SVGGElement | null>(null);
-  const prevIndexRef = useRef<number>(-1);
-  const rafRef = useRef<number | null>(null);
-  const total = albums.length;
-
-  useEffect(() => {
-    if (!mobile) return;
-    const i0 = prevIndexRef.current;
-    prevIndexRef.current = currentIndex;
-    const x1 = routeDotX(currentIndex, total);
-    const prog = progRef.current;
-    const plane = planeRef.current;
-    const puffs = puffsRef.current;
-
-    if (rafRef.current !== null) {
-      window.cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (i0 < 0 || i0 === currentIndex || reduced) {
-      if (plane) plane.style.display = "none";
-      prog?.setAttribute("x2", String(x1));
-      return;
-    }
-
-    const x0 = routeDotX(i0, total);
-    const dur = routeFlightDuration(x1 - x0);
-    const t0 = performance.now();
-    let lastX: number | null = null;
-
-    if (plane) plane.style.display = "";
-
-    const step = (now: number) => {
-      const tNorm = Math.min(1, (now - t0) / dur);
-      const e = easeInOutQuad(tNorm);
-      const a = routeArcPoint(x0, x1, e);
-      const b = routeArcPoint(x0, x1, Math.min(1, e + 0.01));
-      plane?.setAttribute("transform", `translate(${a[0]},${a[1]}) rotate(${headingDeg(a, b)})`);
-      prog?.setAttribute("x2", String(a[0]));
-
-      if (puffs && (lastX === null || Math.abs(a[0] - lastX) > 5)) {
-        lastX = a[0];
-        const c = document.createElementNS(SVG_NS, "circle");
-        c.setAttribute("cx", String(a[0]));
-        c.setAttribute("cy", String(a[1]));
-        c.setAttribute("r", "1.8");
-        c.setAttribute("class", "photography-editorial-route-puff");
-        c.style.transition = `opacity ${ALBUM_MAP.puffMs}ms ease-out`;
-        puffs.appendChild(c);
-        void c.getBoundingClientRect();
-        c.style.opacity = "0";
-        window.setTimeout(() => c.remove(), ALBUM_MAP.puffMs + 50);
-      }
-
-      if (tNorm < 1) {
-        rafRef.current = window.requestAnimationFrame(step);
-      } else {
-        rafRef.current = null;
-        if (plane) plane.style.display = "none";
-        prog?.setAttribute("x2", String(x1));
-      }
-    };
-
-    rafRef.current = window.requestAnimationFrame(step);
-
-    return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [mobile, currentIndex, total]);
-
-  const y = ALBUM_MAP.routeY;
-  return (
-    <div className="photography-editorial-route" aria-hidden="true">
-      <svg viewBox="0 0 358 48" preserveAspectRatio="xMidYMid meet">
-        <line
-          className="photography-editorial-route-base"
-          x1={routeDotX(0, total)}
-          y1={y}
-          x2={routeDotX(total - 1, total)}
-          y2={y}
-        />
-        <line
-          ref={progRef}
-          className="photography-editorial-route-progress"
-          x1={routeDotX(0, total)}
-          y1={y}
-          x2={routeDotX(currentIndex, total)}
-          y2={y}
-        />
-        <g className="photography-editorial-route-dots">
-          {albums.map((album, k) => {
-            const isCurrent = k === currentIndex;
-            return (
-              <circle
-                key={album.slug}
-                cx={routeDotX(k, total)}
-                cy={y}
-                r={isCurrent ? 5.4 : 3.4}
-                data-current={isCurrent ? "true" : undefined}
-                data-visited={!isCurrent && passport.has(album.slug) ? "true" : undefined}
-              />
-            );
-          })}
-        </g>
-        <g ref={puffsRef} className="photography-editorial-route-puffs" />
-        <g ref={planeRef} className="photography-editorial-route-plane" style={{ display: "none" }}>
-          <path d="M13 0L-9 -8L-4 0L-9 8Z" strokeWidth="1" strokeLinejoin="round" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
 /** P1 presentation. Published copy and covers remain in the production registries. */
 export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void }) {
   const { t, locale } = useT();
   const albums = useMemo(() => getAlbums(), []);
   const firstSlug = albums[0]!.slug;
   // Server and first client render agree: the first album, no current row, empty passport.
-  // The live preview (hover/focus, iris, passport stamps, map, mobile two-tap) switches on after mount.
+  // The live preview (hover/focus, iris, passport stamps, mobile two-tap) switches on after mount.
   const [enabled, setEnabled] = useState(false);
-  const [finePointer, setFinePointer] = useState(false);
   // Width of the albums section (the CSS container `albums-section`), measured after mount.
   const [sectionWidth, setSectionWidth] = useState(0);
   const innerRef = useRef<HTMLDivElement | null>(null);
-  // Map zone: container >= 1680px with a fine pointer (otherwise never rendered nor downloaded).
-  const mapWide = enabled && finePointer && sectionWidth >= ALBUM_MAP.mapMinWidth;
-  // Mobile model (route bar, sticky caption, two taps): container <= 767px.
-  const mobile = sectionWidth > 0 && sectionWidth <= ALBUM_MAP.mobileMaxWidth;
+  // Mobile model (sticky caption, two taps): container <= 767px.
+  const mobile = sectionWidth > 0 && sectionWidth <= ALBUM_LAYOUT.mobileMaxWidth;
   const [current, setCurrent] = useState(firstSlug);
-  const [mapSlug, setMapSlug] = useState(firstSlug);
   const [mobileSelectedSlug, setMobileSelectedSlug] = useState<string | null>(null);
   const [layers, setLayers] = useState<PreviewLayer[]>([{ key: 0, slug: firstSlug, dir: null }]);
   const [passport, setPassport] = useState<PassportState>(EMPTY_PASSPORT);
@@ -411,7 +258,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
   const warmed = useRef(new Set<string>([firstSlug]));
   const previewFrameRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
-  const dwellRef = useRef<number | null>(null);
   // Neighbouring covers are warmed only once the visitor reaches for the list.
   const [engaged, setEngaged] = useState(false);
 
@@ -454,36 +300,17 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
     setJustStamped(slug);
   }, []);
 
-  const scheduleMapFlight = useCallback((slug: string) => {
-    if (dwellRef.current !== null) {
-      window.clearTimeout(dwellRef.current);
-    }
-    dwellRef.current = window.setTimeout(() => {
-      dwellRef.current = null;
-      setMapSlug(slug);
-    }, ALBUM_MAP.dwellMs);
-  }, []);
-
-  const clearMapDwell = useCallback(() => {
-    if (dwellRef.current !== null) {
-      window.clearTimeout(dwellRef.current);
-      dwellRef.current = null;
-    }
-  }, []);
-
   const activateRow = useCallback(
     (slug: string, rowEl: HTMLElement | null) => {
       if (!enabled) return;
       select(slug, rowEl);
       stamp(slug);
-      scheduleMapFlight(slug);
     },
-    [enabled, select, stamp, scheduleMapFlight],
+    [enabled, select, stamp],
   );
 
   const handleRowClickCapture = useCallback(
     (event: MouseEvent<HTMLLIElement>, slug: string) => {
-      clearMapDwell();
       // First touch tap selects, the second opens; keyboard and mouse always open at once.
       if (!isTouchTap(event)) return;
       if (mobileSelectedSlug !== slug) {
@@ -494,7 +321,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
         stamp(slug);
       }
     },
-    [mobileSelectedSlug, clearMapDwell, selectWithOrigin, stamp],
+    [mobileSelectedSlug, selectWithOrigin, stamp],
   );
 
   const handleRowKeyDown = useCallback(
@@ -521,32 +348,22 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
 
   useEffect(() => {
     const desktopQuery = window.matchMedia(ALBUM_PREVIEW.query);
-    const fineQuery = window.matchMedia(ALBUM_MAP.finePointer);
     // The section has no inline padding, so its client width is the container query width.
     const section = innerRef.current?.parentElement ?? null;
     const measure = () => setSectionWidth(section?.clientWidth ?? 0);
     const sync = () => {
       setEnabled(desktopQuery.matches);
-      setFinePointer(fineQuery.matches);
       measure();
     };
     sync();
     desktopQuery.addEventListener("change", sync);
-    fineQuery.addEventListener("change", sync);
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     if (section && observer) observer.observe(section);
     window.addEventListener("resize", measure);
     return () => {
       desktopQuery.removeEventListener("change", sync);
-      fineQuery.removeEventListener("change", sync);
       observer?.disconnect();
       window.removeEventListener("resize", measure);
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (dwellRef.current !== null) window.clearTimeout(dwellRef.current);
     };
   }, []);
 
@@ -711,11 +528,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
             </button>
           </div>
           <div className="photography-editorial-index-grid">
-            {enabled && mapWide && (
-              <Suspense fallback={null}>
-                <LazyAlbumMap activeSlug={mapSlug} albums={albums} />
-              </Suspense>
-            )}
             <div
               className="photography-editorial-list-head"
               data-done={finaleStarted ? "true" : undefined}
@@ -765,7 +577,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     key={album.id}
                     data-album-slug={album.slug}
                     onMouseEnter={(e) => activateRow(album.slug, e.currentTarget)}
-                    onMouseLeave={clearMapDwell}
                     onFocus={(e) => activateRow(album.slug, e.currentTarget)}
                     onClickCapture={(e) => handleRowClickCapture(e, album.slug)}
                     onKeyDown={(e) => handleRowKeyDown(e, index)}
@@ -778,7 +589,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                         (enabled && album.slug === current) || isMobileSelected ? "true" : undefined
                       }
                       data-mobile-selected={isMobileSelected ? "true" : undefined}
-                      data-selected={enabled && album.slug === mapSlug ? "true" : undefined}
+                      data-selected={enabled && album.slug === current ? "true" : undefined}
                       className="photography-editorial-row"
                     >
                       {localizedCover && (
@@ -809,6 +620,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                           <AlbumStamp
                             index={index}
                             title={albumText(album.title, "en")}
+                            slug={album.slug}
                             count={album.photos.length}
                             total={totalAlbums}
                             size={40}
@@ -841,12 +653,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                 inert={!mobile}
               >
                 <div className="photography-editorial-preview-sticky">
-                  <MobileRouteStrip
-                    albums={albums}
-                    currentIndex={currentIndex}
-                    passport={passport}
-                    mobile={mobile}
-                  />
                   <div
                     ref={previewFrameRef}
                     className="photography-editorial-preview-frame photo-frame-print photo-frame-print--thin"
@@ -869,6 +675,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                         <AlbumStamp
                           index={currentIndex}
                           title={albumText(currentAlbum.title, "en")}
+                          slug={currentAlbum.slug}
                           count={currentAlbum.photos.length}
                           total={totalAlbums}
                           size={64}
@@ -945,6 +752,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                     key={currentAlbum.slug}
                     index={currentIndex}
                     title={albumText(currentAlbum.title, "en")}
+                    slug={currentAlbum.slug}
                     count={currentAlbum.photos.length}
                     total={totalAlbums}
                     size={38}
@@ -1008,6 +816,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                           <AlbumStamp
                             index={index}
                             title={albumText(album.title, "en")}
+                            slug={album.slug}
                             count={album.photos.length}
                             total={totalAlbums}
                             size={96}
@@ -1063,6 +872,7 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
                             <AlbumStamp
                               index={index}
                               title={albumText(album.title, "en")}
+                              slug={album.slug}
                               count={album.photos.length}
                               total={totalAlbums}
                               size={52}
