@@ -154,8 +154,10 @@ describe("AI Worlds structure", () => {
     expect(portraits.map((img) => img.getAttribute("src"))).toEqual(
       collections.map((c) => getAiWork(WORLD_PORTRAITS[c.slug]!.workSlug)!.image),
     );
-    // The row of short names.
-    const names = within(scene).getByRole("group", { name: messages[locale].home.worldsJump });
+    // The row of short names: the sticky collection tab bar (stage 6) replaced the jump group.
+    const names = within(scene).getByRole("navigation", {
+      name: messages[locale].home.worldsJump,
+    });
     expect(
       within(names)
         .getAllByRole("button")

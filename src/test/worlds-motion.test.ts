@@ -312,38 +312,36 @@ describe("worlds section styles and short names", () => {
     expect(css).toContain(".home-worlds-stage { position: sticky; top: 0; height: 100svh;");
   });
 
-  it("sizes the short names from one 13px token on one row, never below 12px", () => {
-    expect(css).toContain("--names-base: 13px; --names-size: var(--names-base);");
-    expect(css).toContain("flex-wrap: nowrap;");
-    // Every step derives from the token; none hard-codes a size.
-    expect(css).not.toMatch(/--names-size: \d+px/);
-    const steps = [...css.matchAll(/--names-size: calc\(var\(--names-base\) - (\d+)px\)/g)];
-    expect(steps.length).toBeGreaterThan(0);
-    expect(Math.max(...steps.map((m) => Number(m[1])))).toBe(1);
-    expect(css).toContain("min-height: 36px; padding-block: 0.5rem;");
+  // Stage 6: the short names became the sticky collection tab bar (.collection-tab). The old
+  // underline names (--names-base, .home-worlds-name) are gone; these keep the same intent.
+  it("keeps the short names on one row of touch-sized tabs that scrolls instead of wrapping", () => {
+    expect(css).not.toContain("--names-base");
+    expect(css).not.toContain(".home-worlds-name");
+    const list = css.match(/\.collection-tabs-list \{([^}]*)\}/)![1]!;
+    expect(list).toContain("display: flex;");
+    expect(list).toContain("overflow-x: auto;");
+    expect(list).not.toContain("flex-wrap: wrap");
+    const tab = css.match(/\.collection-tab \{([^}]*)\}/)![1]!;
+    expect(tab).toContain("min-height: 44px;");
+    expect(tab).toContain("white-space: nowrap;");
+    expect(tab).toContain("flex: none;");
   });
 
-  it("draws one kind of underline: the active border, repeated on hover for the other names", () => {
-    const name = css.match(/\.home-worlds-name \{([^}]*)\}/)![1]!;
-    expect(name).toContain("border-bottom: 1px solid transparent;");
-    expect(name).toContain("text-decoration-line: none;");
+  it("marks the current tab with a cream pill and keeps hover inside a hover media query", () => {
     expect(css).toContain(
-      '.home-worlds-name[aria-current="true"] { border-bottom-color: var(--gold); }',
+      ".collection-tab[data-current] { box-shadow: none; color: var(--navy); }",
     );
-    // The global link underline is switched off for these buttons on focus and hover.
     expect(css).toContain(
-      ".interaction-link.home-worlds-name:focus-visible { text-decoration-line: none; }",
+      ".collection-tabs-list:not([data-indicator]) .collection-tab[data-current] { background-color: var(--interaction-cream); }",
     );
+    expect(css).toMatch(/\.slide-indicator \{[^}]*background-color: var\(--interaction-cream\);/);
     const hover = css.indexOf(
-      "@media (hover: hover) and (pointer: fine) { .interaction-link.home-worlds-name:hover",
+      "@media (hover: hover) and (pointer: fine) { .collection-tab:not([data-current]):hover",
     );
     expect(hover).toBeGreaterThan(-1);
-    expect(css.slice(hover, hover + 260)).toContain(
-      '.interaction-link.home-worlds-name:hover { text-decoration-line: none; } .home-worlds-name:not([aria-current="true"]):hover { border-bottom-color: var(--gold); }',
-    );
-    // No hover rule for these names lives outside a hover media query.
+    // No hover rule for the tabs lives outside a hover media query.
     const outside = css.replace(/@media \(hover: hover\)[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g, "");
-    expect(outside).not.toMatch(/\.home-worlds-name[^{]*:hover/);
+    expect(outside).not.toMatch(/\.collection-tab[^{]*:hover/);
   });
 
   it("has a BG and EN short name for every collection", () => {

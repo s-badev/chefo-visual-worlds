@@ -1448,78 +1448,8 @@ header .interaction-link.header-underline:focus-visible {
   grid-area: 1 / 1;
   will-change: opacity, transform;
 }
-/* Short names on one row: --names-base (13px), stepping down one pixel (floor 12px) where the text
-   column narrows. */
 .home-worlds-text {
   container-type: inline-size;
-}
-.home-worlds-names {
-  --names-base: 13px;
-  --names-size: var(--names-base);
-  --names-track: 0.22em;
-  --names-pad: 0.375rem;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0;
-  margin-top: 2rem;
-  /* The first label starts on the text column's edge, like the title and the button. */
-  margin-inline-start: calc(-1 * var(--names-pad));
-}
-/* One underline system: the button's own 1px gold bottom border marks the current world and, on
-   hover, any other name. The .interaction-link text underline is off in every state, so hovering
-   the current name adds nothing (focus keeps its outline). */
-.home-worlds-name {
-  min-height: 36px;
-  padding-block: 0.5rem;
-  padding-inline: var(--names-pad);
-  border-bottom: 1px solid transparent;
-  font-size: var(--names-size);
-  letter-spacing: var(--names-track);
-  white-space: nowrap;
-  text-align: left;
-  text-decoration-line: none;
-  transition:
-    color var(--interaction-duration) var(--motion-ease),
-    border-bottom-color var(--interaction-duration) var(--motion-ease);
-}
-.interaction-link.home-worlds-name:focus-visible {
-  text-decoration-line: none;
-}
-/* Steps measured on the text column, each 6px+ above the width its row needs: BG 397 / 370px at
-   13 / 12px; EN 507 / 441 / 396 / 373px down the steps below. */
-@container (max-width: 405px) {
-  .home-worlds-names {
-    --names-size: calc(var(--names-base) - 1px);
-  }
-}
-@container (max-width: 515px) {
-  .home-worlds-names:lang(en) {
-    --names-size: calc(var(--names-base) - 1px);
-    --names-track: 0.16em;
-  }
-}
-@container (max-width: 447px) {
-  .home-worlds-names:lang(en) {
-    --names-track: 0.1em;
-    --names-pad: 0.25rem;
-  }
-}
-@container (max-width: 403px) {
-  .home-worlds-names:lang(en) {
-    --names-track: 0.07em;
-    --names-pad: 0.1875rem;
-  }
-}
-.home-worlds-name[aria-current="true"] {
-  border-bottom-color: var(--gold);
-}
-@media (hover: hover) and (pointer: fine) {
-  .interaction-link.home-worlds-name:hover {
-    text-decoration-line: none;
-  }
-  .home-worlds-name:not([aria-current="true"]):hover {
-    border-bottom-color: var(--gold);
-  }
 }
 .home-worlds-portrait {
   position: relative;
@@ -5316,5 +5246,179 @@ a.next-album-card:focus-visible .next-album-card-arrow {
     .deck-link:hover .deck-link-item {
       transform: translateX(calc(var(--i) * 14px)) rotate(calc((var(--i) - 1) * 3deg));
     }
+  }
+}
+
+/*
+ * Redesign stage 6 · AI Worlds collection tabs (CollectionTabs) and the sliding indicator.
+ * On /ai-worlds the bar sticks under the header inside the "One face, four worlds" section only;
+ * on a collection page it is a plain row of links. Inactive text is cream at 72%, hover and focus
+ * bring it to full cream, the current tab is a cream pill with navy text (the pill slides).
+ */
+.collection-tabs {
+  border-block: 1px solid rgb(246 240 228 / 0.16);
+  background-color: rgb(12 23 41 / 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.collection-tabs[data-mode="scroll"] {
+  position: sticky;
+  top: var(--worlds-tabs-top, 65px);
+  z-index: 20;
+}
+.collection-tabs[data-mode="links"] {
+  position: relative;
+  background-color: rgb(12 23 41 / 0.82);
+}
+.collection-tabs-inner {
+  padding-block: 4px;
+}
+.collection-tabs-list {
+  position: relative;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 4px;
+  margin-inline: -4px;
+  scrollbar-width: none;
+}
+.collection-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+.collection-tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: none;
+  min-height: 44px;
+  align-items: center;
+  padding-inline: 16px;
+  border-radius: 999px;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
+  color: rgb(244 238 225 / 0.72);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--interaction-duration) var(--motion-ease),
+    box-shadow var(--interaction-duration) var(--motion-ease);
+}
+.collection-tab[data-current] {
+  box-shadow: none;
+  color: var(--navy);
+}
+/* Before the indicator is measured (server HTML, first paint) the current tab paints its own pill. */
+.collection-tabs-list:not([data-indicator]) .collection-tab[data-current] {
+  background-color: var(--interaction-cream);
+}
+.collection-tab:not([data-current]):focus-visible {
+  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.42);
+  color: var(--interaction-cream);
+}
+.collection-tab:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .collection-tab:not([data-current]):hover {
+    box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.42);
+    color: var(--interaction-cream);
+  }
+}
+.collection-tab:not([data-current]):active {
+  box-shadow: inset 0 0 0 1px var(--interaction-gold);
+  color: var(--interaction-cream);
+}
+/* The sliding pill: measured by useSlidingIndicator; travels only once data-indicator="on". */
+.slide-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: var(--ind-w, 0);
+  height: var(--ind-h, 0);
+  border-radius: 999px;
+  background-color: var(--interaction-cream);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--ind-x, 0), var(--ind-y, 0));
+}
+[data-indicator] > .slide-indicator {
+  opacity: 1;
+}
+[data-indicator="on"] > .slide-indicator {
+  transition:
+    transform 360ms var(--motion-ease),
+    width 360ms var(--motion-ease),
+    height 360ms var(--motion-ease);
+}
+/* The pinned stage sits under the header and the tab bar: its copy clears both. */
+.home-worlds-tabs ~ .home-worlds-pin .home-worlds-grid {
+  padding-top: calc(4rem + 62px);
+}
+
+/* The Collections / All artworks switch shares the sliding pill. */
+.ai-view-switch {
+  position: relative;
+}
+.ai-view-switch-tab {
+  position: relative;
+  z-index: 1;
+}
+.ai-view-switch[data-indicator] .ai-view-switch-tab[aria-pressed="true"] {
+  background-color: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ai-view-switch[data-indicator] .ai-view-switch-tab:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--btn-hover-fg);
+  }
+}
+.ai-view-switch[data-indicator] .ai-view-switch-tab:active {
+  background-color: var(--btn-active-bg);
+  color: var(--btn-hover-fg);
+}
+
+/* Collection page header: the mock's title range and the two quiet chips. */
+.ai-collection-title {
+  font-size: clamp(44px, 6.4vw, 92px);
+  line-height: 0.95;
+}
+.ai-chip {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 7px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
+  color: rgb(244 238 225 / 0.74);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ai-chip--gold {
+  box-shadow: inset 0 0 0 1px rgb(201 164 107 / 0.45);
+  color: var(--gold-hi);
+}
+.ai-chip--gold::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--gold);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-indicator] > .slide-indicator,
+  .collection-tab {
+    transition: none;
   }
 }
