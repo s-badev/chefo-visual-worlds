@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import {
   aiWorks,
@@ -7,6 +7,7 @@ import {
   aiEraLabel,
   aiRoleLabel,
   aiSettingLabel,
+  getAiWork,
   getAiFilterOptions,
   localizeAiWork,
   toolLabel,
@@ -29,10 +30,12 @@ import {
   ArtImage,
   artworkAnchor,
   CollectionAtmosphere,
+  pad2,
   PromptNote,
   toLightboxItem,
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
+import { AiArtworkWayfinder } from "@/components/ai-artwork-wayfinder";
 import { AiHalls } from "@/components/ai-halls";
 import { AiCollectionGrid, AiWorksGrid } from "@/components/ai-thumbs";
 import { CollectionTabs } from "@/components/collection-tabs";
@@ -40,6 +43,7 @@ import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { WorldSlider } from "@/components/world-slider";
 import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
+import { adjacentWork, getWorkCollectionPosition } from "@/lib/ai-work-nav";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 
@@ -367,10 +371,23 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   // A destination shown on this template keeps its brief (see Destination.artworkTemplate).
   const destination = getDestination(raw.slug);
   const details = work.portraitDetails;
+  const position = getWorkCollectionPosition(raw.slug);
+  const collectionPrev = adjacentWork(raw.slug, -1);
+  const collectionNext = adjacentWork(raw.slug, 1);
   const idx = aiWorks.findIndex((w) => w.slug === raw.slug);
-  const prev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
-  const next = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
+  const globalPrev = localizeAiWork(aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!, locale);
+  const globalNext = localizeAiWork(aiWorks[(idx + 1) % aiWorks.length]!, locale);
+  const prev = localizeAiWork(
+    (collectionPrev && getAiWork(collectionPrev.slug)) ||
+      aiWorks[(idx - 1 + aiWorks.length) % aiWorks.length]!,
+    locale,
+  );
+  const next = localizeAiWork(
+    (collectionNext && getAiWork(collectionNext.slug)) || aiWorks[(idx + 1) % aiWorks.length]!,
+    locale,
+  );
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const viewerItems = [toLightboxItem(work)];
   const facts: [string, string][] = [
@@ -382,6 +399,9 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       ? [[m.setting, aiSettingLabel(work.setting, locale)] as [string, string]]
       : []),
     ...(work.role ? [[m.role, aiRoleLabel(work.role, locale)] as [string, string]] : []),
+    ...(collection
+      ? [[m.collectionLabel, collectionText(collection.title, locale)] as [string, string]]
+      : []),
     ...(destination
       ? ([
           [
@@ -400,52 +420,93 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
       : []),
   ];
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        switcherOpen ||
+        lightbox !== null ||
+        (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+      ) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.closest("input, textarea, select, [contenteditable='true']"))
+      ) {
+        return;
+      }
+      event.preventDefault();
+      document
+        .querySelector<HTMLAnchorElement>(
+          `[data-ai-work-nav='${event.key === "ArrowLeft" ? "prev" : "next"}']`,
+        )
+        ?.click();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [lightbox, switcherOpen]);
+
   return (
     <Surface tone="dark" as="article">
-      <nav aria-label={m.title} className="container-page pt-10 text-sm md:pt-14">
-        {collection && (
-          <AiBackLink
-            to="/ai-worlds/collections/$slug"
-            slug={collection.slug}
-            hash={artworkAnchor(raw.slug)}
-            label={m.backToCollection}
-          />
-        )}
-        <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
-          <li>
-            <LocaleLink to="/ai-worlds" className="interaction-link transition-colors">
-              {m.title}
-            </LocaleLink>
-          </li>
+      {position ? (
+        <div data-header-theme="light" className="container-page pt-8 md:pt-10">
+          <AiArtworkWayfinder current={position} onOpenChange={setSwitcherOpen} />
+        </div>
+      ) : (
+        <nav
+          data-header-theme="light"
+          aria-label={m.title}
+          className="container-page pt-10 text-sm md:pt-14"
+        >
           {collection && (
-            <>
-              <li aria-hidden="true">/</li>
-              <li>
-                <LocaleLink
-                  to="/ai-worlds/collections/$slug"
-                  slug={collection.slug}
-                  className="interaction-link transition-colors"
-                >
-                  {collectionText(collection.title, locale)}
-                </LocaleLink>
-              </li>
-            </>
+            <AiBackLink
+              to="/ai-worlds/collections/$slug"
+              slug={collection.slug}
+              hash={artworkAnchor(raw.slug)}
+              label={m.backToCollection}
+            />
           )}
-        </ol>
-      </nav>
+          <ol className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground">
+            <li>
+              <LocaleLink to="/ai-worlds" className="interaction-link transition-colors">
+                {m.title}
+              </LocaleLink>
+            </li>
+            {collection && (
+              <>
+                <li aria-hidden="true">/</li>
+                <li>
+                  <LocaleLink
+                    to="/ai-worlds/collections/$slug"
+                    slug={collection.slug}
+                    className="interaction-link transition-colors"
+                  >
+                    {collectionText(collection.title, locale)}
+                  </LocaleLink>
+                </li>
+              </>
+            )}
+          </ol>
+        </nav>
+      )}
 
-      <div className="container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
-        <figure className="group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
+      <div className="ai-work-detail container-page grid gap-10 pb-20 pt-8 lg:grid-cols-12 lg:gap-12 lg:pb-28">
+        <figure className="ai-work-art group relative min-w-0 self-start overflow-hidden rounded-sm lg:col-span-7">
+          <ArtImage work={work} eager />
           <button
             type="button"
             onClick={() => setLightbox(0)}
             aria-label={t.common.openFullscreen(work.title)}
-            className="interaction-media block w-full cursor-zoom-in"
+            className="ai-work-expand interaction-control"
           >
-            <ArtImage work={work} eager />
-            <span className="eyebrow absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-sm bg-navy/80 px-2 py-1 text-interaction-gold opacity-0 transition-opacity duration-(--dur-base) group-hover:opacity-100 group-focus-within:opacity-100">
-              <Expand aria-hidden="true" className="size-3.5" /> {m.fullscreen}
-            </span>
+            <Expand aria-hidden="true" className="size-5" />
           </button>
           <ArtEdge />
         </figure>
@@ -481,34 +542,92 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
 
       <Lightbox items={viewerItems} index={lightbox} onIndex={setLightbox} variant="artwork" />
 
-      <nav
-        aria-label={m.others}
-        className="container-page grid grid-cols-2 gap-6 border-t border-border py-10 md:py-14"
-      >
-        {[
-          { w: prev, label: m.prev, align: "start" as const, Icon: ArrowLeft },
-          { w: next, label: m.next, align: "end" as const, Icon: ArrowRight },
-        ].map(({ w, label, align, Icon }) => (
+      {position && collectionPrev && collectionNext ? (
+        <nav aria-label={m.others} className="ai-work-nav container-page">
           <LocaleLink
-            key={align}
             to="/ai-worlds/$slug"
-            slug={w.slug}
+            slug={next.slug}
+            data-ai-work-nav="next"
             className={cn(
-              "interaction-link group flex items-center gap-4 transition-colors",
-              align === "end" && "flex-row-reverse text-right",
+              "ai-work-next group",
+              collectionNext.crossesCollection && "ai-work-next--collection",
             )}
           >
-            <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
-              <ArtImage work={w} />
+            <span className="ai-work-next-bg" aria-hidden="true">
+              <ArtImage work={next} />
             </span>
-            <Icon aria-hidden="true" className="size-4 shrink-0 sm:hidden" />
-            <span className="min-w-0">
-              <span className="eyebrow block text-muted-foreground">{label}</span>
-              <span className="mt-1 block font-serif text-lg leading-snug">{w.title}</span>
+            <span className="ai-work-next-thumb" aria-hidden="true">
+              <ArtImage work={next} />
+            </span>
+            <span className="ai-work-next-copy">
+              <small>
+                {collectionNext.crossesCollection
+                  ? `${m.nextCollection} · ${pad2(getAiCollections().findIndex((item) => item.slug === collectionNext.toCollection.slug) + 1)} / ${pad2(getAiCollections().length)}`
+                  : `${m.nextWork} · ${pad2(collectionNext.position)} / ${pad2(collectionNext.total)}`}
+              </small>
+              {collectionNext.crossesCollection && (
+                <span className="ai-work-next-collection">
+                  {collectionText(collectionNext.toCollection.shortTitle, locale)}
+                </span>
+              )}
+              <strong>{next.title}</strong>
+            </span>
+            <span className="ai-work-next-arrow" aria-hidden="true">
+              <span />
+              <ArrowRight />
             </span>
           </LocaleLink>
-        ))}
-      </nav>
+
+          <LocaleLink
+            to="/ai-worlds/$slug"
+            slug={prev.slug}
+            data-ai-work-nav="prev"
+            className="ai-work-previous group"
+          >
+            <span className="ai-work-previous-thumb" aria-hidden="true">
+              <ArtImage work={prev} />
+            </span>
+            <span>
+              <small>
+                {collectionPrev.crossesCollection
+                  ? `${m.prevCollection} · ${collectionText(collectionPrev.toCollection.shortTitle, locale)}`
+                  : m.previousWork}
+              </small>
+              <strong>{prev.title}</strong>
+            </span>
+          </LocaleLink>
+        </nav>
+      ) : (
+        <nav
+          aria-label={m.others}
+          className="container-page grid grid-cols-2 gap-6 border-t border-border py-10 md:py-14"
+        >
+          {[
+            { w: globalPrev, label: m.prev, align: "start" as const, Icon: ArrowLeft },
+            { w: globalNext, label: m.next, align: "end" as const, Icon: ArrowRight },
+          ].map(({ w, label, align, Icon }) => (
+            <LocaleLink
+              key={align}
+              to="/ai-worlds/$slug"
+              slug={w.slug}
+              data-ai-work-nav={align === "start" ? "prev" : "next"}
+              className={cn(
+                "interaction-link group flex items-center gap-4 transition-colors",
+                align === "end" && "flex-row-reverse text-right",
+              )}
+            >
+              <span className="relative hidden w-14 shrink-0 overflow-hidden rounded-sm sm:block">
+                <ArtImage work={w} />
+              </span>
+              <Icon aria-hidden="true" className="size-4 shrink-0 sm:hidden" />
+              <span className="min-w-0">
+                <span className="eyebrow block text-muted-foreground">{label}</span>
+                <span className="mt-1 block font-serif text-lg leading-snug">{w.title}</span>
+              </span>
+            </LocaleLink>
+          ))}
+        </nav>
+      )}
     </Surface>
   );
 }

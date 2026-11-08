@@ -1,6 +1,3 @@
-import { getDestination } from "@/content/ai-destinations";
-import { getAiWork } from "@/content/ai-works";
-
 export type HeaderTheme = "light" | "dark";
 
 /** The first marked surface under the header decides its tone; an unmarked page reads as cream. */
@@ -30,13 +27,6 @@ export function getInitialHeaderTheme(pathname: string): HeaderTheme {
   if (collection) return "dark";
 
   const artwork = path.match(/^\/ai-worlds\/([^/]+)\/?$/);
-  if (artwork) {
-    try {
-      const slug = decodeURIComponent(artwork[1]!);
-      return getAiWork(slug) || getDestination(slug) ? "dark" : "light";
-    } catch {
-      return "light";
-    }
-  }
+  if (artwork) return "light";
   return "light";
 }

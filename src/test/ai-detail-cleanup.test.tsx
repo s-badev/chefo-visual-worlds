@@ -64,11 +64,11 @@ const expectCleanDetail = (slug: string) => {
   ).toBeInTheDocument();
   const collection = getCollectionForWork(slug)!;
   const parentLink = screen.getByRole("link", {
-    name: messages[activeLocale].ai.backToCollection,
+    name: messages[activeLocale].ai.backToAiWorlds,
   });
   expect(parentLink).toHaveAttribute("href", `/ai-worlds/collections/${collection.slug}`);
   expect(parentLink).toHaveClass("back-pill");
-  expect(screen.getAllByRole("link", { name: collection.title[activeLocale] })).toHaveLength(2);
+  expect(screen.getAllByRole("link", { name: collection.title[activeLocale] })).toHaveLength(1);
 
   for (const unwanted of [
     messages[activeLocale].ai.process,
@@ -83,33 +83,34 @@ describe("AI artwork detail cleanup", () => {
   it.each([
     [
       "chefo-srednovekoven-ritsar",
-      ["tool", "created", "theme", "era", "setting", "role"],
+      ["tool", "created", "theme", "era", "setting", "role", "collectionLabel"],
       [],
     ],
     [
       "renesansov-portret",
-      ["tool", "created", "theme", "era", "setting"],
+      ["tool", "created", "theme", "era", "setting", "collectionLabel"],
       ["role"],
     ],
-    ["eye-of-the-storm", ["theme"], ["tool", "created", "era", "setting", "role"]],
-  ] as const)(
-    "restores conditional detail metadata for %s",
-    (slug, presentKeys, absentKeys) => {
-      const labels = messages.en.ai;
-      const labelFor = (key: (typeof presentKeys)[number] | (typeof absentKeys)[number]) =>
-        labels[key];
-      render(<AiDetailView work={getAiWork(slug)!} />);
-      const metadata = document.querySelector("dl");
-      expect(metadata).not.toBeNull();
-      expect(metadata?.querySelectorAll("dt")).toHaveLength(presentKeys.length);
-      for (const key of presentKeys) {
-        expect(within(metadata as HTMLElement).getByText(labelFor(key))).toBeInTheDocument();
-      }
-      for (const key of absentKeys) {
-        expect(within(metadata as HTMLElement).queryByText(labelFor(key))).toBeNull();
-      }
-    },
-  );
+    [
+      "eye-of-the-storm",
+      ["theme", "collectionLabel"],
+      ["tool", "created", "era", "setting", "role"],
+    ],
+  ] as const)("restores conditional detail metadata for %s", (slug, presentKeys, absentKeys) => {
+    const labels = messages.en.ai;
+    const labelFor = (key: (typeof presentKeys)[number] | (typeof absentKeys)[number]) =>
+      labels[key];
+    render(<AiDetailView work={getAiWork(slug)!} />);
+    const metadata = document.querySelector("dl");
+    expect(metadata).not.toBeNull();
+    expect(metadata?.querySelectorAll("dt")).toHaveLength(presentKeys.length);
+    for (const key of presentKeys) {
+      expect(within(metadata as HTMLElement).getByText(labelFor(key))).toBeInTheDocument();
+    }
+    for (const key of absentKeys) {
+      expect(within(metadata as HTMLElement).queryByText(labelFor(key))).toBeNull();
+    }
+  });
 
   it.each(["bg", "en"] as const)(
     "keeps the primary historical artwork and prompt but omits process imagery in %s",

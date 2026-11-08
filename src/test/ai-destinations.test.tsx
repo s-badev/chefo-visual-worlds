@@ -209,7 +209,9 @@ describe("Around the World data", () => {
     }
   });
 
-  it("shows only the Bosphorus destination on the shared artwork template", () => {
+  it("shows every published destination on the shared artwork presentation", () => {
+    // The existing opt-in remains data, but Stage 7 resolves every finished collection member
+    // through AiDetailView while retaining its destination for established metadata.
     expect(destinations.filter((d) => d.artworkTemplate).map((d) => d.slug)).toEqual([
       "chefo-v-turtsiya",
     ]);
@@ -220,13 +222,8 @@ describe("Around the World data", () => {
       };
       for (const d of destinations) {
         const data = load({ params: { slug: d.slug } });
-        if (d.slug === "chefo-v-turtsiya") {
-          expect(data.destination).toBeUndefined();
-          expect(data.work?.slug).toBe(d.slug);
-        } else {
-          expect(data.destination?.slug).toBe(d.slug);
-          expect(data.work).toBeUndefined();
-        }
+        expect(data.destination?.slug).toBe(d.slug);
+        expect(data.work?.slug).toBe(d.slug);
       }
     }
   });
@@ -262,18 +259,19 @@ describe("Around the World pages", () => {
     (locale) => {
       activeLocale = locale;
       const work = getAiWork("chefo-v-turtsiya")!;
-      const m = messages[locale].ai;
       const collection = getAiCollection("chefo-around-the-world")!.title[locale];
       render(<AiDetailView work={work} />);
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
         locale === "bg" ? "Вечер край Босфора" : "Evening on the Bosphorus",
       );
-      expect(screen.getAllByRole("link", { name: collection })).toHaveLength(2); // breadcrumb + chip
+      expect(screen.getAllByRole("link", { name: collection })).toHaveLength(1); // info chip; wayfinder uses the short title
       expect(screen.getByText(messages[locale].common.aiBadge)).toBeInTheDocument();
       const metadata = document.querySelector("dl");
       expect(metadata).not.toBeNull();
-      expect(metadata?.querySelectorAll("dt")).toHaveLength(8);
-      expect(within(metadata as HTMLElement).getByText("ChatGPT Image Generation")).toBeInTheDocument();
+      expect(metadata?.querySelectorAll("dt")).toHaveLength(9); // includes the Stage 7 collection fact
+      expect(
+        within(metadata as HTMLElement).getByText("ChatGPT Image Generation"),
+      ).toBeInTheDocument();
       expect(
         within(metadata as HTMLElement).getByText(
           locale === "bg" ? "12 октомври 2026 г." : "12 October 2026",
@@ -284,7 +282,7 @@ describe("Around the World pages", () => {
           locale === "bg" ? "Култури по света" : "World cultures",
         ),
       ).toBeInTheDocument();
-      expect(screen.getByRole("navigation", { name: m.others })).toBeInTheDocument();
+      expect(document.querySelector("nav.ai-work-nav")).not.toBeNull();
     },
   );
 
