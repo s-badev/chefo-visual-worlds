@@ -91,8 +91,15 @@ describe("Home one face, four worlds", () => {
       }
       expect(section.textContent).not.toMatch(locale === "bg" ? /творб/ : /artworks?\b/);
 
-      // Four real name buttons with the short names; the full title stays their label.
-      const names = within(pin).getByRole("group", { name: messages[locale].home.worldsJump });
+      // Four real name buttons with the short names; the full title stays their label. Since
+      // stage 6 they are the sticky tab bar at the top of the section (outside the pinned stage).
+      expect(
+        within(pin).queryByRole("group", { name: messages[locale].home.worldsJump }),
+      ).toBeNull();
+      const names = within(section).getByRole("navigation", {
+        name: messages[locale].home.worldsJump,
+      });
+      expect(section.firstElementChild).toBe(names);
       const buttons = within(names).getAllByRole("button");
       expect(buttons.map((b) => b.textContent)).toEqual(
         collections.map((c) => collectionText(c.shortTitle, locale)),
@@ -108,8 +115,8 @@ describe("Home one face, four worlds", () => {
         null,
         null,
       ]);
-      // The current name is drawn in the hover gold (the deeper --gold fell below 4.5:1).
-      expect(buttons.map((b) => b.classList.contains("text-interaction-gold"))).toEqual([
+      // The current tab is the cream pill (data-current), never a gold text colour.
+      expect(buttons.map((b) => b.hasAttribute("data-current"))).toEqual([
         true,
         false,
         false,

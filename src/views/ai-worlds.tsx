@@ -15,6 +15,7 @@ import {
 } from "@/content/ai-works";
 import {
   collectionText,
+  getAiCollections,
   getAdjacentCollections,
   getCollectionCover,
   getCollectionForWork,
@@ -36,6 +37,8 @@ import {
 } from "@/components/ai-exhibition";
 import { AiBackLink } from "@/components/ai-back-link";
 import { HomeWorlds } from "@/components/home-worlds";
+import { CollectionTabs } from "@/components/collection-tabs";
+import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { WorldSlider } from "@/components/world-slider";
 import { destinationText, getDestination } from "@/content/ai-destinations";
 import { cn } from "@/lib/utils";
@@ -95,6 +98,8 @@ export function AiWorldsView() {
       replace: true,
     });
   const items = filterAiWorks(aiWorks, filters).map((w) => localizeAiWork(w, locale));
+  const switchRef = useRef<HTMLDivElement>(null);
+  useSlidingIndicator(switchRef, view === "works" ? 1 : 0, ".ai-view-switch-tab");
 
   return (
     <>
@@ -107,7 +112,8 @@ export function AiWorldsView() {
             <PageHeader eyebrow={m.eyebrow} title={m.title} intro={m.intro} />
 
             {/* Segmented switch; selected and hover states live in styles.css (.ai-view-switch). */}
-            <div role="group" aria-label={m.view} className="ai-view-switch mt-12">
+            <div ref={switchRef} role="group" aria-label={m.view} className="ai-view-switch mt-12">
+              <span aria-hidden="true" data-slide-indicator className="slide-indicator" />
               <button
                 type="button"
                 aria-pressed={view === "collections"}
@@ -198,7 +204,9 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
         <AiBackLink to="/ai-worlds" label={m.backToAiWorlds} />
         <div className="mt-10 grid gap-6 md:grid-cols-12 md:items-end">
           <div className="min-w-0 md:col-span-8">
-            <h1 className="title-page break-words">{collectionText(collection.title, locale)}</h1>
+            <h1 className="ai-collection-title break-words">
+              {collectionText(collection.title, locale)}
+            </h1>
             {collection.tagline && (
               <p className="mt-4 font-serif text-2xl italic text-gold md:text-3xl">
                 {collectionText(collection.tagline, locale)}
@@ -207,12 +215,20 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
           </div>
           <div className="min-w-0 md:col-span-4">
             <p className="lead text-muted-foreground">{collectionText(collection.intro, locale)}</p>
-            {works.length > 0 && (
-              <p className="mt-4 text-sm text-muted-foreground">{m.count(works.length)}</p>
-            )}
+            <p className="mt-4 flex flex-wrap gap-2">
+              <span className="ai-chip ai-chip--gold">{t.common.aiBadge}</span>
+              {works.length > 0 && <span className="ai-chip">{m.count(works.length)}</span>}
+            </p>
           </div>
         </div>
       </header>
+
+      <CollectionTabs
+        mode="links"
+        label={m.allCollections}
+        active={getAiCollections().findIndex((c) => c.slug === collection.slug)}
+        className="ai-collection-tabs mt-10 md:mt-12"
+      />
 
       {works.length > 0 && (
         <>

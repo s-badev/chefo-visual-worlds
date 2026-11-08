@@ -3,11 +3,12 @@
 // changes. Phones, short windows and reduced motion get a plain stacked list instead; CSS picks
 // one of the two (see .home-worlds in styles.css), so server HTML and the first client render
 // always agree.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { ArrowRight } from "lucide-react";
 import { collectionText } from "@/content/ai-collections";
 import { getWorldPortraits, type WorldPortrait } from "@/content/home-worlds";
 import { CollectionAtmosphere } from "@/components/ai-exhibition";
+import { CollectionTabs } from "@/components/collection-tabs";
 import { btnPrimary } from "@/components/site";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -23,21 +24,167 @@ import {
   worldScrollTarget,
   worldsProgress,
 } from "@/lib/worlds-motion";
+import {
+  ACTIVE_LINE,
+  TAB_LOCK_IDLE_MS,
+  TAB_LOCK_MAX_MS,
+  activeSceneIndex,
+  pinnedSlotTops,
+  tabScrollTarget,
+} from "@/lib/world-tabs";
+
+const REDUCED = "(prefers-reduced-motion: reduce)";
 
 export function HomeWorlds() {
   const { t } = useT();
   const worlds = getWorldPortraits();
+  const sectionRef = useRef<HTMLElement>(null);
+  const tabsRef = useRef<HTMLElement>(null);
+  const { active, select } = useWorldTabs(sectionRef, tabsRef);
   if (worlds.length !== WORLD_COUNT) return null;
   return (
     <section
+      ref={sectionRef}
       aria-label={t.home.worldsLabel}
       data-header-theme="dark"
       className="home-worlds surface-dark"
     >
+      {/* Sticky inside this section only, so it never rides over All works or the footer. */}
+      <CollectionTabs
+        ref={tabsRef}
+        mode="scroll"
+        label={t.home.worldsJump}
+        active={active}
+        onSelect={select}
+        className="home-worlds-tabs"
+      />
       <PinnedWorlds worlds={worlds} />
       <StackedWorlds worlds={worlds} />
     </section>
   );
+}
+
+/**
+ * The tab that follows the scroll. Not an IntersectionObserver: a rAF-throttled scroll/resize
+ * handler measures each scene's own scroll slot and takes the last one at or above the reading
+ * line (activeSceneIndex). The pinned stage has one track for all worlds, so its slots are the
+ * shares of that track (pinnedSlotTops); the stacked list measures its four blocks. A tab click
+ * scrolls to its scene, shows it as current at once and holds that until scrolling has been
+ * idle (with a hard limit), or until the visitor scrolls, touches or types.
+ */
+function useWorldTabs(
+  sectionRef: RefObject<HTMLElement | null>,
+  tabsRef: RefObject<HTMLElement | null>,
+) {
+  const [active, setActive] = useState(0);
+  const selectRef = useRef<(index: number) => void>(() => {});
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const pinned = window.matchMedia(WORLDS_PIN_QUERY);
+    const reduced = window.matchMedia(REDUCED);
+    let raf = 0;
+    let locked = false;
+    let idle = 0;
+    let hard = 0;
+    let alive = true;
+    const headerHeight = () =>
+      document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+    const track = () => section.querySelector<HTMLElement>(".home-worlds-pin");
+    const scenes = () =>
+      Array.from(section.querySelectorAll<HTMLElement>(".home-worlds-stack-item"));
+    const slotTops = () => {
+      if (pinned.matches) {
+        const rect = track()?.getBoundingClientRect();
+        return rect?.height ? pinnedSlotTops(rect.top, rect.height, window.innerHeight) : [];
+      }
+      const rects = scenes().map((scene) => scene.getBoundingClientRect());
+      // Nothing laid out (hidden, or no layout at all): keep the current tab.
+      return rects.some((rect) => rect.height > 0) ? rects.map((rect) => rect.top) : [];
+    };
+    const sync = () => {
+      raf = 0;
+      if (locked) return;
+      const index = activeSceneIndex(slotTops(), window.innerHeight * ACTIVE_LINE);
+      if (index >= 0) setActive(index);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(sync);
+    };
+    const unlock = () => {
+      locked = false;
+      window.clearTimeout(idle);
+      window.clearTimeout(hard);
+      schedule();
+    };
+    const onScroll = () => {
+      if (!locked) return schedule();
+      window.clearTimeout(idle);
+      idle = window.setTimeout(unlock, TAB_LOCK_IDLE_MS);
+    };
+    const onVisitor = () => {
+      if (locked) unlock();
+    };
+    const placeBar = () => section.style.setProperty("--worlds-tabs-top", `${headerHeight()}px`);
+    const onResize = () => {
+      placeBar();
+      schedule();
+    };
+
+    selectRef.current = (index: number) => {
+      let top: number | undefined;
+      if (pinned.matches) {
+        const rect = track()?.getBoundingClientRect();
+        // The stage is pinned: land where this world holds the stage steadily.
+        if (rect)
+          top = worldScrollTarget(
+            index,
+            rect.top + window.scrollY,
+            rect.height,
+            window.innerHeight,
+          );
+      } else {
+        const scene = scenes()[index];
+        if (scene)
+          top = tabScrollTarget(
+            scene.getBoundingClientRect().top + window.scrollY,
+            headerHeight(),
+            tabsRef.current?.offsetHeight ?? 0,
+          );
+      }
+      if (top === undefined) return;
+      locked = true;
+      setActive(index);
+      window.clearTimeout(idle);
+      window.clearTimeout(hard);
+      hard = window.setTimeout(unlock, TAB_LOCK_MAX_MS);
+      window.scrollTo({ top, behavior: reduced.matches ? "auto" : "smooth" });
+    };
+
+    placeBar();
+    sync();
+    const soon = window.setTimeout(schedule, 150);
+    const later = window.setTimeout(schedule, 700);
+    document.fonts?.ready.then(() => alive && schedule()).catch(() => {});
+    const visitorEvents = ["wheel", "touchstart", "keydown"] as const;
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    for (const type of visitorEvents) window.addEventListener(type, onVisitor, { passive: true });
+    pinned.addEventListener("change", schedule);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+      for (const timer of [idle, hard, soon, later]) window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      for (const type of visitorEvents) window.removeEventListener(type, onVisitor);
+      pinned.removeEventListener("change", schedule);
+    };
+  }, [sectionRef, tabsRef]);
+
+  const select = useCallback((index: number) => selectRef.current(index), []);
+  return { active, select };
 }
 
 /** Primary action of one collection, aligned with the text column's left edge. */
@@ -164,16 +311,6 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
     };
   }, []);
 
-  const jumpTo = (i: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    window.scrollTo({
-      top: worldScrollTarget(i, rect.top + window.scrollY, rect.height, window.innerHeight),
-      behavior: "smooth",
-    });
-  };
-
   const active = worlds[exposed]!;
   return (
     <div ref={trackRef} className="home-worlds-pin">
@@ -218,24 +355,6 @@ function PinnedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
               ))}
             </div>
             <WorldActions world={active} />
-            <div role="group" aria-label={t.home.worldsJump} className="home-worlds-names">
-              {worlds.map((world, i) => (
-                <button
-                  key={world.collection.slug}
-                  type="button"
-                  aria-current={exposed === i ? "true" : undefined}
-                  aria-label={collectionText(world.collection.title, locale)}
-                  onClick={() => jumpTo(i)}
-                  className={cn(
-                    "home-worlds-name interaction-link eyebrow",
-                    // The current name in the hover gold: >= 4.5:1 over every scene at 13px.
-                    exposed === i ? "text-interaction-gold" : "text-muted-foreground",
-                  )}
-                >
-                  {collectionText(world.collection.shortTitle, locale)}
-                </button>
-              ))}
-            </div>
           </div>
           <div ref={boxRef} className="home-worlds-portrait">
             {worlds.map((world, i) => (
@@ -275,7 +394,7 @@ function StackedWorlds({ worlds }: { worlds: WorldPortrait[] }) {
         {worlds.map((world) => (
           <li
             key={world.collection.slug}
-            className="ai-overview-hall relative isolate overflow-hidden py-5 md:py-10"
+            className="home-worlds-stack-item ai-overview-hall relative isolate overflow-hidden py-5 md:py-10"
           >
             <CollectionAtmosphere collection={world.collection} eager={false} />
             <div className="container-page grid items-center gap-4 md:grid-cols-12 md:gap-8">

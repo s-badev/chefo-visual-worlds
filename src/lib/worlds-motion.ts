@@ -145,3 +145,12 @@ export const worldScrollTarget = (
   sectionHeight: number,
   viewportHeight: number,
 ) => sectionDocTop + steadyProgress(i) * Math.max(0, sectionHeight - viewportHeight) + 1;
+
+/**
+ * Track progress at which world i takes over the stage (becomes the exposed group): the middle
+ * of the crossfade that brings it in; 0 for the first world. Matches exposedIndex.
+ */
+export const takeoverProgress = (i: number) =>
+  i <= 0
+    ? 0
+    : holdStart(Math.min(i, LAST) - 1) + WORLD_HOLDS[Math.min(i, LAST) - 1]! + WORLD_FADE / 2;
