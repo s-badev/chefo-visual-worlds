@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { messages } from "@/i18n/messages";
 import { ALBUM_PREVIEW } from "@/lib/album-preview";
-import { ALBUM_MAP } from "@/lib/album-map";
 import { PhotographyView, validatePhotoSearch } from "@/views/photography";
 
 let activeLocale: "bg" | "en" = "bg";
@@ -178,18 +177,14 @@ describe("album rows", () => {
     expect(container.querySelectorAll(".photography-editorial-passport-stamp")).toHaveLength(2);
   });
 
-  it("indents the selected row after the dwell, and only that row", () => {
+  it("indents the selected row at once (no map dwell any more), and only that row", () => {
     desktop();
-    vi.useFakeTimers();
     const { container } = render(<PhotographyView />);
     const selected = () =>
       Array.from(container.querySelectorAll('[data-selected="true"]')).map((el) => el.textContent);
     expect(selected()).toHaveLength(1);
-    fireEvent.mouseEnter(listRow(container, "Париж"));
     expect(selected()[0]).toContain("София");
-    act(() => {
-      vi.advanceTimersByTime(ALBUM_MAP.dwellMs + 10);
-    });
+    fireEvent.mouseEnter(listRow(container, "Париж"));
     expect(selected()).toHaveLength(1);
     expect(selected()[0]).toContain("Париж");
     expect(css).toContain(

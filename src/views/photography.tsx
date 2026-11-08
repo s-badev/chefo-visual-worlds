@@ -132,7 +132,7 @@ export function PhotographyView() {
       </div>
 
       <section aria-label={m.allPhotos}>
-        <div className="mt-8 space-y-4 border-b pb-8">
+        <div className="photo-filters mt-8 space-y-4 border-b pb-8">
           <ChipGroup label={m.theme}>
             <Chip active={!theme} onClick={() => set({ theme: undefined })}>
               {t.common.all}

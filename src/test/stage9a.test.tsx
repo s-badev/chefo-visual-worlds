@@ -169,7 +169,7 @@ describe.each(["bg", "en"] as const)("About page (%s)", (locale) => {
 describe("About layout and buttons", () => {
   it("uses the mock's two columns, its top padding and its pills", () => {
     expect(css).toContain(
-      ".about-page { padding-block: calc(65px + 40px) clamp(64px, 9vw, 120px);",
+      ".about-page { padding-block: calc(var(--site-header-h) + 40px) clamp(64px, 9vw, 120px);",
     );
     expect(css).toContain("grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);");
     expect(css).toMatch(

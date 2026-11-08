@@ -178,6 +178,7 @@ export function HomeStampRow() {
                     <AlbumStamp
                       index={index}
                       title={albumText(album.title, "en")}
+                      slug={album.slug}
                       count={count}
                       total={albums.length}
                       size={112}

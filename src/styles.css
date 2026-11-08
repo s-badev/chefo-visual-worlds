@@ -793,36 +793,6 @@
   border-bottom-color: var(--interaction-gold);
   box-shadow: 0 1px 0 var(--interaction-gold);
 }
-/* Scrolled header (scrollY > 24): the tone of the section under it, translucent with a light
-   blur. At the top it stays solid, or transparent over the Home hero. */
-header[data-scrolled]:not([data-transparent]) {
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-header[data-scrolled][data-theme="dark"]:not([data-transparent]) {
-  background-color: rgb(12 23 41 / 0.94);
-}
-header[data-scrolled][data-theme="light"] {
-  background-color: rgb(249 243 231 / 0.95);
-}
-/* The round icon keeps a navy edge on the cream header. */
-header[data-theme="light"] .brand-lockup > img {
-  box-shadow: 0 0 0 1.5px var(--navy);
-}
-/* Header brand lockup: its hover/focus underline is painted once under the whole wordmark,
-   not once per word, so it never splits or seams where bold CHEFO meets the regular words.
-   Same colour, 2px thickness and offset as .interaction-link: 0.28rem below the baseline,
-   which sits 1em below the top of the wordmark's 1.4 line box. */
-.brand-lockup-text {
-  background: linear-gradient(var(--interaction-gold), var(--interaction-gold)) no-repeat 0
-    calc(1em + 0.28rem) / 100% 0;
-}
-.interaction-link.brand-lockup:focus-visible {
-  text-decoration-line: none;
-}
-.brand-lockup:focus-visible .brand-lockup-text {
-  background-size: 100% 2px;
-}
 .interaction-media:focus-visible {
   box-shadow:
     inset 0 0 0 3px var(--interaction-gold),
@@ -878,9 +848,6 @@ header[data-theme="light"] .brand-lockup > img {
   .interaction-link.brand-lockup:hover {
     text-decoration-line: none;
   }
-  .brand-lockup:hover .brand-lockup-text {
-    background-size: 100% 2px;
-  }
   /* An inset outline paints above card content (covers), unlike an inset shadow. */
   .interaction-card:hover {
     outline: 2px solid var(--interaction-gold);
@@ -888,56 +855,6 @@ header[data-theme="light"] .brand-lockup > img {
     box-shadow: 0 0 0 6px var(--interaction-card-ring);
   }
 }
-/*
- * Header nav links and the BG/EN switch: one underline system, as on the worlds names (PR #29).
- * A 1px line (::after, under the word) marks the current item and, on hover, any other item. The
- * .interaction-link text underline, border colour and shadow are off here in every state, so
- * hovering the current item adds nothing. Gold on the dark header, gold ink on the light one.
- * Scoped to the header: the mobile menu's switch keeps its own look.
- */
-header .header-underline {
-  position: relative;
-  text-decoration-line: none;
-}
-header .header-underline::after {
-  content: "";
-  position: absolute;
-  inset-inline: var(--header-underline-inset, 0);
-  bottom: -1px;
-  height: 1px;
-  background-color: var(--gold);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 200ms var(--motion-ease);
-  pointer-events: none;
-}
-header[data-theme="light"] .header-underline::after {
-  background-color: var(--gold-ink);
-}
-header .header-underline[aria-current]::after {
-  transform: scaleX(1);
-}
-header .interaction-link.header-underline:focus-visible {
-  text-decoration-line: none;
-  border-bottom-color: transparent;
-  box-shadow: none;
-}
-@media (hover: hover) and (pointer: fine) {
-  header .interaction-link.header-underline:hover {
-    text-decoration-line: none;
-    border-bottom-color: transparent;
-    box-shadow: none;
-  }
-  header .header-underline:not([aria-current]):hover::after {
-    transform: scaleX(1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  header .header-underline::after {
-    transition: none;
-  }
-}
-
 /* Stage 7 — single-artwork wayfinding, detail layout and collection-aware navigation. */
 .ai-work-wayfinder {
   position: relative;
@@ -2046,9 +1963,7 @@ header .interaction-link.header-underline:focus-visible {
 .photography-editorial-row-go {
   display: none;
 }
-.photography-editorial-route {
-  display: none;
-}
+
 .photography-editorial-mobile-cap {
   display: none;
 }
@@ -3011,181 +2926,7 @@ header .interaction-link.header-underline:focus-visible {
   opacity: 1;
   transform: translate(-50%, 0);
 }
-.photography-editorial-map {
-  display: none;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: calc(100% + 56px);
-  width: min(440px, calc((100cqw - 1000px) / 2 - 96px));
-  flex-direction: column;
-  gap: 18px;
-}
-.photography-editorial-map-card {
-  position: relative;
-  aspect-ratio: 3 / 2;
-  background: #d8dee0;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(22, 33, 58, 0.14);
-}
-.photography-editorial-map-card svg,
-.photography-editorial-map-lens svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.photography-editorial-map-land {
-  fill: #f4ecdd;
-  stroke: #8a6a32;
-  stroke-width: 0.8;
-  vector-effect: non-scaling-stroke;
-}
-.photography-editorial-map-bg {
-  fill: #eadbbf;
-  stroke: none;
-}
-.photography-editorial-map-relief {
-  mix-blend-mode: multiply;
-  opacity: 0.8;
-  pointer-events: none;
-}
-.photography-editorial-map-lens-land {
-  fill: #eadbbf;
-}
-.photography-editorial-map-borders {
-  fill: none;
-  stroke: rgba(138, 106, 50, 0.62);
-  stroke-width: 0.7;
-  stroke-dasharray: 3 2.5;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-.photography-editorial-map-attr {
-  font-size: 9.5px;
-  font-weight: 500;
-  line-height: 1.3;
-  color: rgba(22, 33, 58, 0.45);
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-.photography-editorial-map-layer {
-  transition: opacity 0.7s ease;
-}
-.photography-editorial-map-pin {
-  fill: #8a6a32;
-  opacity: 0.6;
-  transition: opacity 0.3s;
-}
-.photography-editorial-map-pin--active {
-  fill: #c9a46b;
-  opacity: 1;
-  stroke: #16213a;
-  stroke-width: 1.4;
-  vector-effect: non-scaling-stroke;
-}
-.photography-editorial-map-label {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  fill: rgba(22, 33, 58, 0.7);
-  paint-order: stroke;
-  stroke: #f8f1e4;
-  stroke-width: 4px;
-  stroke-linejoin: round;
-  letter-spacing: 0.02em;
-}
-.photography-editorial-map-label--active {
-  fill: #16213a;
-}
-.photography-editorial-map-ring {
-  fill: none;
-  stroke: var(--gold-ink);
-}
-.photography-editorial-map-plane path,
-.photography-editorial-route-plane path {
-  fill: var(--navy);
-  stroke: var(--interaction-gold);
-}
-.photography-editorial-map-puff,
-.photography-editorial-route-puff {
-  fill: #b8935a;
-}
-.photography-editorial-route-base {
-  stroke: rgba(22, 33, 58, 0.28);
-  stroke-width: 1;
-  stroke-dasharray: 2 3;
-}
-.photography-editorial-route-progress {
-  stroke: var(--interaction-gold);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-.photography-editorial-route-dots circle {
-  fill: #f8f1e4;
-  stroke: var(--gold-ink);
-  stroke-width: 1.3;
-}
-.photography-editorial-route-dots circle[data-visited="true"] {
-  fill: #a16a56;
-}
-.photography-editorial-route-dots circle[data-current="true"] {
-  fill: var(--interaction-gold);
-}
-.photography-editorial-map-lens-wrap {
-  position: relative;
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-.photography-editorial-map-lens {
-  position: relative;
-  height: calc(100% - 26px);
-  width: auto;
-  max-width: 100%;
-  max-height: 360px;
-  aspect-ratio: 1;
-  flex: none;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #d8dee0;
-  box-shadow:
-    0 0 0 1.5px #c9a46b,
-    0 0 0 7px rgba(201, 164, 107, 0.14);
-  transition: box-shadow 0.4s;
-}
-.photography-editorial-map-lens--hot {
-  box-shadow:
-    0 0 0 2.5px #c9a46b,
-    0 0 0 10px rgba(201, 164, 107, 0.28);
-}
-.photography-editorial-map-lens-caption {
-  font-size: 0.65625rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(22, 33, 58, 0.58);
-}
-.photography-editorial-map-lead {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-}
-.photography-editorial-map-lead path {
-  fill: none;
-  stroke: #8a6a32;
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-  opacity: 0.7;
-}
+
 /* List + live preview: wide windows with a fine, hovering pointer only (ALBUM_PREVIEW.query).
    Touch screens and narrower windows keep the single list with thumbnails. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
@@ -3269,7 +3010,7 @@ header .interaction-link.header-underline:focus-visible {
       transform var(--dur-base) var(--motion-ease);
   }
   /* The current row (hovered or focused last): its name turns navy and the arrow steps on.
-     The selected row (after the dwell, the map's album) is indented and bronze. */
+     The selected row (the current album) is indented and bronze. */
   .photography-editorial-row:hover .photography-editorial-destination-name,
   .photography-editorial-row:focus-visible .photography-editorial-destination-name,
   .photography-editorial-row[aria-current="true"] .photography-editorial-destination-name {
@@ -3294,11 +3035,7 @@ header .interaction-link.header-underline:focus-visible {
       display: block;
     }
   }
-  @container albums-section (min-width: 1680px) {
-    .photography-editorial-map {
-      display: flex;
-    }
-  }
+
   @container albums-section (min-width: 1500px) and (max-width: 1679px) {
     .photography-editorial-passport {
       width: calc((100cqw - 1000px) / 2 - 80px);
@@ -3330,7 +3067,7 @@ header .interaction-link.header-underline:focus-visible {
   outline: 3px solid var(--foreground);
   outline-offset: 4px;
 }
-/* Mobile passport model (albums section <= 767px, ALBUM_MAP.mobileMaxWidth): sticky route bar +
+/* Mobile passport model (albums section <= 767px, ALBUM_LAYOUT.mobileMaxWidth): sticky
    16:10 photo + open pill, 2-line description + horizontal 4-frame strip, passport counter row,
    and the two-tap album list. */
 @container albums-section (max-width: 767px) {
@@ -3356,16 +3093,7 @@ header .interaction-link.header-underline:focus-visible {
     padding-bottom: 8px;
     box-shadow: 0 10px 16px -14px rgba(22, 33, 58, 0.35);
   }
-  .photography-editorial-route {
-    display: block;
-    height: 48px;
-    position: relative;
-  }
-  .photography-editorial-route svg {
-    width: 100%;
-    height: 48px;
-    display: block;
-  }
+
   .photography-editorial-preview-frame {
     aspect-ratio: 16 / 10;
     max-height: calc(40svh - 100px);
@@ -3527,16 +3255,10 @@ header .interaction-link.header-underline:focus-visible {
 }
 @media (prefers-reduced-motion: reduce) {
   .photography-editorial-row-arrow,
-  .photography-editorial-destination-name,
-  .photography-editorial-map-layer,
-  .photography-editorial-map-pin,
-  .photography-editorial-map-lens {
+  .photography-editorial-destination-name {
     transition: none;
   }
-  .photography-editorial-map-plane,
-  .photography-editorial-route-plane {
-    display: none !important;
-  }
+
   .photography-editorial-visa,
   .photography-editorial-complete-seal,
   .photography-editorial-complete-seal-compact,
@@ -5531,7 +5253,8 @@ a.next-album-card:focus-visible .next-album-card-arrow {
  * the approved mock v12. The mock's dark palette lives in local tokens on both page roots.
  */
 .ai-index,
-.ai-col-page {
+.ai-col-page,
+.ai-work-page {
   --ai-navy-0: #0c1729;
   --ai-navy: #16213a;
   --ai-on: #f4eee2;
@@ -6820,7 +6543,7 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 
 /* About (vAbout): the mock's column, portrait 5fr and text 7fr, centred against each other. */
 .about-page {
-  padding-block: calc(65px + 40px) clamp(64px, 9vw, 120px);
+  padding-block: calc(var(--site-header-h) + 40px) clamp(64px, 9vw, 120px);
   background-color: #f6f0e4;
 }
 .about-page-grid {
@@ -7056,4 +6779,633 @@ a.next-album-card:focus-visible .next-album-card-arrow {
   .about-page-cta--line:focus-visible {
     background-color: #16213a;
   }
+}
+
+/* ==========================================================================
+ * Redesign stage 9b · The map is removed from the whole site (owner decision after the mock).
+ * Photography albums on a wide desktop: three columns that share the freed width, the album list,
+ * the preview (the focal point, widest) and the passport book (secondary), with no empty side.
+ * ========================================================================== */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  @container albums-section (min-width: 1500px) {
+    .photography-editorial-index-inner {
+      width: min(1440px, calc(100% - 96px));
+      max-width: 1440px;
+    }
+    .photography-editorial-index-grid {
+      grid-template-columns: minmax(0, 425fr) minmax(0, 560fr) minmax(280px, 330fr);
+      column-gap: clamp(2.5rem, 3.4vw, 4rem);
+    }
+    /* The list head is hidden here (the passport book carries the count): the list starts level
+       with the preview. */
+    .photography-editorial-destination-list {
+      grid-row: 1 / span 2;
+      align-self: start;
+    }
+    .photography-editorial-passport {
+      position: sticky;
+      top: var(--preview-top);
+      left: auto;
+      grid-column: 3;
+      grid-row: 1 / span 2;
+      align-self: start;
+      width: auto;
+    }
+  }
+}
+
+/* Header (the mock's .hd): 72px (64px below 900px), a frosted cream bar with a hairline on light
+   pages, frosted navy on dark ones, and a soft navy fade over the Home hero. The markup keeps its
+   Tailwind state classes (bg-navy, h-16...): these rules decide the paint and the height. */
+header[data-theme] {
+  border-bottom-width: 0;
+  transition:
+    background-color 380ms var(--motion-ease),
+    color 380ms var(--motion-ease),
+    box-shadow 380ms var(--motion-ease);
+}
+header[data-theme="light"]:not([data-transparent]) {
+  background-color: rgb(246 240 228 / 0.9);
+  color: #16213a;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgb(22 33 58 / 0.14);
+}
+header[data-theme="dark"]:not([data-transparent]) {
+  background-color: rgb(12 23 41 / 0.72);
+  color: #f4eee2;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgb(246 240 228 / 0.16);
+}
+header[data-transparent] {
+  background: linear-gradient(rgb(12 23 41 / 0.55), rgb(12 23 41 / 0));
+  color: #f4eee2;
+  box-shadow: none;
+}
+:root {
+  --site-header-h: 72px;
+}
+@media (max-width: 899px) {
+  :root {
+    --site-header-h: 64px;
+  }
+}
+header[data-theme] .home-header-row {
+  gap: 24px;
+  height: 72px;
+}
+@media (max-width: 899px) {
+  header[data-theme] .home-header-row {
+    height: 64px;
+  }
+}
+
+/* Logo: a 38px portrait with a ring in the text colour and the wordmark set in caps; on hover and
+   focus the portrait tilts and takes a soft gold halo, and "Visual Worlds" turns gold. */
+.brand-lockup {
+  margin-right: auto;
+  text-decoration: none;
+}
+.brand-lockup img {
+  width: 38px;
+  height: 38px;
+  background: #fbf7ee;
+  box-shadow: 0 0 0 1.5px currentColor;
+  transition:
+    transform 380ms var(--motion-ease),
+    box-shadow 380ms var(--motion-ease);
+}
+.brand-lockup-text {
+  font: 600 19px/1 var(--font-serif);
+  letter-spacing: 0.2em;
+}
+.brand-lockup-text > span:last-child {
+  transition: color 220ms var(--motion-ease);
+}
+@media (min-width: 360px) {
+  .brand-lockup-text > span.hidden {
+    display: inline;
+  }
+}
+@media (max-width: 899px) {
+  .brand-lockup img {
+    width: 34px;
+    height: 34px;
+  }
+  .brand-lockup-text {
+    font-size: 16px;
+    letter-spacing: 0.16em;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .brand-lockup:hover img {
+    transform: rotate(-10deg) scale(1.07);
+    box-shadow:
+      0 0 0 1.5px currentColor,
+      0 0 0 5px rgb(201 164 107 / 0.45);
+  }
+  .brand-lockup:hover .brand-lockup-text > span:last-child {
+    color: var(--gold-ink);
+  }
+  [data-theme="dark"] .brand-lockup:hover .brand-lockup-text > span:last-child,
+  .site-footer .brand-lockup:hover .brand-lockup-text > span:last-child {
+    color: var(--interaction-gold);
+  }
+}
+/* The shared link underline and colour stay off the logo: only the parts above change. */
+.interaction-link.brand-lockup:focus-visible {
+  color: inherit;
+  text-decoration-line: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .interaction-link.brand-lockup:hover {
+    color: inherit;
+    text-decoration-line: none;
+  }
+}
+.brand-lockup:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+.brand-lockup:focus-visible img {
+  transform: rotate(-10deg) scale(1.07);
+  box-shadow:
+    0 0 0 1.5px currentColor,
+    0 0 0 5px rgb(201 164 107 / 0.45);
+}
+.brand-lockup:focus-visible .brand-lockup-text > span:last-child {
+  color: var(--gold-ink);
+}
+[data-theme="dark"] .brand-lockup:focus-visible .brand-lockup-text > span:last-child,
+.site-footer .brand-lockup:focus-visible .brand-lockup-text > span:last-child {
+  color: var(--interaction-gold);
+}
+
+/* Navigation: 11px bold caps, 30px apart; one gold pill (1px rim, 10% fill) rests on the current
+   page and glides to the hovered or focused item; the label rolls up to its gold copy. */
+.site-nav {
+  display: none;
+}
+@media (min-width: 900px) {
+  .site-nav {
+    display: block;
+  }
+}
+.site-nav-wrap {
+  position: relative;
+}
+.site-nav-list {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-nav-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  font: 700 11px/1 var(--font-sans);
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+header[data-theme="light"] .site-nav-link.is-current {
+  color: var(--gold-ink);
+}
+header[data-theme="dark"] .site-nav-link.is-current {
+  color: var(--interaction-gold);
+}
+.site-nav-link:focus-visible {
+  outline: none;
+}
+.site-nav-roll {
+  display: block;
+  height: 1.3em;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.site-nav-roll-in {
+  display: flex;
+  flex-direction: column;
+  transition: transform 380ms var(--motion-ease);
+}
+.site-nav-roll-in > span:nth-child(2) {
+  color: var(--gold-hi);
+}
+header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
+  color: var(--gold-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-nav-link:hover .site-nav-roll-in {
+    transform: translateY(-50%);
+  }
+}
+.site-nav-link:focus-visible .site-nav-roll-in {
+  transform: translateY(-50%);
+}
+.site-nav-ind {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: calc(var(--w, 0px) + 28px);
+  height: 34px;
+  border-radius: 999px;
+  background: rgb(201 164 107 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(201 164 107 / 0.85);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(calc(var(--x, 0px) - 14px), calc(var(--y, 0px) + (var(--h, 34px) - 34px) / 2));
+  transition:
+    transform 520ms var(--motion-ease),
+    width 520ms var(--motion-ease),
+    opacity 220ms var(--motion-ease);
+}
+.site-nav-ind[data-on] {
+  opacity: 1;
+}
+.site-nav-ind::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1.5px var(--interaction-gold);
+  opacity: 0;
+}
+.site-nav-ind[data-stamp]::after {
+  animation: site-nav-stamp 640ms var(--motion-ease) forwards;
+}
+@keyframes site-nav-stamp {
+  0% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.28, 1.7);
+  }
+}
+
+/* Language: "BG | EN", the current one in gold, the other dimmed until hovered or focused. */
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font: 700 11px/1 var(--font-sans);
+  letter-spacing: 0.14em;
+}
+.lang-switch-link {
+  display: grid;
+  min-width: 36px;
+  min-height: 44px;
+  place-items: center;
+  color: inherit;
+  opacity: 0.7;
+  text-decoration: none;
+  transition:
+    opacity 220ms var(--motion-ease),
+    color 220ms var(--motion-ease);
+}
+.lang-switch-link[aria-current] {
+  color: var(--gold-ink);
+  opacity: 1;
+}
+[data-theme="dark"] .lang-switch-link[aria-current],
+.site-menu .lang-switch-link[aria-current] {
+  color: var(--interaction-gold);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lang-switch-link:hover {
+    opacity: 1;
+  }
+}
+.lang-switch-link:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: -4px;
+  border-radius: 6px;
+}
+.lang-switch-rule {
+  width: 1px;
+  height: 14px;
+  background: currentColor;
+  opacity: 0.35;
+}
+.site-header-lang {
+  display: none;
+}
+@media (min-width: 900px) {
+  .site-header-lang {
+    display: flex;
+  }
+}
+
+/* Menu button: a 44px ring with three short lines (phones and tablets). */
+.site-menu-button {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px currentColor;
+  color: inherit;
+  cursor: pointer;
+}
+.site-menu-button-lines {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: currentColor;
+  box-shadow:
+    0 -5px 0 currentColor,
+    0 5px 0 currentColor;
+}
+.site-menu-button:focus-visible,
+.site-menu-close:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-menu-button:hover,
+  .site-menu-close:hover {
+    color: var(--interaction-gold);
+  }
+}
+@media (min-width: 900px) {
+  .site-menu-button {
+    display: none;
+  }
+}
+
+/* The menu (the mock's .mm): page navy, opening as a circle from the menu button. */
+.site-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.site-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  background: #0c1729;
+  color: #f4eee2;
+  outline: none;
+  clip-path: circle(150% at calc(100% - 38px) 32px);
+}
+.site-menu[data-state="open"] {
+  animation: site-menu-open 520ms cubic-bezier(0.65, 0, 0.25, 1);
+}
+.site-menu[data-state="closed"] {
+  animation: site-menu-close 420ms cubic-bezier(0.65, 0, 0.25, 1) forwards;
+}
+@keyframes site-menu-open {
+  from {
+    clip-path: circle(0 at calc(100% - 38px) 32px);
+  }
+}
+@keyframes site-menu-close {
+  to {
+    clip-path: circle(0 at calc(100% - 38px) 32px);
+  }
+}
+.site-menu .site-menu-top {
+  padding-inline: 0;
+}
+.site-menu-top {
+  display: flex;
+  height: 54px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+}
+.site-menu-close {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(246 240 228 / 0.16);
+  color: inherit;
+  cursor: pointer;
+}
+.site-menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8vh;
+}
+.site-menu-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgb(246 240 228 / 0.16);
+  color: inherit;
+  font: 500 clamp(40px, 11vw, 56px) / 1 var(--font-serif);
+  text-decoration: none;
+  animation: site-menu-link-in 380ms var(--motion-ease) backwards;
+}
+.site-menu-link:nth-child(2) {
+  animation-delay: 50ms;
+}
+.site-menu-link:nth-child(3) {
+  animation-delay: 100ms;
+}
+.site-menu-link:nth-child(4) {
+  animation-delay: 150ms;
+}
+@keyframes site-menu-link-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.site-menu-link small {
+  color: rgb(244 238 226 / 0.56);
+  font: 700 10.5px/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.site-menu-link.is-current {
+  color: var(--interaction-gold);
+}
+.site-menu-link.is-current small::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 10px;
+  border-radius: 50%;
+  background: var(--interaction-gold);
+  box-shadow: 0 0 0 3px rgb(201 164 107 / 0.25);
+}
+.site-menu-link:focus-visible {
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-menu-link:hover {
+    color: var(--interaction-gold);
+  }
+}
+.site-menu-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  color: rgb(244 238 226 / 0.74);
+  font: italic 500 14px/1.4 var(--font-serif);
+}
+.site-menu-foot .lang-switch {
+  color: #f4eee2;
+  font-style: normal;
+}
+
+/* Footer (the mock's .ft). */
+.site-footer {
+  padding-block: 56px calc(36px + env(safe-area-inset-bottom, 0px));
+  background: #0c1729;
+  color: rgb(244 238 226 / 0.74);
+}
+.site-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 28px 40px;
+  width: min(1240px, 100%);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 768px) {
+  .site-footer-grid {
+    padding-inline: 40px;
+  }
+}
+.site-footer .brand-lockup {
+  display: inline-flex;
+  color: #f4eee2;
+}
+.site-footer-tag {
+  margin-top: 12px;
+  color: rgb(244 238 226 / 0.74);
+  font: italic 500 22px/1.3 var(--font-serif);
+}
+.site-footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 26px;
+}
+.site-footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #f4eee2;
+  font: 700 11px/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 220ms var(--motion-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-footer-link:hover {
+    color: var(--interaction-gold);
+  }
+}
+.site-footer-link:focus-visible {
+  color: var(--interaction-gold);
+  outline: 2px solid var(--interaction-gold);
+  outline-offset: 2px;
+}
+.site-footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid rgb(246 240 228 / 0.16);
+  color: rgb(244 238 226 / 0.62);
+  font-size: 12.5px;
+}
+@media (max-width: 767px) {
+  .site-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header[data-theme],
+  .brand-lockup img,
+  .brand-lockup-text > span:last-child,
+  .site-nav-roll-in,
+  .site-nav-ind,
+  .lang-switch-link,
+  .site-footer-link {
+    transition: none;
+  }
+  .brand-lockup:focus-visible img,
+  .site-nav-link:focus-visible .site-nav-roll-in {
+    transform: none;
+  }
+  .site-nav-link:focus-visible .site-nav-roll-in > span:first-child {
+    color: var(--gold-ink);
+  }
+  .site-nav-ind[data-stamp]::after,
+  .site-menu[data-state],
+  .site-menu-link {
+    animation: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .brand-lockup:hover img,
+  .site-nav-link:hover .site-nav-roll-in {
+    transform: none;
+  }
+  .site-nav-link:hover .site-nav-roll-in > span:first-child {
+    color: var(--gold-ink);
+  }
+}
+
+/* Stage 9b · shared parity: light eyebrows in navy ink (the mock's v10 colour system), the gold
+   italic word of a section title ("През моя <em>обектив</em>"). */
+:root {
+  --eyebrow-ink: rgb(22 33 58 / 0.72);
+}
+.section-title-em {
+  font-style: italic;
+  color: var(--gold-ink);
+}
+.surface-dark .section-title-em {
+  color: var(--interaction-gold);
+}
+
+/* All photos filters: until Manrope arrives the chips use a system face widened to Manrope's
+   width (about 6 % for Segoe UI, 4.4 % for Arial, measured on the chip labels), so a chip row does not wrap differently when the web font swaps in. */
+@font-face {
+  font-family: "Manrope Chip Fallback";
+  src: local("Segoe UI"), local("SegoeUI");
+  size-adjust: 106.2%;
+}
+@font-face {
+  font-family: "Manrope Chip Fallback Arial";
+  src: local("Arial"), local("Helvetica");
+  size-adjust: 104.4%;
+}
+.photo-filters,
+.photo-filters button {
+  font-family: "Manrope", "Manrope Chip Fallback", "Manrope Chip Fallback Arial", system-ui, sans-serif;
 }

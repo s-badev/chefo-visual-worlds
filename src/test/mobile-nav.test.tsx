@@ -61,11 +61,19 @@ describe("mobile navigation", () => {
     const dialog = await screen.findByRole("dialog", { name: messages.bg.nav.mobile });
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     const nav = within(dialog).getByRole("navigation", { name: messages.bg.nav.mobile });
+    // As in the mock, the menu starts with Home; the section counts are not part of the names.
     expect(
       within(nav)
         .getAllByRole("link")
-        .map((a) => a.textContent),
-    ).toEqual([messages.bg.nav.photography, messages.bg.nav.ai, messages.bg.nav.about]);
+        .map((a) => a.querySelector("small")?.getAttribute("aria-hidden")),
+    ).toEqual(["true", "true", "true", "true"]);
+    for (const name of [
+      messages.bg.nav.homeShort,
+      messages.bg.nav.photography,
+      messages.bg.nav.ai,
+      messages.bg.nav.about,
+    ])
+      expect(within(nav).getByRole("link", { name })).toBeInTheDocument();
     expect(dialog.contains(document.activeElement)).toBe(true);
 
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });

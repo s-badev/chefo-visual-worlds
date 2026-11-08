@@ -471,7 +471,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   }, [lightbox, switcherOpen]);
 
   return (
-    <Surface tone="dark" as="article">
+    <Surface tone="dark" as="article" className="ai-work-page">
       {position ? (
         <div data-header-theme="light" className="container-page pt-8 md:pt-10">
           <AiArtworkWayfinder current={position} onOpenChange={setSwitcherOpen} />
@@ -533,9 +533,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
 
         <div className="min-w-0 lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="eyebrow rounded-sm border border-border px-2 py-1 text-gold">
-              {t.common.aiBadge}
-            </span>
+            <span className="ai-chip ai-chip--ai">{t.common.aiBadge}</span>
             {collection && (
               <LocaleLink
                 to="/ai-worlds/collections/$slug"
@@ -546,7 +544,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
               </LocaleLink>
             )}
           </div>
-          <h1 className="title-detail mt-5 break-words">{work.title}</h1>
+          <h1 className="title-detail mt-5 break-words [text-wrap:balance]">{work.title}</h1>
           <p className="mt-6 font-serif text-2xl leading-snug">{work.description}</p>
           <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
             {facts.map(([key, value]) => (

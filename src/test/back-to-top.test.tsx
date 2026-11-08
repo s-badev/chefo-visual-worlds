@@ -40,7 +40,7 @@ describe("BackToTop", () => {
     expect(hidden).toHaveAttribute("tabindex", "-1");
     expect(hidden).not.toHaveAttribute("data-visible");
 
-    Object.defineProperty(window, "scrollY", { configurable: true, value: 900 });
+    Object.defineProperty(window, "scrollY", { configurable: true, value: 950 });
     fireEvent.scroll(window);
     fireEvent.click(await screen.findByRole("button", { name: "Back to top" }));
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
@@ -50,7 +50,7 @@ describe("BackToTop", () => {
     "uses the localized accessible name and tooltip in %s",
     async (locale) => {
       state.locale = locale;
-      Object.defineProperty(window, "scrollY", { configurable: true, value: 900 });
+      Object.defineProperty(window, "scrollY", { configurable: true, value: 950 });
       render(<BackToTop />);
       const label = messages[locale].common.backToTop;
       const button = await screen.findByRole("button", { name: label });
@@ -86,7 +86,7 @@ describe("BackToTop", () => {
 
       fireEvent.animationEnd(button, { animationName: "back-to-top-end-pulse" });
       expect(button).not.toHaveClass("back-to-top-pulse");
-      Object.defineProperty(window, "scrollY", { configurable: true, value: 900 });
+      Object.defineProperty(window, "scrollY", { configurable: true, value: 950 });
       fireEvent.scroll(window);
       await waitFor(() => expect(button).not.toHaveAttribute("data-end"));
       expect(button).toHaveAccessibleName(messages[locale].common.backToTop);

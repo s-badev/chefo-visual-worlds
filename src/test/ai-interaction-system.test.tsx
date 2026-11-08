@@ -629,25 +629,22 @@ describe("AI Worlds view switch", () => {
   });
 });
 
-describe("Brand lockup underline", () => {
-  it("paints one 2px bright-gold line under the whole wordmark on hover and focus", () => {
-    const line = rule(".brand-lockup-text")!.body;
-    expect(line).toContain("linear-gradient(var(--interaction-gold), var(--interaction-gold))");
-    // Same offset as .interaction-link (0.28em of the 16px link), below the 1em baseline.
-    expect(line).toContain("0 calc(1em + 0.28rem) / 100% 0");
-    expect(rule(".interaction-link")!.body).toContain("text-underline-offset: 0.28em");
-    for (const [state, context] of [
-      [":hover", POINTER],
-      [":focus-visible", ""],
-    ] as const) {
-      // The per-word text underline is off, so it cannot split between CHEFO and VISUAL.
-      expect(rule(`.interaction-link.brand-lockup${state}`, context)!.body).toBe(
-        "text-decoration-line: none;",
-      );
-      expect(rule(`.brand-lockup${state} .brand-lockup-text`, context)!.body).toBe(
-        "background-size: 100% 2px;",
-      );
-    }
+describe("Brand lockup hover (the mock's logo)", () => {
+  it("rings the portrait in gold and turns Visual Worlds gold, with no underline", () => {
+    // Stage 9b: the old wordmark underline is gone.
+    expect(rule(".brand-lockup-text")!.body).not.toContain("linear-gradient");
+    expect(rule(".brand-lockup:hover img", POINTER)!.body).toBe(
+      "transform: rotate(-10deg) scale(1.07); box-shadow: 0 0 0 1.5px currentColor, 0 0 0 5px rgb(201 164 107 / 0.45);",
+    );
+    expect(rule(".brand-lockup:hover .brand-lockup-text > span:last-child", POINTER)!.body).toBe(
+      "color: var(--gold-ink);",
+    );
+    expect(rule(".interaction-link.brand-lockup:hover", POINTER)!.body).toContain(
+      "text-decoration-line: none;",
+    );
+    expect(rule(".interaction-link.brand-lockup:focus-visible")!.body).toContain(
+      "text-decoration-line: none;",
+    );
   });
 });
 

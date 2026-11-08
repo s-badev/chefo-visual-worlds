@@ -1,6 +1,5 @@
 import { ArrowRight } from "lucide-react";
 import { PortraitSwitch } from "@/components/portrait";
-import aboutAiRoyal from "@/assets/about-ai-royal-new.webp";
 import { Surface } from "@/components/surface";
 import { getMessages, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
@@ -20,7 +19,8 @@ export function AboutView() {
   return (
     <Surface tone="light" as="div" className="about-page">
       <div className="about-page-grid">
-        <PortraitSwitch aiImage={aboutAiRoyal} className="about-page-portrait" />
+        {/* The AI version is the knight (siteConfig.portrait.ai), as in the mock. */}
+        <PortraitSwitch className="about-page-portrait" />
         <div className="about-page-text">
           <p className="about-page-eyebrow">{m.eyebrow}</p>
           <h1 className="about-page-title">{m.title}</h1>
