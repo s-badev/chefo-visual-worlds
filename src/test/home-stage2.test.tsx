@@ -1,6 +1,6 @@
 // Redesign stage 2 · Home: hero lens/portal buttons, the all-albums stamp row, deck-link pills
 // and the About teaser without its button.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
@@ -135,6 +135,7 @@ describe("Home stamp row", () => {
     const html = renderToString(<HomeStampRow />);
     for (const album of getAlbums()) expect(html).toContain(`/photography/albums/${album.slug}"`);
     expect(html).not.toContain("data-reveal");
+    expect(html).not.toContain("data-stamps-reveal");
     // Both step buttons start hidden: nothing is measured on the server.
     expect(html.match(/<button[^>]*hidden=""/g)).toHaveLength(2);
   });
@@ -232,9 +233,9 @@ describe("Home stamp row", () => {
       media();
       const { container } = render(<HomeStampRow />);
       const wrap = container.querySelector<HTMLElement>(".home-stamps")!;
-      expect(wrap.dataset["reveal"]).toBeUndefined();
+      expect(wrap.dataset["stampsReveal"]).toBeUndefined();
       await act(() => vi.advanceTimersByTimeAsync(20));
-      expect(wrap.dataset["reveal"]).toBe("pending");
+      expect(wrap.dataset["stampsReveal"]).toBe("pending");
       const observer = observers.at(-1)!;
       expect(observer.options?.threshold).toBe(0.3);
       act(() =>
@@ -243,7 +244,7 @@ describe("Home stamp row", () => {
           observer as unknown as IntersectionObserver,
         ),
       );
-      expect(wrap.dataset["reveal"]).toBe("shown");
+      expect(wrap.dataset["stampsReveal"]).toBe("shown");
       const delays = Array.from(container.querySelectorAll<HTMLElement>(".home-stamps-item")).map(
         (li) => li.style.getPropertyValue("--stamp-delay"),
       );
@@ -266,14 +267,18 @@ describe("Home stamp row", () => {
       media();
       const first = render(<HomeStampRow />);
       await act(() => vi.advanceTimersByTimeAsync(20));
-      expect(first.container.querySelector(".home-stamps")).not.toHaveAttribute("data-reveal");
+      expect(first.container.querySelector(".home-stamps")).not.toHaveAttribute(
+        "data-stamps-reveal",
+      );
       first.unmount();
 
       setup(5000);
       media({ reduced: true });
       const second = render(<HomeStampRow />);
       await act(() => vi.advanceTimersByTimeAsync(20));
-      expect(second.container.querySelector(".home-stamps")).not.toHaveAttribute("data-reveal");
+      expect(second.container.querySelector(".home-stamps")).not.toHaveAttribute(
+        "data-stamps-reveal",
+      );
     });
   });
 });
@@ -317,11 +322,18 @@ describe("Deck-link pills", () => {
     expect(titles.size).toBe(3);
 
     const images = Array.from(ai!.querySelectorAll<HTMLImageElement>(".deck-link-item img"));
+    // The first three collection covers, as their small copies (the deck shows them at 30 x 38 px).
     expect(images.map((img) => img.getAttribute("src"))).toEqual(
       getAiCollections()
         .slice(0, 3)
-        .map((c) => getCollectionCover(c, "bg")!.image),
+        .map((c) => `/deck/${getCollectionCover(c, "bg")!.slug}.webp`),
     );
+    for (const img of images) {
+      const file = path.resolve(__dirname, "../../public", img.getAttribute("src")!.slice(1));
+      expect(existsSync(file)).toBe(true);
+      // A small copy: a few kilobytes instead of 150-210 KB per cover.
+      expect(statSync(file).size).toBeLessThan(8 * 1024);
+    }
     for (const img of images) {
       expect(img).toHaveAttribute("alt", "");
       expect(img).toHaveAttribute("loading", "lazy");

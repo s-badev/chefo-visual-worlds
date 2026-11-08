@@ -42,34 +42,6 @@ const whereLine = (d: Destination, locale: Locale) => {
   return destinationText(d.place ?? d.country ?? d.title, locale);
 };
 
-/** Typographic cover for the atlas hall: the destinations as an editorial list. */
-export function AtlasCover({ className }: { className?: string }) {
-  const { locale } = useT();
-  const atlas = getAiCollection(ATLAS_SLUG)!;
-  return (
-    <div
-      className={cn(
-        "relative flex flex-col justify-center gap-10 overflow-hidden rounded-sm bg-surface-raised/60 p-8 sm:p-12 md:gap-14",
-        className,
-      )}
-    >
-      <span aria-hidden="true" className="absolute inset-4 rounded-sm border border-gold/25" />
-      <span aria-hidden="true" className="absolute inset-6 rounded-[2px] border border-gold/10" />
-      <p className="relative max-w-xs font-serif text-3xl italic leading-tight text-gold sm:text-4xl">
-        {atlas.tagline && collectionText(atlas.tagline, locale)}
-      </p>
-      <ol className="relative grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm" aria-hidden="true">
-        {getDestinations().map((d) => (
-          <li key={d.slug} className="flex items-baseline gap-2 truncate">
-            <span className="eyebrow tabular-nums text-gold/70">{pad2(d.order)}</span>
-            <span className="truncate text-muted-foreground">{shortName(d, locale)}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
 /** Small placeholder plate for a destination without a portrait yet. */
 function PlannedPlate({ destination, large }: { destination: Destination; large?: boolean }) {
   const { t, locale } = useT();

@@ -85,7 +85,9 @@ export function HomeStampRow() {
     if (!canPrev && active === prevRef.current) nextRef.current?.focus();
   }, [canPrev, canNext]);
 
-  // First entry into view: cards rise one after another (only for a row below the fold).
+  // First entry into view, as in the mock: the row rises and its stamps land one after another
+  // (only for a row below the fold). Its own attribute, so the global [data-reveal] rule of
+  // use-reveal never animates the row a second time.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap || typeof IntersectionObserver === "undefined") return;
@@ -97,18 +99,18 @@ export function HomeStampRow() {
         (entries) => {
           if (!entries.some((entry) => entry.isIntersecting)) return;
           observer?.disconnect();
-          wrap.dataset["reveal"] = "shown";
+          wrap.dataset["stampsReveal"] = "shown";
         },
         { threshold: 0.3 },
       );
-      wrap.dataset["reveal"] = "pending";
+      wrap.dataset["stampsReveal"] = "pending";
       observer.observe(wrap);
     });
     return () => {
       cancelAnimationFrame(raf);
       observer?.disconnect();
       // Never leave the cards hidden when the page changes underneath.
-      if (wrap.dataset["reveal"] === "pending") delete wrap.dataset["reveal"];
+      if (wrap.dataset["stampsReveal"] === "pending") delete wrap.dataset["stampsReveal"];
     };
   }, []);
 

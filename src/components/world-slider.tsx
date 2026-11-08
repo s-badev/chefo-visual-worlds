@@ -1,16 +1,11 @@
-import { MoveHorizontal } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WORLD_SLIDES, localizeWorldSlide } from "@/content/world-slider";
 import { useT } from "@/i18n";
 
 const START_POSITION = 0.5;
 const MOBILE_QUERY = "(max-width: 760px)";
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-
-const easeInOutCubic = (value: number) =>
-  value < 0.5 ? 4 * value * value * value : 1 - Math.pow(-2 * value + 2, 3) / 2;
 
 type IdleWindow = Window & {
   requestIdleCallback?: (callback: () => void) => number;
@@ -20,24 +15,22 @@ type IdleWindow = Window & {
 export function WorldSlider() {
   const { locale, t } = useT();
   const copy = t.home.worldSlider;
+  // The second half of the title ("друго време" / "another time") is set in gold italics.
+  const cut = copy.title.indexOf(", ");
+  const titleLead = cut >= 0 ? copy.title.slice(0, cut + 2) : copy.title;
+  const titleEm = cut >= 0 ? copy.title.slice(cut + 2) : "";
   const [activeIndex, setActiveIndex] = useState(0);
   // Worlds whose blurred backdrop has an image: a world's backdrop takes its AI image (already
   // loaded or preloaded by the slider) once the world is chosen, and keeps it for the cross-fade.
   const [backdropWorlds, setBackdropWorlds] = useState<readonly number[]>([0]);
   const activeWorld = localizeWorldSlide(WORLD_SLIDES[activeIndex]!, locale);
 
-  const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const aiRef = useRef<HTMLDivElement>(null);
   const aiInnerRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
-  const leftChipRef = useRef<HTMLSpanElement>(null);
-  const rightChipRef = useRef<HTMLSpanElement>(null);
   const positionRef = useRef(START_POSITION);
   const widthRef = useRef(0);
-  const animationRef = useRef(0);
-  const reducedMotionRef = useRef(false);
-  const demoDoneRef = useRef(false);
   const draggingRef = useRef(false);
   const pendingTouchRef = useRef(false);
   const pointerStartRef = useRef({ x: 0, y: 0 });
@@ -65,39 +58,8 @@ export function WorldSlider() {
       const real = Math.round(position * 100);
       stage.setAttribute("aria-valuenow", String(real));
       stage.setAttribute("aria-valuetext", copy.valueText(real, 100 - real));
-      if (leftChipRef.current) leftChipRef.current.style.opacity = position < 0.14 ? "0" : "1";
-      if (rightChipRef.current) rightChipRef.current.style.opacity = position > 0.86 ? "0" : "1";
     },
     [copy],
-  );
-
-  const stopAnimation = useCallback(() => {
-    if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    animationRef.current = 0;
-  }, []);
-
-  const animateTo = useCallback(
-    (target: number, duration: number, onComplete?: () => void) => {
-      stopAnimation();
-      if (reducedMotionRef.current) {
-        setPosition(target);
-        onComplete?.();
-        return;
-      }
-      const from = positionRef.current;
-      const start = performance.now();
-      const frame = (now: number) => {
-        const progress = clamp((now - start) / duration);
-        setPosition(from + (target - from) * easeInOutCubic(progress));
-        if (progress < 1) animationRef.current = requestAnimationFrame(frame);
-        else {
-          animationRef.current = 0;
-          onComplete?.();
-        }
-      };
-      animationRef.current = requestAnimationFrame(frame);
-    },
-    [setPosition, stopAnimation],
   );
 
   const applyFocus = useCallback(() => {
@@ -119,7 +81,6 @@ export function WorldSlider() {
   }, [setPosition]);
 
   const markTouched = useCallback(() => {
-    demoDoneRef.current = true;
     stageRef.current?.classList.add("is-touched");
   }, []);
 
@@ -135,20 +96,12 @@ export function WorldSlider() {
 
   const chooseWorld = (index: number) => {
     if (index === activeIndex) return;
-    stopAnimation();
-    demoDoneRef.current = true;
     setActiveIndex(index);
     setBackdropWorlds((shown) => (shown.includes(index) ? shown : [...shown, index]));
     applyFocus();
-    if (reducedMotionRef.current) setPosition(START_POSITION);
-    else {
-      setPosition(0.9);
-      animateTo(START_POSITION, 1100);
-    }
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    stopAnimation();
     markTouched();
     const target = event.target instanceof Element ? event.target : null;
     if (event.pointerType === "mouse" || target?.closest(".world-slider-knob")) {
@@ -204,7 +157,6 @@ export function WorldSlider() {
     else if (event.key === "PageUp") next = positionRef.current + 0.1;
     if (next === null) return;
     event.preventDefault();
-    stopAnimation();
     markTouched();
     setPosition(next);
   };
@@ -228,17 +180,6 @@ export function WorldSlider() {
   };
 
   useEffect(() => {
-    const reduced = window.matchMedia(REDUCED_MOTION_QUERY);
-    const update = () => {
-      reducedMotionRef.current = reduced.matches;
-      if (reduced.matches) stopAnimation();
-    };
-    update();
-    reduced.addEventListener("change", update);
-    return () => reduced.removeEventListener("change", update);
-  }, [stopAnimation]);
-
-  useEffect(() => {
     const mobile = window.matchMedia(MOBILE_QUERY);
     const update = () => {
       measure();
@@ -253,41 +194,17 @@ export function WorldSlider() {
     };
   }, [applyFocus, measure]);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || typeof IntersectionObserver === "undefined") return;
-    let observer: IntersectionObserver | undefined;
-    const frame = window.requestAnimationFrame(() => {
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry?.isIntersecting || demoDoneRef.current || reducedMotionRef.current) return;
-          demoDoneRef.current = true;
-          setPosition(0.92);
-          animateTo(0.32, 1700, () => animateTo(START_POSITION, 700));
-        },
-        { threshold: 0.5 },
-      );
-      observer.observe(section);
-    });
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer?.disconnect();
-    };
-  }, [animateTo, setPosition]);
-
   useEffect(
     () => () => {
-      stopAnimation();
       const idleWindow = window as IdleWindow;
       if (preloadIdleRef.current) idleWindow.cancelIdleCallback?.(preloadIdleRef.current);
       if (preloadTimerRef.current) window.clearTimeout(preloadTimerRef.current);
     },
-    [stopAnimation],
+    [],
   );
 
   return (
     <section
-      ref={sectionRef}
       id="slider"
       data-header-theme="dark"
       aria-labelledby="world-slider-title"
@@ -310,7 +227,10 @@ export function WorldSlider() {
         <div className="world-slider-header">
           <div className="world-slider-heading">
             <p className="eyebrow">{copy.eyebrow}</p>
-            <h2 id="world-slider-title">{copy.title}</h2>
+            <h2 id="world-slider-title">
+              {titleLead}
+              {titleEm && <em>{titleEm}</em>}
+            </h2>
             <p>{copy.subtitle}</p>
           </div>
           <div className="world-slider-selector" role="group" aria-label={copy.chooseWorld}>
@@ -406,23 +326,25 @@ export function WorldSlider() {
             style={{ left: "50%" }}
             aria-hidden="true"
           >
-            <span className="world-slider-knob">
-              <MoveHorizontal strokeWidth={1.8} />
-            </span>
+            <span className="world-slider-knob">⇆</span>
+            {/* The hint rides with the line, at the bottom of the stage. */}
+            <span className="world-slider-hint">{copy.hint}</span>
           </div>
-          <span className="world-slider-hint" aria-hidden="true">
-            {copy.hint}
-          </span>
-          <span ref={leftChipRef} className="world-slider-chip is-left">
+          <span className="world-slider-chip is-left">
             {copy.realPlace}
             <span className="world-slider-chip-tag"> · {activeWorld.tagL}</span>
           </span>
-          <span ref={rightChipRef} className="world-slider-chip is-right">
+          <span className="world-slider-chip is-right">
             {copy.aiWorld}
             <span className="world-slider-chip-tag"> · {activeWorld.tagR}</span>
           </span>
         </div>
-        <p className="world-slider-caption">{activeWorld.cap}</p>
+        <p className="world-slider-caption">
+          <span>{activeWorld.cap}</span>
+          <span>
+            {copy.realPlace} ← · → {copy.aiWorld}
+          </span>
+        </p>
       </div>
     </section>
   );

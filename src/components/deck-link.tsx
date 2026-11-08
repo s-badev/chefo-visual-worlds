@@ -4,6 +4,7 @@ import { AlbumStamp } from "@/components/album-stamp";
 import { albumText, getAlbums } from "@/content/albums";
 import { getAiCollections, getCollectionCover } from "@/content/ai-collections";
 import { LocaleLink } from "@/i18n/link";
+import { deckCoverSrc } from "@/lib/deck-covers";
 
 /** One mini item of the deck: an album stamp or a small cover image. */
 export type DeckItem =
@@ -34,7 +35,9 @@ function defaultItems(kind: DeckLinkProps["kind"]): DeckItem[] {
   }
   return getAiCollections().flatMap((collection) => {
     const cover = getCollectionCover(collection, "bg");
-    return cover ? [{ type: "image" as const, key: collection.slug, src: cover.image }] : [];
+    return cover
+      ? [{ type: "image" as const, key: collection.slug, src: deckCoverSrc(cover) }]
+      : [];
   });
 }
 

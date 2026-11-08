@@ -778,38 +778,44 @@ describe("Photography album overview", () => {
     expect(album.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
     cleanup();
 
-    const sharedDefault = render(<PortraitSwitch compact aiImage="/ai.png" />);
-    expect(sharedDefault.container.querySelector(".photo-frame-print")).toBeNull();
-    cleanup();
-
-    const sharedOptIn = render(<PortraitSwitch aiImage="/ai.png" frame="matted" />);
-    expect(sharedOptIn.container.querySelector(".photo-frame-print--portrait")).toBeInTheDocument();
+    // The portrait has its own paper-matted frame (the mock's .pf), not the print frame.
+    const shared = render(<PortraitSwitch aiImage="/ai.png" />);
+    expect(shared.container.querySelector(".photo-frame-print")).toBeNull();
+    expect(shared.container.querySelectorAll(".portrait-frame")).toHaveLength(1);
   });
 
-  it("opts About into the portrait frame while Home remains unframed", () => {
+  it("frames the portrait the same way on About and Home, as in the mock", () => {
     const about = render(<AboutView />);
-    expect(about.container.querySelectorAll(".photo-frame-print--portrait")).toHaveLength(1);
+    expect(about.container.querySelectorAll(".portrait-frame")).toHaveLength(1);
+    expect(about.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
     cleanup();
 
     const home = render(<HomeView />);
+    expect(home.container.querySelectorAll(".portrait-frame")).toHaveLength(1);
     expect(home.container.querySelector(".photo-frame-print, .photo-frame-keyline")).toBeNull();
   });
 
-  it("keeps both compact portrait versions in one cover-fitted ratio frame", () => {
+  it("keeps both portrait versions in one cover-fitted 4:5 frame", () => {
     activeLocale = "bg";
-    render(<PortraitSwitch compact aiImage="/ai.png" />);
+    render(<PortraitSwitch aiImage="/ai.png" />);
     const real = screen.getByRole("img", { name: messages.bg.portrait.realAlt });
     const frame = real.parentElement!;
-    expect(frame).toHaveClass("aspect-(--about-portrait-ratio)");
-    expect(real).toHaveClass("object-cover", "object-center");
+    expect(frame).toHaveClass("portrait-frame");
+    expect(real).toHaveClass("portrait-img");
 
     fireEvent.click(screen.getByRole("button", { name: messages.bg.portrait.ai }));
     const ai = screen.getByRole("img", { name: messages.bg.portrait.aiAlt });
     // The AI portrait lies in the same frame, inside the iris layer over the real one.
     expect(ai.closest("[data-portrait-frame]")).toBe(frame);
     expect(ai.parentElement).toHaveClass("portrait-iris");
-    expect(ai).toHaveClass("object-cover", "object-top");
+    expect(ai).toHaveClass("portrait-img");
     expect(ai.className).not.toMatch(/scale-|translate-/);
+    // Both are cover-fitted at 50% 25%, as in the mock.
+    const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
+    expect(css).toContain(".portrait-frame { position: relative; aspect-ratio: 4 / 5;");
+    expect(css).toContain(
+      ".portrait-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }",
+    );
   });
 
   it.each(["bg", "en"] as const)("removes the About creation pipeline in %s", (locale) => {

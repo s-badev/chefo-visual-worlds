@@ -1,6 +1,5 @@
 import { useState, type CSSProperties } from "react";
 import { siteConfig } from "@/content/site-config";
-import { cn } from "@/lib/utils";
 import { useT } from "@/i18n";
 import {
   IRIS,
@@ -10,34 +9,22 @@ import {
   type PortraitMode as Mode,
 } from "@/lib/portrait-iris";
 
-/** Portrait with explicit "Реален кадър" / "AI версия" toggle. Generated images are always labelled as AI. */
-export function PortraitSwitch({
-  compact,
-  className,
-  aiImage,
-  frame,
-}: {
-  compact?: boolean;
-  className?: string;
-  aiImage?: string;
-  frame?: "matted";
-}) {
+/**
+ * The author's portrait with the "Реален кадър" / "AI версия" switch, as in the approved mock
+ * (.pf / .ps): a 4:5 paper-matted frame with the real photograph and, over it, the AI version,
+ * which a circle opens from under the pressed button while a thin gold ring expands from the
+ * same point. Nothing is written on the photograph itself: the pressed segment is the only
+ * indication (aria-pressed for screen readers).
+ */
+export function PortraitSwitch({ className, aiImage }: { className?: string; aiImage?: string }) {
   const { real, ai: configuredAi } = siteConfig.portrait;
   const ai = aiImage ?? configuredAi;
   const modes = (ai ? ["real", "ai"] : ["real"]) as Mode[];
   const [mode, setMode] = useState<Mode>(!real && ai ? "ai" : "real");
-  const [originX, setOriginX] = useState(50);
+  const [originX, setOriginX] = useState<number>(IRIS.originX);
   const [ring, setRing] = useState<number | null>(null);
   const { t } = useT();
 
-  // Each portrait keeps the crop it had as the only image: compact frames cover-fit (the AI source
-  // has the least headroom, so it is anchored to the top); the matted frame shows the whole photo.
-  const realClass = cn("h-full w-full", compact ? "object-cover object-center" : "object-contain");
-  const aiClass = cn(
-    "h-full w-full",
-    compact ? "object-cover object-top" : aiImage ? "object-contain" : "object-cover",
-    !compact && aiImage && "translate-y-[8.7%] scale-[1.22]",
-  );
   const frameStyle = {
     "--iris-x": `${originX}%`,
     "--iris-y": IRIS.originY,
@@ -72,40 +59,25 @@ export function PortraitSwitch({
 
   return (
     <div className={className} data-portrait-switch="">
-      <div
-        data-portrait-frame=""
-        style={frameStyle}
-        className={cn(
-          "relative overflow-hidden rounded-md bg-muted",
-          compact ? "aspect-(--about-portrait-ratio)" : "aspect-[4/5]",
-          frame === "matted" && "photo-frame-print photo-frame-print--portrait",
-        )}
-      >
+      <div data-portrait-frame="" style={frameStyle} className="portrait-frame">
         {real ? (
           <img
             src={real}
             alt={t.portrait.realAlt}
             aria-hidden={mode === "ai" && ai ? true : undefined}
-            className={realClass}
+            className="portrait-img"
           />
         ) : (
-          !ai && (
-            <div className="grid h-full place-items-center border-2 border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              {t.portrait.placeholder}
-            </div>
-          )
+          !ai && <div className="portrait-placeholder">{t.portrait.placeholder}</div>
         )}
         {ai && (
-          // Over the real portrait, opened and closed by the iris; closed (hidden) without JS.
+          // Over the real portrait, opened and closed by the circle; closed (hidden) without JS.
           <div
             className="portrait-iris"
             aria-hidden={mode === "ai" ? undefined : true}
             style={{ clipPath: irisClip(mode === "ai") }}
           >
-            <img src={ai} alt={t.portrait.aiAlt} className={aiClass} />
-            <span className="eyebrow absolute left-3 top-3 rounded-sm bg-navy/80 px-2 py-1 text-gold">
-              {t.common.aiBadge}
-            </span>
+            <img src={ai} alt={t.portrait.aiAlt} className="portrait-img" />
           </div>
         )}
         {ring !== null && (
@@ -118,21 +90,14 @@ export function PortraitSwitch({
         )}
       </div>
       {modes.length > 1 && (
-        <div
-          role="group"
-          aria-label={t.portrait.group}
-          className="portrait-toggle mt-3 inline-flex rounded-sm border p-1"
-        >
+        <div role="group" aria-label={t.portrait.group} className="portrait-toggle">
           {modes.map((m) => (
             <button
               key={m}
               type="button"
               aria-pressed={mode === m}
               onClick={(e) => press(m, e.currentTarget)}
-              className={cn(
-                "interaction-control interaction-text-button min-h-11 rounded-sm border border-transparent py-1.5 text-xs font-semibold",
-                mode === m ? "border-primary bg-primary text-primary-foreground" : "",
-              )}
+              className="portrait-toggle-button"
             >
               {m === "real" ? t.portrait.real : t.portrait.ai}
             </button>

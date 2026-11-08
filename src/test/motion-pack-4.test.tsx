@@ -203,7 +203,7 @@ describe("About iris toggle", () => {
       state.locale = locale;
       media(false);
       const t = messages[locale];
-      const { container } = render(<PortraitSwitch compact aiImage="/ai.webp" />);
+      const { container } = render(<PortraitSwitch aiImage="/ai.webp" />);
       const [realImg, aiImg] = Array.from(container.querySelectorAll("img"));
       const layer = container.querySelector<HTMLElement>(".portrait-iris")!;
       expect(realImg).toHaveAttribute("alt", t.portrait.realAlt);
@@ -241,7 +241,7 @@ describe("About iris toggle", () => {
 
   it("switches at once without a ring under reduced motion", () => {
     media(true);
-    const { container } = render(<PortraitSwitch compact aiImage="/ai.webp" />);
+    const { container } = render(<PortraitSwitch aiImage="/ai.webp" />);
     fireEvent.click(screen.getByRole("button", { name: messages.bg.portrait.ai }));
     expect(container.querySelector<HTMLElement>(".portrait-iris")!.style.clipPath).toBe(
       irisClip(true),

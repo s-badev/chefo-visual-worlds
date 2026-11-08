@@ -3,7 +3,7 @@ export type PortraitMode = "real" | "ai";
 /*
  * Tuning, in one place: the "Реален кадър / AI версия" iris. The AI portrait lies over the real one,
  * clipped to a circle that opens from under the pressed button (x) at the frame's bottom edge, while
- * a thin gold ring expands from the same point. styles.css (.portrait-iris*) reads these values.
+ * a thin (1.5px) gold ring expands from the same point. styles.css (.portrait-iris*) reads these values.
  */
 export const IRIS = {
   durationMs: 900,
@@ -15,6 +15,8 @@ export const IRIS = {
   ringOpacity: 0.9,
   /** Origin height: the frame's bottom edge. */
   originY: "100%",
+  /** Origin x (% of the frame width) before any press, as in the mock (--ox: 75%). */
+  originX: 75,
 } as const;
 
 /** Origin x (% of the frame width) under the centre of the pressed button, kept inside the frame. */
