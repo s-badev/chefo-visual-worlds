@@ -182,11 +182,12 @@ describe("album rows", () => {
     const { container } = render(<PhotographyView />);
     const selected = () =>
       Array.from(container.querySelectorAll('[data-selected="true"]')).map((el) => el.textContent);
-    expect(selected()).toHaveLength(1);
-    expect(selected()[0]).toContain("София");
+    expect(selected()).toHaveLength(0);
     fireEvent.mouseEnter(listRow(container, "Париж"));
     expect(selected()).toHaveLength(1);
     expect(selected()[0]).toContain("Париж");
+    fireEvent.mouseLeave(listRow(container, "Париж"));
+    expect(selected()).toHaveLength(0);
     expect(css).toContain(
       '.photography-editorial-row[data-selected="true"] { padding-left: var(--row-slide); }',
     );

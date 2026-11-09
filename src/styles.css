@@ -7978,3 +7978,63 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
 .ai-prompt-label {
   font-family: "Cormorant Garamond", "Cormorant Label Fallback", Georgia, serif;
 }
+
+/* Stage 9e · owner polish: flush page canvas, shared section labels, transient album highlight
+   and a glass collection band. Hero copy, card effects and metadata retain their own sizes. */
+:root {
+  --section-eyebrow-size: 12px;
+}
+html {
+  background-color: var(--navy);
+}
+body > header.sticky {
+  top: 0;
+  inset-block-start: 0;
+}
+/* The desktop header is 72px, not the old 4rem/64px. Its transparent top must show the Hero,
+   rather than the 8px of cream canvas left between the header's start and the picture. */
+.home-hero {
+  margin-top: calc(-1 * var(--site-header-h));
+}
+.section-eyebrow,
+.photography-editorial-heading .eyebrow,
+.world-slider-heading .eyebrow,
+.ai-eyebrow,
+.about-page-eyebrow,
+.album-highlights-label {
+  font-size: var(--section-eyebrow-size);
+}
+@media (min-width: 1024px) {
+  :root {
+    --section-eyebrow-size: clamp(13px, calc(10.53846px + 0.240385vw), 14px);
+  }
+}
+/* aria-current continues to describe the preview for assistive technology. Only an interaction
+   highlights a row; retaining a preview after mouseleave does not retain its visual selection. */
+.photography-editorial-row[aria-current="true"]:not([data-selected="true"])
+  .photography-editorial-row-arrow {
+  transform: none;
+}
+.photography-editorial-row[data-selected="true"] .photography-editorial-row-arrow,
+.photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+  transform: translateX(var(--arrow-slide));
+}
+.photography-editorial-row:focus-visible .photography-editorial-destination-name {
+  color: var(--gold-ink);
+}
+.ai-index .ai-tabs-band {
+  background-color: rgb(12 23 41 / 0.62);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  backdrop-filter: blur(14px) saturate(1.12);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .ai-index .ai-tabs-band {
+    background-color: rgb(12 23 41 / 0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photography-editorial-row[data-selected="true"] .photography-editorial-row-arrow,
+  .photography-editorial-row:focus-visible .photography-editorial-row-arrow {
+    transform: none;
+  }
+}

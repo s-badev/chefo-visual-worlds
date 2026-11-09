@@ -38,6 +38,7 @@ import {
   type PreviewLayer,
 } from "@/lib/album-preview";
 import { ALBUM_LAYOUT } from "@/lib/album-layout";
+import { passportWorldSlide } from "@/lib/passport-world";
 
 /** The album's preview image: its cover, else its first photo, else a typographic panel. */
 const previewOf = (album: Album) => {
@@ -244,6 +245,7 @@ export function PhotographyEditorial() {
   // Mobile model (sticky caption, two taps): container <= 767px.
   const mobile = sectionWidth > 0 && sectionWidth <= ALBUM_LAYOUT.mobileMaxWidth;
   const [current, setCurrent] = useState(firstSlug);
+  const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
   const [mobileSelectedSlug, setMobileSelectedSlug] = useState<string | null>(null);
   const [layers, setLayers] = useState<PreviewLayer[]>([{ key: 0, slug: firstSlug, dir: null }]);
   const [passport, setPassport] = useState<PassportState>(EMPTY_PASSPORT);
@@ -302,6 +304,7 @@ export function PhotographyEditorial() {
   const activateRow = useCallback(
     (slug: string, rowEl: HTMLElement | null) => {
       if (!enabled) return;
+      setHighlightedSlug(slug);
       select(slug, rowEl);
       stamp(slug);
     },
@@ -412,6 +415,9 @@ export function PhotographyEditorial() {
   }, [enabled, mobile, engaged, current, albums]);
 
   const currentAlbum = getAlbum(current) ?? albums[0]!;
+  const destination = passportWorldSlide(currentAlbum.slug);
+  const destinationCity = destination.name[locale];
+  const destinationSearch = { world: destination.slug };
   const currentIndex = Math.max(
     0,
     albums.findIndex((album) => album.slug === currentAlbum.slug),
@@ -503,8 +509,13 @@ export function PhotographyEditorial() {
                 )}
               </span>
               {finaleStarted ? (
-                <LocaleLink to="/ai-worlds" className="photography-editorial-complete-link-compact">
-                  {t.photos.passportToAi}
+                <LocaleLink
+                  to="/ai-worlds"
+                  search={destinationSearch}
+                  aria-label={t.photos.passportToCityLabel(destinationCity)}
+                  className="photography-editorial-complete-link-compact"
+                >
+                  {t.photos.passportToCity(destinationCity)}
                 </LocaleLink>
               ) : (
                 <span className="photography-editorial-passport-hint">
@@ -536,7 +547,14 @@ export function PhotographyEditorial() {
                     key={album.id}
                     data-album-slug={album.slug}
                     onMouseEnter={(e) => activateRow(album.slug, e.currentTarget)}
+                    onMouseLeave={(e) => {
+                      if (!e.currentTarget.contains(document.activeElement))
+                        setHighlightedSlug(null);
+                    }}
                     onFocus={(e) => activateRow(album.slug, e.currentTarget)}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) setHighlightedSlug(null);
+                    }}
                     onClickCapture={(e) => handleRowClickCapture(e, album.slug)}
                     onKeyDown={(e) => handleRowKeyDown(e, index)}
                   >
@@ -548,7 +566,7 @@ export function PhotographyEditorial() {
                         (enabled && album.slug === current) || isMobileSelected ? "true" : undefined
                       }
                       data-mobile-selected={isMobileSelected ? "true" : undefined}
-                      data-selected={enabled && album.slug === current ? "true" : undefined}
+                      data-selected={enabled && album.slug === highlightedSlug ? "true" : undefined}
                       className="photography-editorial-row"
                     >
                       {localizedCover && (
@@ -799,8 +817,13 @@ export function PhotographyEditorial() {
                 )}
               </div>
               {finaleCtaVisible && (
-                <LocaleLink to="/ai-worlds" className="photography-editorial-complete-link">
-                  {t.photos.passportToAi}
+                <LocaleLink
+                  to="/ai-worlds"
+                  search={destinationSearch}
+                  aria-label={t.photos.passportToCityLabel(destinationCity)}
+                  className="photography-editorial-complete-link"
+                >
+                  {t.photos.passportToCity(destinationCity)}
                 </LocaleLink>
               )}
               <ul className="photography-editorial-passport-grid">
