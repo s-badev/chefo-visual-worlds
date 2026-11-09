@@ -77,10 +77,10 @@ afterEach(() => {
 });
 
 describe("9G.1 · the AI portrait keeps the head where the real photo has it", () => {
-  // Landmarks measured on the source files (YuNet, confirmed by hand), as shares of the frame:
-  // the real photo is 4:5 (no crop); the AI king is cropped to 4:5 by object-fit: cover.
-  const real = { eye: [0.521517, 0.383181], iod: 0.179396 };
-  const ai = { eye: [0.561296, 0.244813], iod: 0.091303 };
+  // Stage 9h: manually refined source landmarks, confirmed with the 50% file overlay.
+  // The new AI asset is aligned in the file and uses the real portrait's aspect ratio.
+  const real = { eye: [0.519162, 0.383738], iod: 0.186411 };
+  const ai = { eye: [0.519162, 0.38437], iod: 0.192511 };
   const read = (name: string) => {
     const m = css.match(new RegExp(`--about-ai-${name}: (-?[\\d.]+)(%?);`));
     if (!m) throw new Error(`--about-ai-${name} missing`);
@@ -88,9 +88,7 @@ describe("9G.1 · the AI portrait keeps the head where the real photo has it", (
   };
 
   it("holds the three alignment values in one block that a regenerated picture resets", () => {
-    expect(block).toContain(
-      ":root { --about-ai-scale: 1.965; --about-ai-x: -58.14%; --about-ai-y: -9.79%; }",
-    );
+    expect(block).toContain(":root { --about-ai-scale: 1; --about-ai-x: 0%; --about-ai-y: 0%; }");
   });
 
   it("puts the AI eye line and eye distance on the real photo's, within 2% of the frame height", () => {
@@ -110,11 +108,9 @@ describe("9G.1 · the AI portrait keeps the head where the real photo has it", (
     expect(y + s).toBeGreaterThanOrEqual(1);
   });
 
-  it("applies the transform to the AI picture only", () => {
-    expect(rules(".portrait-iris .portrait-img")).toEqual([
-      "transform-origin: 0 0; transform: translate(var(--about-ai-x), var(--about-ai-y)) scale(var(--about-ai-scale));",
-    ]);
-    // No other rule in the whole sheet transforms .portrait-img.
+  it("needs no CSS transform on either portrait", () => {
+    expect(rules(".portrait-iris .portrait-img")).toEqual([]);
+    // Neither picture is transformed: alignment belongs to the new image file.
     const others = css.match(/[^{}]*\.portrait-img[^{}]*\{[^}]*\}/g) ?? [];
     for (const rule of others) {
       if (rule.includes(".portrait-iris .portrait-img")) continue;
