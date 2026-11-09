@@ -4095,7 +4095,6 @@ a.next-album-card:focus-visible .next-album-card-arrow {
   position: relative;
   isolation: isolate;
   padding-block: 50px clamp(48px, 6vw, 80px);
-  overflow: hidden;
   background-color: #0c1729;
 }
 /* The mock's column (.wrap): 1240px with 40px gutters (16px on phones). */
@@ -4111,18 +4110,28 @@ a.next-album-card:focus-visible .next-album-card-arrow {
 }
 /* Blurred backdrop, as in the mock (.sl-bg): the chosen world's AI image behind the whole section.
    Its blur is static; only opacity changes, and only when the world changes (never while the
-   divider moves). The wash darkens it towards the bottom, into the navy of the next section. */
+   divider moves). Stage 9d (owner decision): it runs on --ai-merge-out below the section, behind
+   the AI intro, where the first hall's scene (or the All works veil) takes over; the wash keeps
+   the slider's look above its bottom edge and lets the ambient through below it. */
 .world-slider-backdrop {
   position: absolute;
   z-index: -1;
-  inset: 0;
+  inset: 0 0 calc(-1 * var(--ai-merge-out));
+  overflow: hidden;
   pointer-events: none;
 }
 .world-slider-backdrop::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgb(12 23 41 / 0.55), rgb(12 23 41 / 0.25) 40%, #0c1729);
+  background: linear-gradient(
+    180deg,
+    rgb(12 23 41 / 0.55) 0,
+    rgb(12 23 41 / 0.25) calc(40% - 224px),
+    rgb(12 23 41 / 0.42) calc(100% - var(--ai-merge-out)),
+    rgb(12 23 41 / 0.5) calc(100% - 140px),
+    #0c1729 100%
+  );
 }
 .world-slider-backdrop-layer {
   position: absolute;
@@ -7281,19 +7290,16 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
   background: #0c1729;
   color: rgb(244 238 226 / 0.74);
 }
+/* Stage 9d (owner decision): the footer shares the header row's container (full width, the
+   --home-gutter inset), so its logo and its right-most item line up with the header's at every
+   width; the page content columns keep their own container. */
 .site-footer-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 28px 40px;
-  width: min(1240px, 100%);
-  margin-inline: auto;
-  padding-inline: 16px;
-}
-@media (min-width: 768px) {
-  .site-footer-grid {
-    padding-inline: 40px;
-  }
+  width: 100%;
+  padding-inline: var(--home-gutter);
 }
 .site-footer .brand-lockup {
   display: inline-flex;
@@ -7408,4 +7414,104 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
 .photo-filters,
 .photo-filters button {
   font-family: "Manrope", "Manrope Chip Fallback", "Manrope Chip Fallback Arial", system-ui, sans-serif;
+}
+
+/*
+ * Stage 9d · AI Worlds index: one continuous backdrop (owner decision, after the mock).
+ * The slider's blurred ambient no longer ends in a flat navy band: it runs on below the slider
+ * (--ai-merge-out) behind the intro. In Collections the first hall's blurred scene reaches up
+ * (--ai-merge-in) over the tab band and the intro and fades in on top of it, so the two scenes
+ * cross-fade over the same navy. In All works a navy veil anchored to the grid's top fades the
+ * ambient out over the intro instead. Only the ambient layers change; the images, the intro and
+ * the tab band stay as they were. Static paint: the blur never animates.
+ */
+:root {
+  /* Longer than the intro plus the tab band at every width (at most 444px, measured), shorter
+     than the first hall (at least 579px) and the works block (at least 1457px) that cover its end. */
+  --ai-merge-out: 560px;
+  /* How far the first hall's scene (and in All works the veil) reaches above its own top. */
+  --ai-merge-in: 420px;
+}
+/* The slider's backdrop and wash are extended in place (see .world-slider-backdrop above). */
+/* The intro sits above every ambient layer; its own background stays transparent. */
+.ai-intro {
+  position: relative;
+  z-index: 1;
+}
+/* Collections: the first hall's scene reaches up and eases in (smooth ramp) over the slider's
+   ambient; its scrim reaches up too, as a veil that keeps the intro's text at AA where the scene
+   is brightest, and returns to the hall's own 0.34 at the hall's top (no step there). */
+.ai-hall:first-of-type {
+  overflow: clip visible;
+}
+.ai-hall:first-of-type::before {
+  top: calc(-1 * var(--ai-merge-in));
+  background: linear-gradient(
+    to bottom,
+    rgb(12 23 41 / 0) 0,
+    rgb(12 23 41 / 0.3) calc(var(--ai-merge-in) * 0.25),
+    rgb(12 23 41 / 0.62) calc(var(--ai-merge-in) * 0.55),
+    rgb(12 23 41 / 0.62) calc(var(--ai-merge-in) * 0.8),
+    rgb(12 23 41 / 0.34) var(--ai-merge-in),
+    rgb(12 23 41 / 0.34) 100%
+  );
+}
+.ai-hall:first-of-type .ai-hall-bg {
+  top: calc(-1 * var(--ai-merge-in));
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgb(0 0 0 / 0.05) calc(var(--ai-merge-in) * 0.25),
+    rgb(0 0 0 / 0.22) calc(var(--ai-merge-in) * 0.5),
+    rgb(0 0 0 / 0.5) calc(var(--ai-merge-in) * 0.75),
+    #000 var(--ai-merge-in),
+    #000 calc(100% - 90px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgb(0 0 0 / 0.05) calc(var(--ai-merge-in) * 0.25),
+    rgb(0 0 0 / 0.22) calc(var(--ai-merge-in) * 0.5),
+    rgb(0 0 0 / 0.5) calc(var(--ai-merge-in) * 0.75),
+    #000 var(--ai-merge-in),
+    #000 calc(100% - 90px),
+    transparent 100%
+  );
+}
+/* All works: the block is a centred column, so its opaque navy is a full-bleed layer under it,
+   and a veil above it fades the slider ambient out over the intro, ending in navy at its top. */
+.ai-index {
+  overflow-x: clip;
+}
+.ai-works {
+  position: relative;
+  z-index: 0;
+}
+.ai-works::before,
+.ai-works::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  pointer-events: none;
+}
+.ai-works::before {
+  bottom: 100%;
+  height: var(--ai-merge-in);
+  background: linear-gradient(
+    180deg,
+    rgb(12 23 41 / 0) 0,
+    rgb(12 23 41 / 0.08) 25%,
+    rgb(12 23 41 / 0.32) 50%,
+    rgb(12 23 41 / 0.68) 75%,
+    #0c1729 100%
+  );
+}
+.ai-works::after {
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  background-color: var(--ai-navy-0);
 }
