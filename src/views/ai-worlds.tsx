@@ -47,8 +47,10 @@ import { adjacentWork, getWorkCollectionPosition } from "@/lib/ai-work-nav";
 import { formatDate, getMessages, notFoundHead, pageHead, useT, type Locale } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import { thumbAt } from "@/lib/lightbox";
+import { validateWorld, type PassportWorld } from "@/lib/passport-world";
 
 export type AiSearch = AiFilterValues & {
+  world?: PassportWorld | undefined;
   view?: "works" | undefined;
   /** All works filtered to one collection (its slug). */
   collection?: string | undefined;
@@ -56,7 +58,9 @@ export type AiSearch = AiFilterValues & {
 
 export const validateAiSearch = (s: Record<string, unknown>): AiSearch => {
   const options = getAiFilterOptions();
+  const world = validateWorld(s["world"]);
   return {
+    ...(world ? { world } : {}),
     view: s["view"] === "works" ? "works" : undefined,
     collection: getAiCollections().find((c) => c.slug === s["collection"])?.slug,
     category: options.categories.find((value) => value === s["category"]),
@@ -116,7 +120,7 @@ export function AiWorldsView() {
 
   return (
     <>
-      <WorldSlider />
+      <WorldSlider key={search.world ?? "sofia"} initialWorld={search.world} />
 
       <Surface tone="dark" as="div" className="ai-index">
         <section aria-labelledby="ai-index-title" className="ai-intro">

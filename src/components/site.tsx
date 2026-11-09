@@ -433,7 +433,7 @@ export function PageHeader({
 }) {
   return (
     <header className={cn("max-w-2xl", className)}>
-      <p className="eyebrow text-eyebrow">{eyebrow}</p>
+      <p className="eyebrow section-eyebrow text-eyebrow">{eyebrow}</p>
       <h1 className={cn("mt-3", size === "page" ? "title-page" : "title-detail")}>{title}</h1>
       {intro && <p className="lead mt-5 max-w-xl text-muted-foreground">{intro}</p>}
     </header>
@@ -455,7 +455,7 @@ export function SectionHeading({
   const cut = emphasis === "last" ? title.lastIndexOf(" ") : -1;
   return (
     <div className="max-w-2xl" {...reveal()}>
-      {eyebrow && <p className="eyebrow text-eyebrow">{eyebrow}</p>}
+      {eyebrow && <p className="eyebrow section-eyebrow text-eyebrow">{eyebrow}</p>}
       <h2 className="title-section mt-3">
         {cut > 0 ? (
           <>
