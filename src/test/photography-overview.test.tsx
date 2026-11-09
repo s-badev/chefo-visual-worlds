@@ -442,7 +442,7 @@ describe("Photography album overview", () => {
     );
     expect(container.querySelector(".photography-editorial-complete-link")).toBeNull();
     act(() => vi.advanceTimersByTime(450));
-    expect(screen.getAllByRole("link", { name: "To Istanbul in the AI worlds" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "To the Istanbul album" })).toHaveLength(2);
 
     fireEvent.mouseEnter(rows[0]!);
     expect(container.querySelectorAll("[data-passport-live]")).toHaveLength(1);
@@ -487,7 +487,7 @@ describe("Photography album overview", () => {
       expect(
         container.querySelector(".photography-editorial-complete-seal-compact"),
       ).not.toBeNull();
-      expect(screen.getAllByRole("link", { name: "Към Истанбул в AI световете" })).toHaveLength(2);
+      expect(screen.getAllByRole("link", { name: "Към албума Истанбул" })).toHaveLength(2);
       expect(container.querySelector("[data-passport-live]")).toHaveTextContent(
         "Паспортът е завършен: всички 13 албума",
       );

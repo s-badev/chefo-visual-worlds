@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WORLD_SLIDES, localizeWorldSlide } from "@/content/world-slider";
 import { useT } from "@/i18n";
-import type { PassportWorld } from "@/lib/passport-world";
 
 const START_POSITION = 0.5;
 const MOBILE_QUERY = "(max-width: 760px)";
@@ -13,21 +12,17 @@ type IdleWindow = Window & {
   cancelIdleCallback?: (handle: number) => void;
 };
 
-export function WorldSlider({ initialWorld }: { initialWorld?: PassportWorld | undefined }) {
+export function WorldSlider() {
   const { locale, t } = useT();
   const copy = t.home.worldSlider;
   // The second half of the title ("друго време" / "another time") is set in gold italics.
   const cut = copy.title.indexOf(", ");
   const titleLead = cut >= 0 ? copy.title.slice(0, cut + 2) : copy.title;
   const titleEm = cut >= 0 ? copy.title.slice(cut + 2) : "";
-  const initialIndex = Math.max(
-    0,
-    WORLD_SLIDES.findIndex((world) => world.slug === initialWorld),
-  );
-  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [activeIndex, setActiveIndex] = useState(0);
   // Worlds whose blurred backdrop has an image: a world's backdrop takes its AI image (already
   // loaded or preloaded by the slider) once the world is chosen, and keeps it for the cross-fade.
-  const [backdropWorlds, setBackdropWorlds] = useState<readonly number[]>([initialIndex]);
+  const [backdropWorlds, setBackdropWorlds] = useState<readonly number[]>([0]);
   const activeWorld = localizeWorldSlide(WORLD_SLIDES[activeIndex]!, locale);
 
   const stageRef = useRef<HTMLDivElement>(null);

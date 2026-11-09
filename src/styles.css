@@ -8038,3 +8038,10 @@ body > header.sticky {
     transform: none;
   }
 }
+
+/* Stage 9f · the compact passport also appears on narrow desktop layouts. */
+@media (min-width: 1024px) {
+  .photography-editorial-complete-link-compact {
+    min-height: 48px;
+  }
+}
