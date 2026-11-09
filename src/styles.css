@@ -8246,3 +8246,8 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
   --about-ai-x: 0%;
   --about-ai-y: 0%;
 }
+
+/* Stage 9i: both portrait files are the exact 4:5 frame; no crop compensation. */
+.portrait-img {
+  object-position: 50% 50%;
+}

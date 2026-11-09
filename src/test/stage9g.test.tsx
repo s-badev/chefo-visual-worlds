@@ -77,10 +77,10 @@ afterEach(() => {
 });
 
 describe("9G.1 · the AI portrait keeps the head where the real photo has it", () => {
-  // Stage 9h: manually refined source landmarks, confirmed with the 50% file overlay.
-  // The new AI asset is aligned in the file and uses the real portrait's aspect ratio.
-  const real = { eye: [0.519162, 0.383738], iod: 0.186411 };
-  const ai = { eye: [0.519162, 0.38437], iod: 0.192511 };
+  // Stage 9i: the real crop follows the native AI close-up (50% file overlay).
+  // Both files are 912 by 1140; CSS no longer compensates for either image.
+  const real = { eye: [0.535636, 0.47853], iod: 0.262139 };
+  const ai = { eye: [0.535636, 0.479386], iod: 0.270833 };
   const read = (name: string) => {
     const m = css.match(new RegExp(`--about-ai-${name}: (-?[\\d.]+)(%?);`));
     if (!m) throw new Error(`--about-ai-${name} missing`);

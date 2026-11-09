@@ -21,7 +21,7 @@ afterEach(() => {
 describe("stage 9h file-aligned About portrait", () => {
   it("uses the new WebP and neutral values without a portrait transform", () => {
     expect(siteConfig.portrait.ai).toContain("about-ai.webp");
-    expect(siteConfig.portrait.real).toContain("about-real.webp");
+    expect(siteConfig.portrait.real).toContain("about-real-close.webp");
     const css = readFileSync("src/styles.css", "utf8");
     const neutral = css.split("/* Stage 9h")[1]!;
     expect(neutral).toContain("--about-ai-scale: 1;");
