@@ -1,5 +1,5 @@
 // Editable site settings.
-import aiPortrait from "@/assets/ai-knight.webp";
+import aiPortrait from "@/assets/about-ai.webp";
 import realPortrait from "@/assets/about-real.webp";
 
 export const siteConfig = {

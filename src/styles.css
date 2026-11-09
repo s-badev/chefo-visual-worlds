@@ -8049,22 +8049,7 @@ body > header.sticky {
 /* ==== Stage 9g · About portrait alignment, header on dark pages, tab band at rest, pill states,
    back-to-top filled state. ==== */
 
-/* 9G.1 · The AI portrait keeps the head where the real photograph has it. Measured on the source
-   files (YuNet landmarks, confirmed by hand): real photo, eye midpoint 0.5215 / 0.3832 of the frame,
-   interocular distance 0.1794 of the frame width; the AI king as the frame crops it (cover, 4:5),
-   eye midpoint 0.5613 / 0.2448, interocular 0.0913. One uniform scale of 1.965 about the frame's
-   top-left corner and a shift of -58.14% / -9.79% of the frame bring both onto the real photo's
-   eye line and eye distance, and the picture still covers the frame (no empty edge). A regenerated
-   portrait resets the three values to 1 / 0% / 0%. Applied to the AI picture only. */
-:root {
-  --about-ai-scale: 1.965;
-  --about-ai-x: -58.14%;
-  --about-ai-y: -9.79%;
-}
-.portrait-iris .portrait-img {
-  transform-origin: 0 0;
-  transform: translate(var(--about-ai-x), var(--about-ai-y)) scale(var(--about-ai-scale));
-}
+/* 9G.1 · Superseded by the file-aligned portrait in stage 9h. No CSS image compensation. */
 
 /* 9G.2 · Header on dark pages. A dark header is 72% navy, so over the cream canvas that lies under
    it at the top of a page (the dark page starts at its bottom edge) it mixed to grey (78, 85, 94).
@@ -8253,4 +8238,11 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
   .back-to-top-ring {
     transition: none;
   }
+}
+
+/* Stage 9h · the supplied AI portrait is aligned in the file, not by CSS. */
+:root {
+  --about-ai-scale: 1;
+  --about-ai-x: 0%;
+  --about-ai-y: 0%;
 }
