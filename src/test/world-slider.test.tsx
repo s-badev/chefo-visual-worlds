@@ -175,17 +175,22 @@ describe("WorldSlider", () => {
         new RegExp(`(?:^|[}\\s])${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{([^}]*)\\}`),
       )?.[1] ?? "";
     const section = body(".world-slider-section");
-    expect(section).toContain("overflow: hidden");
+    // Stage 9d: the section no longer clips; the backdrop clips itself and runs on below the
+    // section (behind the AI intro) so it can merge into the first hall's scene.
+    expect(section).not.toContain("overflow: hidden");
     expect(section).toContain("isolation: isolate");
     const backdrop = body(".world-slider-backdrop");
     expect(backdrop).toContain("z-index: -1");
     expect(backdrop).toContain("pointer-events: none");
-    // Stage 9a: the mock's backdrop (.sl-bg + .sl::after): a lighter blur, a top-to-bottom wash
-    // into the navy of the next section, no mask.
+    expect(backdrop).toContain("inset: 0 0 calc(-1 * var(--ai-merge-out))");
+    expect(backdrop).toContain("overflow: hidden");
+    // Stage 9a: the mock's backdrop (.sl-bg + .sl::after): a lighter blur, a top-to-bottom wash,
+    // no mask. Stage 9d: the wash ends in navy only at the end of the extension, not at the
+    // slider's bottom edge (no flat band before the halls).
     expect(backdrop).not.toContain("mask-image");
     const wash = body(".world-slider-backdrop::after");
     expect(wash).toContain(
-      "linear-gradient(180deg, rgb(12 23 41 / 0.55), rgb(12 23 41 / 0.25) 40%, #0c1729)",
+      "linear-gradient( 180deg, rgb(12 23 41 / 0.55) 0, rgb(12 23 41 / 0.25) calc(40% - 224px), rgb(12 23 41 / 0.42) calc(100% - var(--ai-merge-out)), rgb(12 23 41 / 0.5) calc(100% - 140px), #0c1729 100% )",
     );
     const layer = body(".world-slider-backdrop-layer");
     expect(layer).toContain("inset: -5%");
