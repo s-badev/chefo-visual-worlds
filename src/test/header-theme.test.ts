@@ -51,13 +51,15 @@ describe("getInitialHeaderTheme", () => {
     ["/photography/edirne", "light"],
     ["/ai-worlds", "dark"],
     ["/ai-worlds/collections/professions-roles", "dark"],
-    ["/ai-worlds/chefo-srednovekoven-ritsar", "light"],
-    ["/ai-worlds/chefo-v-sauditska-arabiya", "light"],
+    // Stage 9g (owner decision): an artwork page is a dark page, its header navy at the top.
+    ["/ai-worlds/chefo-srednovekoven-ritsar", "dark"],
+    ["/ai-worlds/chefo-v-sauditska-arabiya", "dark"],
     ["/about", "light"],
     ["/photography/albums/not-a-real-album", "light"],
     ["/photography/not-a-real-photo", "light"],
     ["/ai-worlds/collections/not-a-real-collection", "dark"],
-    ["/ai-worlds/not-a-real-artwork", "light"],
+    // Unknown artwork: the path alone cannot tell, the probe corrects it after mounting.
+    ["/ai-worlds/not-a-real-artwork", "dark"],
     ["/missing", "light"],
   ] as const;
 

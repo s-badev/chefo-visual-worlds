@@ -473,12 +473,12 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
   return (
     <Surface tone="dark" as="article" className="ai-work-page">
       {position ? (
-        <div data-header-theme="light" className="container-page pt-8 md:pt-10">
+        <div data-header-theme="dark" className="container-page pt-8 md:pt-10">
           <AiArtworkWayfinder current={position} onOpenChange={setSwitcherOpen} />
         </div>
       ) : (
         <nav
-          data-header-theme="light"
+          data-header-theme="dark"
           aria-label={m.title}
           className="container-page pt-10 text-sm md:pt-14"
         >

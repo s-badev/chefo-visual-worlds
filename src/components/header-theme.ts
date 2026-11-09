@@ -26,7 +26,8 @@ export function getInitialHeaderTheme(pathname: string): HeaderTheme {
   // The collection not-found view also uses a dark Surface.
   if (collection) return "dark";
 
+  // An artwork page is a dark page (its header is navy at the top, like the collections').
   const artwork = path.match(/^\/ai-worlds\/([^/]+)\/?$/);
-  if (artwork) return "light";
+  if (artwork) return "dark";
   return "light";
 }

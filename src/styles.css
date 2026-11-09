@@ -8045,3 +8045,212 @@ body > header.sticky {
     min-height: 48px;
   }
 }
+
+/* ==== Stage 9g · About portrait alignment, header on dark pages, tab band at rest, pill states,
+   back-to-top filled state. ==== */
+
+/* 9G.1 · The AI portrait keeps the head where the real photograph has it. Measured on the source
+   files (YuNet landmarks, confirmed by hand): real photo, eye midpoint 0.5215 / 0.3832 of the frame,
+   interocular distance 0.1794 of the frame width; the AI king as the frame crops it (cover, 4:5),
+   eye midpoint 0.5613 / 0.2448, interocular 0.0913. One uniform scale of 1.965 about the frame's
+   top-left corner and a shift of -58.14% / -9.79% of the frame bring both onto the real photo's
+   eye line and eye distance, and the picture still covers the frame (no empty edge). A regenerated
+   portrait resets the three values to 1 / 0% / 0%. Applied to the AI picture only. */
+:root {
+  --about-ai-scale: 1.965;
+  --about-ai-x: -58.14%;
+  --about-ai-y: -9.79%;
+}
+.portrait-iris .portrait-img {
+  transform-origin: 0 0;
+  transform: translate(var(--about-ai-x), var(--about-ai-y)) scale(var(--about-ai-scale));
+}
+
+/* 9G.2 · Header on dark pages. A dark header is 72% navy, so over the cream canvas that lies under
+   it at the top of a page (the dark page starts at its bottom edge) it mixed to grey (78, 85, 94).
+   At rest it is the page's own deep navy; once the page has scrolled (data-scrolled) it is the glass
+   again. Home and album covers keep their transparent top (data-transparent). */
+header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
+  background-color: rgb(12 23 41);
+}
+
+/* 9G.3 · The collection tab band. At rest only the pills float on the shared backdrop: no fill and
+   no hairlines. Stuck under the header (data-stuck, set by an observer on the band) it is the
+   glass of stage 9e with one hairline at its bottom edge. The hairline is a shadow, so the band
+   never changes height between the two states. */
+.collection-tabs,
+.collection-tabs[data-mode="links"],
+.ai-index .ai-tabs-band {
+  top: var(--ai-tabs-top, var(--site-header-h));
+  border-block: 0;
+  background-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition:
+    background-color 220ms var(--motion-ease),
+    box-shadow 220ms var(--motion-ease);
+}
+.collection-tabs[data-stuck],
+.collection-tabs[data-mode="links"][data-stuck],
+.ai-index .ai-tabs-band[data-stuck] {
+  background-color: rgb(12 23 41 / 0.62);
+  box-shadow: 0 1px 0 rgb(246 240 228 / 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  backdrop-filter: blur(14px) saturate(1.12);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .collection-tabs[data-stuck],
+  .collection-tabs[data-mode="links"][data-stuck],
+  .ai-index .ai-tabs-band[data-stuck] {
+    background-color: rgb(12 23 41 / 0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collection-tabs,
+  .collection-tabs[data-mode="links"],
+  .ai-index .ai-tabs-band {
+    transition: none;
+  }
+}
+
+/* 9G.5 · Pill controls. The press used to paint --btn-active-bg (#b8935a, a brown gold) through
+   the shared :active rule and its twin for the Collections / All works switch, while the label's
+   colour was still travelling from cream to navy: a brown frame with an unreadable label. Now, on
+   every selection pill: hover and keyboard focus are a quiet fill, a 1px border and the full-contrast
+   label (cream on dark surfaces, navy on cream ones); a press shows the SELECTED look at once (no
+   transition, no translucent gold, no movement). The selected pill itself never changes. */
+.ai-view-switch-tab,
+.collection-tab,
+.ai-filter,
+.photo-seg-link,
+.photo-chip,
+.portrait-toggle-button {
+  transition:
+    background-color 180ms var(--motion-ease),
+    box-shadow 180ms var(--motion-ease),
+    color 180ms var(--motion-ease);
+}
+/* The tab pills float on the shared backdrop, which can be bright under them, so each inactive pill
+   carries its own translucent navy fill (the band itself stays empty). Hover and focus lay the
+   cream tint over that fill, so the label keeps its contrast. */
+.collection-tabs .collection-tab:not([data-current]) {
+  background-color: var(--tab-pill-fill);
+}
+:root {
+  --tab-pill-fill: rgb(12 23 41 / 0.62);
+}
+@media (hover: hover) and (pointer: fine) {
+  .collection-tabs .collection-tab:not([data-current]):hover {
+    background-image: linear-gradient(rgb(244 238 226 / 0.12), rgb(244 238 226 / 0.12));
+    box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.35);
+    color: #f4eee2;
+  }
+}
+.collection-tabs .collection-tab:not([data-current]):focus-visible {
+  background-image: linear-gradient(rgb(244 238 226 / 0.12), rgb(244 238 226 / 0.12));
+  box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.35);
+  color: #f4eee2;
+}
+/* Dark surfaces (cream on navy). */
+@media (hover: hover) and (pointer: fine) {
+  .ai-view-switch-tab:not([aria-pressed="true"]):hover,
+  .ai-filter:not([aria-pressed="true"]):hover {
+    background-color: rgb(244 238 226 / 0.12);
+    box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.35);
+    color: #f4eee2;
+  }
+}
+.ai-view-switch-tab:not([aria-pressed="true"]):focus-visible,
+.ai-filter:not([aria-pressed="true"]):focus-visible {
+  background-color: rgb(244 238 226 / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(244 238 226 / 0.35);
+  color: #f4eee2;
+}
+.ai-view-switch .ai-view-switch-tab:not([aria-pressed="true"]):active,
+.ai-view-switch[data-indicator] .ai-view-switch-tab:not([aria-pressed="true"]):active,
+.collection-tabs .collection-tab:not([data-current]):active,
+.collection-tab:not([data-current]):active,
+.ai-filter:not([aria-pressed="true"]):active {
+  background-color: var(--interaction-cream);
+  background-image: none;
+  box-shadow: none;
+  color: var(--navy);
+  transition: none;
+}
+/* Pressing the selected pill changes nothing. */
+.ai-view-switch .ai-view-switch-tab[aria-pressed="true"]:active,
+.ai-view-switch[data-indicator] .ai-view-switch-tab[aria-pressed="true"]:active {
+  background-color: var(--interaction-cream);
+  color: var(--navy);
+}
+/* Cream surfaces (navy on cream). */
+@media (hover: hover) and (pointer: fine) {
+  .photo-seg-link:not([aria-current="page"]):hover,
+  .photo-chip:not([aria-pressed="true"]):hover,
+  .portrait-toggle-button[aria-pressed="false"]:hover {
+    background-color: rgb(22 33 58 / 0.07);
+    box-shadow: inset 0 0 0 1px rgb(22 33 58 / 0.25);
+    color: var(--navy);
+  }
+}
+.photo-seg-link:not([aria-current="page"]):focus-visible,
+.photo-chip:not([aria-pressed="true"]):focus-visible,
+.portrait-toggle-button[aria-pressed="false"]:focus-visible {
+  background-color: rgb(22 33 58 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(22 33 58 / 0.25);
+  color: var(--navy);
+}
+.photo-seg-link:not([aria-current="page"]):active,
+.photo-chip:not([aria-pressed="true"]):active,
+.portrait-toggle-button[aria-pressed="false"]:active {
+  background-color: var(--navy);
+  box-shadow: none;
+  color: #f4eee2;
+  transition: none;
+}
+
+/* 9G.6 · Back to top: when the ring is complete (data-complete, 99%), and on hover and keyboard
+   focus at any progress, the button is a plain gold disc with a deep navy arrow (--navy, not the brown hover ink): no ring, no inner
+   tint. Pressed is the darker gold, a colour change only. */
+.back-to-top[data-complete],
+.back-to-top:focus-visible {
+  background-color: var(--btn-hover-bg);
+  color: var(--navy);
+}
+@media (hover: hover) and (pointer: fine) {
+  .back-to-top:hover {
+    background-color: var(--btn-hover-bg);
+    color: var(--navy);
+  }
+  .back-to-top:hover .back-to-top-ring {
+    opacity: 0;
+  }
+  .back-to-top:hover::before {
+    opacity: 0;
+  }
+}
+.back-to-top[data-complete] .back-to-top-ring,
+.back-to-top:focus-visible .back-to-top-ring {
+  opacity: 0;
+}
+.back-to-top[data-complete]::before,
+.back-to-top:focus-visible::before {
+  opacity: 0;
+}
+.back-to-top[data-complete]:active,
+.back-to-top:active {
+  background-color: var(--btn-active-bg);
+  color: var(--navy);
+}
+.back-to-top:active::before {
+  opacity: 0;
+}
+.back-to-top-ring {
+  transition: opacity 180ms var(--motion-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top-ring {
+    transition: none;
+  }
+}
