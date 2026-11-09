@@ -7,7 +7,7 @@ import { PhotographyEditorial } from "@/components/photography-editorial";
 import { WorldSlider } from "@/components/world-slider";
 import { getAlbums } from "@/content/albums";
 import { messages } from "@/i18n/messages";
-import { PASSPORT_WORLDS, passportWorld, passportWorldSlide } from "@/lib/passport-world";
+import { PASSPORT_ALBUMS, passportAlbum } from "@/lib/passport-album";
 import { HomeView } from "@/views/home";
 import { validateAiSearch } from "@/views/ai-worlds";
 
@@ -104,8 +104,8 @@ describe("stage 9e album rest state", () => {
   });
 });
 
-const expectedWorlds = [
-  "sofia",
+const expectedAlbums = [
+  "plovdiv",
   "istanbul",
   "istanbul",
   "istanbul",
@@ -113,19 +113,23 @@ const expectedWorlds = [
   "sofia",
   "sofia",
   "paris",
+  "lyon",
   "paris",
-  "paris",
-  "istanbul",
+  "edirne",
   "istanbul",
   "istanbul",
 ];
 
-describe("stage 9e passport destinations", () => {
-  it("maps all thirteen published albums to the approved worlds", () => {
+describe("stage 9f passport album destinations", () => {
+  it("maps all thirteen published albums to a different approved album", () => {
     const albums = getAlbums();
     expect(albums).toHaveLength(13);
-    expect(Object.keys(PASSPORT_WORLDS).sort()).toEqual(albums.map((album) => album.slug).sort());
-    expect(albums.map((album) => passportWorld(album.slug))).toEqual(expectedWorlds);
+    expect(Object.keys(PASSPORT_ALBUMS).sort()).toEqual(albums.map((album) => album.slug).sort());
+    expect(albums.map((album) => passportAlbum(album.slug).slug)).toEqual(expectedAlbums);
+    for (const album of albums) {
+      expect(passportAlbum(album.slug).slug).not.toBe(album.slug);
+      expect(passportAlbum(album.slug).status).toBe("published");
+    }
   });
 
   it.each(["bg", "en"] as const)("follows every completed passport album in %s", (language) => {
@@ -144,47 +148,65 @@ describe("stage 9e passport destinations", () => {
     expect(container.querySelector(".photography-editorial-visa")).toBeInTheDocument();
     for (const [index, album] of getAlbums().entries()) {
       fireEvent.mouseEnter(rows[index]!);
-      const world = passportWorldSlide(album.slug);
-      const city = world.name[language];
+      const destination = passportAlbum(album.slug);
+      const city = destination.title[language];
       const links = within(container).getAllByRole("link", {
-        name: messages[language].photos.passportToCityLabel(city),
+        name: language === "bg" ? `Към албума ${city}` : `To the ${city} album`,
       });
       expect(links).toHaveLength(2);
       for (const link of links) {
         expect(link).toHaveTextContent(messages[language].photos.passportToCity(city));
         expect(link).toHaveAttribute(
           "href",
-          `${language === "en" ? "/en" : ""}/ai-worlds?world=${world.slug}`,
+          `${language === "en" ? "/en" : ""}/photography/albums/${expectedAlbums[index]}`,
         );
+        expect(link.getAttribute("href")).not.toContain("/ai-worlds");
       }
     }
   });
 
-  it.each(["bg", "en"] as const)("selects all three worlds on the server in %s", (language) => {
+  it.each(["bg", "en"] as const)("keeps the default world on the server in %s", (language) => {
     locale = language;
     for (const world of ["sofia", "istanbul", "paris"] as const) {
       const search = validateAiSearch({ world });
-      expect(search.world).toBe(world);
-      const html = renderToString(<WorldSlider initialWorld={search.world} />);
+      expect(search).not.toHaveProperty("world");
+      const html = renderToString(<WorldSlider />);
       const document = new DOMParser().parseFromString(html, "text/html");
       expect(document.querySelector('[aria-pressed="true"]')?.textContent).toBe(
-        passportWorldSlide(world).name[language],
+        language === "bg" ? "София" : "Sofia",
       );
       expect(document.querySelector(".world-slider-real .is-active img")?.getAttribute("src")).toBe(
-        `/worlds/${world}-real.webp`,
+        "/worlds/sofia-real.webp",
       );
     }
   });
 
   it.each([undefined, null, "unknown", 2, ["paris"], { world: "paris" }])("rejects %s", (world) => {
-    expect(validateAiSearch({ world }).world).toBeUndefined();
-    const html = renderToString(<WorldSlider initialWorld={validateAiSearch({ world }).world} />);
+    expect(validateAiSearch({ world })).not.toHaveProperty("world");
+    const html = renderToString(<WorldSlider />);
     expect(html).toContain('src="/worlds/sofia-real.webp"');
     expect(
       new DOMParser().parseFromString(html, "text/html").querySelector('[aria-pressed="true"]')
         ?.textContent,
     ).toBe("София");
   });
+});
+
+it("keeps both overlay heroes tied to the actual header height", () => {
+  const css = readFileSync("src/styles.css", "utf8");
+  for (const selector of ["home-hero", "album-hero"]) {
+    const blocks = [...css.matchAll(new RegExp(`\\.${selector}\\s*\\{([^}]+)\\}`, "g"))];
+    const margins = blocks.flatMap((block) =>
+      [...block[1]!.matchAll(/margin-top:\s*([^;]+);/g)].map((match) => match[1]),
+    );
+    expect(margins.at(-1)).toBe("calc(-1 * var(--site-header-h))");
+  }
+});
+
+it("keeps the compact passport at the desktop target size", () => {
+  const css = readFileSync("src/styles.css", "utf8").split("/* Stage 9f")[1]!;
+  expect(css).toMatch(/@media \(min-width: 1024px\)/);
+  expect(css).toMatch(/\.photography-editorial-complete-link-compact\s*\{\s*min-height: 48px;/);
 });
 
 it("keeps section sizing scoped and provides glass plus a solid fallback", () => {

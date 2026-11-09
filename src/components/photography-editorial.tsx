@@ -38,7 +38,7 @@ import {
   type PreviewLayer,
 } from "@/lib/album-preview";
 import { ALBUM_LAYOUT } from "@/lib/album-layout";
-import { passportWorldSlide } from "@/lib/passport-world";
+import { passportAlbum } from "@/lib/passport-album";
 
 /** The album's preview image: its cover, else its first photo, else a typographic panel. */
 const previewOf = (album: Album) => {
@@ -415,9 +415,8 @@ export function PhotographyEditorial() {
   }, [enabled, mobile, engaged, current, albums]);
 
   const currentAlbum = getAlbum(current) ?? albums[0]!;
-  const destination = passportWorldSlide(currentAlbum.slug);
-  const destinationCity = destination.name[locale];
-  const destinationSearch = { world: destination.slug };
+  const destination = passportAlbum(currentAlbum.slug);
+  const destinationCity = albumText(destination.title, locale);
   const currentIndex = Math.max(
     0,
     albums.findIndex((album) => album.slug === currentAlbum.slug),
@@ -510,8 +509,8 @@ export function PhotographyEditorial() {
               </span>
               {finaleStarted ? (
                 <LocaleLink
-                  to="/ai-worlds"
-                  search={destinationSearch}
+                  to="/photography/albums/$slug"
+                  slug={destination.slug}
                   aria-label={t.photos.passportToCityLabel(destinationCity)}
                   className="photography-editorial-complete-link-compact"
                 >
@@ -818,8 +817,8 @@ export function PhotographyEditorial() {
               </div>
               {finaleCtaVisible && (
                 <LocaleLink
-                  to="/ai-worlds"
-                  search={destinationSearch}
+                  to="/photography/albums/$slug"
+                  slug={destination.slug}
                   aria-label={t.photos.passportToCityLabel(destinationCity)}
                   className="photography-editorial-complete-link"
                 >
