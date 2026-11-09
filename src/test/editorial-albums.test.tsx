@@ -162,10 +162,9 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
       expect(
         navigation.querySelectorAll(`a[href='/photography/albums/${expected.next}']`),
       ).toHaveLength(1);
-      expect(container.querySelector(".editorial-album-jump")).toHaveAttribute(
-        "href",
-        "#editorial-album-all",
-      );
+      // Stage 9c (mock v12): the album top carries no jump link; the full gallery keeps its id.
+      expect(container.querySelector(".editorial-album-jump")).toBeNull();
+      expect(container.querySelector("#editorial-album-all")).not.toBeNull();
     },
   );
 
@@ -202,9 +201,10 @@ describe.each(["paris", "istanbul"] as const)("%s editorial album", (slug) => {
       "1",
     );
     expect(container.querySelectorAll(".editorial-album h1")).toHaveLength(1);
+    // Stage 9c (mock v12): "Highlights" opens the curated chapters, then the full gallery.
     expect(
       [...container.querySelectorAll(".editorial-album h2")].map((heading) => heading.textContent),
-    ).toEqual([messages.bg.photos.allPhotos]);
+    ).toEqual([messages.bg.photos.highlights, messages.bg.photos.allPhotos]);
     const galleryItems = [
       ...container.querySelectorAll<HTMLElement>(".editorial-album-all-grid > li"),
     ];

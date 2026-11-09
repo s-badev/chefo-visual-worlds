@@ -380,7 +380,8 @@ describe("Around the World pages", () => {
     expect(container.querySelector("figure")?.parentElement).toHaveClass("max-w-[68rem]");
     expect(screen.getByRole("heading", { level: 1, name: work.en!.title! })).toBeInTheDocument();
     expect(screen.getByText(work.en!.description!)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: messages.en.ai.prompt })).toBeInTheDocument();
+    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
+    expect(screen.getByRole("heading", { name: messages.en.ai.promptRecon })).toBeInTheDocument();
     expect(screen.getByText(work.prompt)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: messages.en.ai.copyPromptButton }),
@@ -402,7 +403,8 @@ describe("Around the World pages", () => {
       screen.getByRole("heading", { level: 1, name: "Под слънцето на Арабия" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Направление 01 / 16")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: messages.bg.ai.prompt })).toBeInTheDocument();
+    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
+    expect(screen.getByRole("heading", { name: messages.bg.ai.promptRecon })).toBeInTheDocument();
     expect(screen.getByText(getAiWork(destination.slug)!.prompt)).toBeInTheDocument();
     expect(
       screen.getByText("Глинени крепостни стени, палми и високи кули на заден план."),
@@ -423,7 +425,8 @@ describe("Around the World pages", () => {
       status: "published" as const,
     };
     render(<DestinationView destination={published} />);
-    expect(screen.getByRole("heading", { name: messages.en.ai.prompt })).toBeInTheDocument();
+    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
+    expect(screen.getByRole("heading", { name: messages.en.ai.promptRecon })).toBeInTheDocument();
     expect(screen.getByText(work.prompt)).toHaveAttribute("lang", "en");
     const button = screen.getByRole("button", { name: messages.en.ai.showFullPrompt });
     expect(button).toHaveAttribute("aria-expanded", "false");

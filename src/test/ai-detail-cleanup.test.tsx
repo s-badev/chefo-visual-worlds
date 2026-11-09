@@ -53,7 +53,13 @@ const expectCleanDetail = (slug: string) => {
   expect(screen.getByText(work.description)).toBeInTheDocument();
   expect(screen.getByAltText(work.alt)).toHaveAttribute("src", work.image);
   expect(
-    screen.getByRole("heading", { name: messages[activeLocale].ai.prompt }),
+    // Stage 9c (mock v12): a reconstructed prompt is labelled as such.
+    screen.getByRole("heading", {
+      name:
+        raw.promptKind === "illustrative"
+          ? messages[activeLocale].ai.promptRecon
+          : messages[activeLocale].ai.prompt,
+    }),
   ).toBeInTheDocument();
   expect(screen.getByText(raw.prompt)).toBeInTheDocument();
   expect(

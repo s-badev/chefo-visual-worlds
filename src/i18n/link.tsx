@@ -33,10 +33,12 @@ type Props = {
   "data-ai-work-nav"?: "prev" | "next";
   /** Classes applied when the link matches the current page. */
   activeClassName?: string;
+  /** Exact match of the path and the search (e.g. a view switch whose default view has none). */
+  exactActive?: boolean;
 } & ({ to: StaticPath; slug?: never } | { to: SlugPath; slug: string });
 
 /** Link written with Bulgarian paths; automatically points to the /en version on English pages. */
-export function LocaleLink({ to, slug, hash, activeClassName, ...rest }: Props) {
+export function LocaleLink({ to, slug, hash, activeClassName, exactActive, ...rest }: Props) {
   const locale = useLocale();
   const bgPath = slug ? to.replace("$slug", slug) : to;
   const href = localizePath(bgPath, locale);
@@ -46,7 +48,7 @@ export function LocaleLink({ to, slug, hash, activeClassName, ...rest }: Props) 
       {...rest}
       {...(hash ? { hash } : {})}
       to={href as "/"}
-      activeOptions={{ exact: to === "/" }}
+      activeOptions={{ exact: exactActive ?? to === "/" }}
       activeProps={{ className: activeClassName ?? "" }}
     />
   );

@@ -130,7 +130,7 @@ describe("album preview on the Photography page", () => {
 
   it("renders the first album, decorative and inert, with no current row before the preview is live", () => {
     media({ fine: false });
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     const figure = container.querySelector("figure.photography-editorial-preview")!;
     expect(figure).toHaveAttribute("aria-hidden", "true");
     expect(figure).toHaveAttribute("inert");
@@ -144,7 +144,7 @@ describe("album preview on the Photography page", () => {
 
   it("changes nothing on touch or narrow windows: hover and focus leave the preview alone", () => {
     media({ fine: false });
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     fireEvent.mouseEnter(row(container, 4));
     fireEvent.focusIn(row(container, 6).querySelector("a")!);
     expect(layers(container)).toHaveLength(1);
@@ -157,7 +157,7 @@ describe("album preview on the Photography page", () => {
   it("makes the hovered row current, wipes in its cover, and settles to one layer", () => {
     vi.useFakeTimers();
     media({ fine: true });
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     expect(container.querySelector('[aria-current="true"]')).toHaveAttribute(
       "href",
       `/photography/albums/${albums[0]!.slug}`,
@@ -188,7 +188,7 @@ describe("album preview on the Photography page", () => {
   it("keeps a rapid sweep bounded and ends on the last row", () => {
     vi.useFakeTimers();
     media({ fine: true });
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     for (let i = 1; i < albums.length; i++) {
       fireEvent.mouseEnter(row(container, i));
       expect(layers(container).length).toBeLessThanOrEqual(ALBUM_PREVIEW.maxLayers);
@@ -212,7 +212,7 @@ describe("album preview on the Photography page", () => {
         }
       },
     );
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     act(() => vi.advanceTimersByTime(ALBUM_PREVIEW.idleTimeoutMs * 3));
     expect(requested).toEqual([]);
     fireEvent.mouseEnter(row(container, 4));
@@ -228,7 +228,7 @@ describe("album preview on the Photography page", () => {
 
   it("swaps at once under reduced motion", () => {
     media({ fine: true, reduced: true });
-    const { container } = render(<PhotographyEditorial onAllPhotos={() => {}} />);
+    const { container } = render(<PhotographyEditorial />);
     fireEvent.mouseEnter(row(container, 5));
     expect(layers(container)).toHaveLength(1);
     expect(layers(container)[0]).not.toHaveAttribute("data-dir");

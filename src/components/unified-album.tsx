@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { ArrowLeft, ZoomIn } from "lucide-react";
+import { ZoomIn } from "lucide-react";
 import { albumText, getAlbumCover, getAlbumPhotos, getAlbums, type Album } from "@/content/albums";
 import { getPilotEditorialAlbum } from "@/content/editorial";
 import {
@@ -13,10 +13,10 @@ import type { Photo } from "@/content/photos";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { useT } from "@/i18n";
-import { LocaleLink } from "@/i18n/link";
 import { albumThumb } from "@/lib/lightbox";
 import { photoLightboxItem } from "@/lib/lightbox-items";
 import { NextAlbumCard } from "@/components/next-album-card";
+import { AlbumHero } from "@/components/album-hero";
 
 function FullGallery({
   items,
@@ -173,43 +173,15 @@ export function UnifiedAlbumView({ album, view }: { album: Album; view: "highlig
       as="article"
       className={`unified-album unified-album--${selection.variant}`}
     >
-      <div className="unified-album-cover">
-        {cover && (
-          <img
-            data-opening-photo-slug={cover.slug}
-            src={cover.image}
-            alt={coverPhoto?.alt ?? cover.alt}
-            width={cover.width}
-            height={cover.height}
-            style={
-              selection.coverObjectPosition
-                ? { objectPosition: selection.coverObjectPosition }
-                : undefined
-            }
-            fetchPriority="high"
-            decoding="async"
-            sizes="100vw"
-          />
-        )}
-      </div>
-      <div className="container-page unified-album-mast">
-        <nav aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="interaction-control back-pill unified-album-back">
-            <span className="back-pill-badge" aria-hidden="true">
-              <ArrowLeft size={18} />
-            </span>
-            {t.photos.backToAlbums}
-          </LocaleLink>
-        </nav>
-        <div className="unified-album-heading">
-          <p className="eyebrow text-eyebrow">{t.photos.eyebrow}</p>
-          <h1>{albumText(album.title, locale)}</h1>
-        </div>
-        <div className="unified-album-intro">
-          <p>{albumText(album.description, locale)}</p>
-          <strong>{t.photos.count(items.length)}</strong>
-        </div>
-      </div>
+      <AlbumHero
+        album={album}
+        cover={cover}
+        coverAlt={coverPhoto?.alt}
+        count={items.length}
+        objectPosition={selection.coverObjectPosition}
+        coverClassName="unified-album-cover"
+      />
+      <h2 className="container-page album-highlights-label">{t.photos.highlights}</h2>
       <section className="container-page unified-album-highlights" aria-label={t.photos.highlights}>
         {selection.highlights.slice(1).map((highlight) => {
           const index = indexBySlug.get(highlight.photoSlug);

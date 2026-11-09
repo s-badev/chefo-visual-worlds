@@ -217,13 +217,13 @@ describe("Photography album overview", () => {
     },
   );
 
-  it("keeps the original 20rem intro column at every width, with no caption styles left", () => {
+  it("keeps one intro column rule (the mock's 26ch from 768px), with no caption styles left", () => {
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\s+/g, " ");
-    // The heading and intro columns as before the caption grew: one rule, from 900px up.
+    // Stage 9c (mock v12, .ph-int): the heading and a 26ch intro column, one rule from 768px up.
     expect(css).toContain(
-      "@media (min-width: 900px) { .photography-editorial-mast { grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem); align-items: end; column-gap: 4rem; padding-bottom: 4rem; } }",
+      "@media (min-width: 768px) { .photography-editorial-mast { grid-template-columns: minmax(0, 1fr) minmax(0, 26ch); align-items: end; padding-block: 44px 30px; }",
     );
     expect(css.match(/\.photography-editorial-mast \{ grid-template-columns:/g)).toHaveLength(1);
     expect(css).not.toContain("photography-cover-caption");
@@ -259,9 +259,10 @@ describe("Photography album overview", () => {
     expect(guard).toContain("coverMastersInOutput.length === 0");
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8").replace(/\s+/g, " ");
     const rule = css.match(/\.photography-editorial-opening-photo \{([^}]*)\}/)?.[1] ?? "";
-    // Full width at the collage's own ratio: the sides (Eiffel Tower, pier) are never cropped.
+    // Stage 9c (mock v12, .ph-cover): full width at 16:9 up to 52svh.
     expect(rule).toContain("width: 100%");
-    expect(rule).toContain("aspect-ratio: 2000 / 673");
+    expect(rule).toContain("aspect-ratio: 16 / 9");
+    expect(rule).toContain("max-height: 52svh");
     expect(rule).not.toMatch(/(^|[ ;])(height|min-height):/);
   });
 
@@ -723,8 +724,9 @@ describe("Photography album overview", () => {
   it("scopes frames to eligible Photography surfaces and keeps shared defaults unframed", () => {
     currentSearch = { view: "photos" };
     const allPhotos = render(<PhotographyView />);
-    expect(allPhotos.container.querySelectorAll(".photo-frame-keyline").length).toBeGreaterThan(0);
-    expect(allPhotos.container.querySelector("[role=dialog] .photo-frame-keyline")).toBeNull();
+    // Stage 9c (mock v12): All photos is a masonry of bare tiles, no keyline frames.
+    expect(allPhotos.container.querySelectorAll(".photo-tile").length).toBeGreaterThan(0);
+    expect(allPhotos.container.querySelectorAll(".photo-frame-keyline")).toHaveLength(0);
     cleanup();
 
     const detail = render(<PhotoDetailView photo={photos[0]!} />);
@@ -835,11 +837,29 @@ describe("Photography album overview", () => {
     expect(container.querySelectorAll(".unified-album-highlight")).toHaveLength(4);
   });
 
-  it("switches to real photos and combines theme with album location", () => {
+  it("switches to All photos with the mock's switch, theme chips and album-named tiles", () => {
+    // Stage 9c (mock v12): the view switch is two links (Albums / All photos) under the intro;
+    // All photos has theme chips on the same row, no place filter, and a masonry of tiles.
     const view = render(<PhotographyView />);
-    fireEvent.click(screen.getByRole("button", { name: "Всички снимки" }));
+    const nav = () => screen.getByRole("navigation", { name: messages.bg.photos.view });
+    expect(within(nav()).getByRole("link", { name: "Албуми" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(within(nav()).getByRole("link", { name: "Всички снимки" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(screen.queryByRole("group", { name: "Тема" })).toBeNull();
+
+    currentSearch = { view: "photos" };
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("426 кадъра")).toBeInTheDocument();
+    expect(within(nav()).getByRole("link", { name: "Всички снимки" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(within(nav()).getByRole("link", { name: "Албуми" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("status")).toHaveTextContent("426 кадъра");
+    expect(screen.queryByRole("group", { name: "Място" })).toBeNull();
     expect(view.container.querySelectorAll('a[href^="/photography/albums/"]')).toHaveLength(0);
 
     fireEvent.click(
@@ -848,43 +868,27 @@ describe("Photography album overview", () => {
       }),
     );
     view.rerender(<PhotographyView />);
-    fireEvent.click(
-      within(screen.getByRole("group", { name: "Място" })).getByRole("button", { name: "София" }),
+    const architecture = filterGalleryPhotos(getAllGalleryPhotos("bg"), { theme: "architecture" });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      messages.bg.photos.count(architecture.length),
     );
-    view.rerender(<PhotographyView />);
-
-    expect(
-      screen.getByText(
-        messages.bg.photos.count(
-          filterGalleryPhotos(getAllGalleryPhotos("bg"), {
-            theme: "architecture",
-            location: "sofia",
-          }).length,
-        ),
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Отвори „Синият час на Невски“/ }),
-    ).toBeInTheDocument();
+    const nevski = screen.getByRole("button", { name: /Отвори „Синият час на Невски“/ });
+    expect(nevski.querySelector(".photo-tile-label")).toHaveTextContent("София");
     expect(screen.queryByRole("button", { name: /Отвори „Трамвай 12/ })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Отвори „Синият час на Невски“/ }));
+    fireEvent.click(nevski);
     expect(screen.getByRole("dialog", { name: "Синият час на Невски" })).toBeInTheDocument();
+    const at = architecture.findIndex(({ photo }) => photo.title === "Синият час на Невски");
     fireEvent.click(screen.getByRole("button", { name: "Следваща снимка" }));
-    expect(screen.getByRole("dialog", { name: "Фонтан пред осветена сграда" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: architecture[at + 1]!.photo.title }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Затвори" }));
 
     fireEvent.click(
-      within(screen.getByRole("group", { name: "Тема" })).getByRole("button", {
-        name: "Море",
-      }),
+      within(screen.getByRole("group", { name: "Тема" })).getByRole("button", { name: "Всички" }),
     );
     view.rerender(<PhotographyView />);
-    expect(screen.getByText("0 кадъра")).toBeInTheDocument();
-    expect(screen.getByText(messages.bg.photos.empty)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Изчисти филтрите" }));
-    view.rerender(<PhotographyView />);
-    expect(screen.getByText("426 кадъра")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("426 кадъра");
   });
 });
