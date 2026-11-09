@@ -37,6 +37,7 @@ export function BackToTop() {
       const offset = ringOffset(progress, circumference);
       circles()[1]?.setAttribute("stroke-dashoffset", offset.toFixed(2));
       node?.style.setProperty("--f", finish.toFixed(3));
+      node?.toggleAttribute("data-complete", progress >= BACK_TO_TOP.completeAt);
       const nextEnd = finish >= 0.55;
       if (node && nextEnd !== atEnd) {
         atEnd = nextEnd;

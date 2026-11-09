@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { collectionText, getAiCollections } from "@/content/ai-collections";
 import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { useT } from "@/i18n";
@@ -28,7 +28,8 @@ type CollectionTabsProps = {
 /**
  * One pill tab per AI collection (short title from the data). The current tab is a cream pill
  * with navy text; the pill slides between tabs. On narrow screens the row scrolls sideways and
- * keeps the current tab in view.
+ * keeps the current tab in view. At rest the band is only its pills; once it sticks under the
+ * header it becomes glass (data-stuck, set after mount from an observer on the band itself).
  */
 export const CollectionTabs = forwardRef<HTMLElement, CollectionTabsProps>(
   function CollectionTabs(props, ref) {
@@ -38,6 +39,43 @@ export const CollectionTabs = forwardRef<HTMLElement, CollectionTabsProps>(
     const { active } = props;
     useSlidingIndicator(listRef, active, ".collection-tab");
     const first = useRef(true);
+    const navRef = useRef<HTMLElement | null>(null);
+    const [stuck, setStuck] = useState(false);
+
+    // Stuck = the band's top edge sits on its sticky offset. The observer's top margin is that offset
+    // plus one pixel and the only threshold is "fully inside": a band resting on its sticky line is
+    // one pixel outside, a band still lower on the page (even if cut off at the bottom) is not.
+    useEffect(() => {
+      const nav = navRef.current;
+      if (!nav || typeof IntersectionObserver === "undefined") return;
+      let observer: IntersectionObserver | undefined;
+      let frame = 0;
+      const observe = () => {
+        observer?.disconnect();
+        const top = Math.round(Number.parseFloat(getComputedStyle(nav).top) || 0);
+        observer = new IntersectionObserver(
+          ([entry]) =>
+            setStuck(!!entry && entry.intersectionRatio < 1 && entry.boundingClientRect.top <= top),
+          { rootMargin: `-${top + 1}px 0px 0px 0px`, threshold: [1] },
+        );
+        observer.observe(nav);
+      };
+      observe();
+      // --ai-tabs-top (the measured header height) is written by the parent after this effect.
+      frame = window.requestAnimationFrame(observe);
+      window.addEventListener("resize", observe);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        observer?.disconnect();
+        window.removeEventListener("resize", observe);
+      };
+    }, []);
+
+    const setNav = (node: HTMLElement | null) => {
+      navRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    };
 
     // Keep the current tab inside the row when it overflows (phones); no glide on first paint.
     useEffect(() => {
@@ -55,10 +93,11 @@ export const CollectionTabs = forwardRef<HTMLElement, CollectionTabsProps>(
 
     return (
       <nav
-        ref={ref}
+        ref={setNav}
         aria-label={props.label}
         className={cn("collection-tabs", props.className)}
         data-mode={props.mode}
+        data-stuck={stuck ? "" : undefined}
       >
         <div className="collection-tabs-inner container-page">
           <div ref={listRef} className="collection-tabs-list">

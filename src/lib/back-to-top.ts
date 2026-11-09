@@ -13,6 +13,8 @@ export const BACK_TO_TOP = {
   /** Ring stroke width in px, the same at both sizes. */
   ringStroke: 2,
   fadeMs: 300,
+  /** The ring counts as complete from this scroll progress: the button becomes a solid gold disc. */
+  completeAt: 0.99,
   /** The final page segment that resolves the calm end state. */
   endFrom: 0.965,
   endSpan: 0.03,
