@@ -24,9 +24,10 @@ import {
   getNextAlbum,
   type Album,
 } from "@/content/albums";
-import { Chip, ChipGroup, EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
+import { EmptyState, Lightbox, PageHeader, PhotoCard } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { PhotographyEditorial } from "@/components/photography-editorial";
+import { PhotographyTop } from "@/components/photography-top";
 import { EditorialAlbumView } from "@/components/editorial-album";
 import { UnifiedAlbumView } from "@/components/unified-album";
 import { getPilotEditorialAlbum } from "@/content/editorial";
@@ -73,11 +74,16 @@ function PassePartout() {
   );
 }
 
-/** Destination albums are the Photography landing page, including drafts. */
+/**
+ * Photography: the shared top (cover, intro, Albums / All photos switch), then the albums index
+ * or, with ?view=photos, every photograph as in the approved mock (theme chips on the switch row,
+ * a masonry of tiles with the album's name). An old ?location= link opens that album instead
+ * (see the route), so the place filter is no longer a control here.
+ */
 export function PhotographyView() {
   const { t, locale } = useT();
   const m = t.photos;
-  const { view, theme, location } = useSearch({ strict: false }) as PhotoSearch;
+  const { view, theme } = useSearch({ strict: false }) as PhotoSearch;
   const navigate = useNavigate();
   const [lightbox, setLightbox] = useState<number | null>(null);
   const set = (patch: PhotoSearch) => {
@@ -88,107 +94,82 @@ export function PhotographyView() {
       replace: true,
     });
   };
-  const gallery = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme, location });
-  const items = gallery.map(({ photo }) => photo);
+  const gallery = filterGalleryPhotos(getAllGalleryPhotos(locale), { theme });
   const gridRef = useRef<HTMLDivElement>(null);
 
   if (view !== "photos") {
     return (
-      <PhotographyEditorial
-        onAllPhotos={() => {
-          set({ view: "photos" });
-          window.scrollTo({ top: 0, behavior: "instant" });
-        }}
-      />
+      <>
+        <PhotographyTop view="albums" />
+        <PhotographyEditorial />
+      </>
     );
   }
 
   return (
-    <Surface tone="light" as="div" className="container-page section-y">
-      <PageHeader
-        eyebrow={m.eyebrow}
-        title={m.title}
-        intro={m.intro}
-        className="photography-all-photos-header"
-      />
-
-      <div role="group" aria-label={m.view} className="mt-10 flex gap-8 border-b">
-        <button
-          type="button"
-          aria-pressed={view !== "photos"}
-          onClick={() => set({ view: undefined })}
-          className={`interaction-control interaction-text-button min-h-11 border-b-2 pb-4 text-sm font-semibold transition-colors ${view !== "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
-        >
-          {m.albums}
-        </button>
-        <button
-          type="button"
-          aria-pressed={view === "photos"}
-          onClick={() => set({ view: "photos" })}
-          className={`interaction-control interaction-text-button min-h-11 border-b-2 pb-4 text-sm font-semibold transition-colors ${view === "photos" ? "border-gold text-foreground" : "border-transparent text-muted-foreground"}`}
-        >
-          {m.allPhotos}
-        </button>
-      </div>
-
-      <section aria-label={m.allPhotos}>
-        <div className="photo-filters mt-8 space-y-4 border-b pb-8">
-          <ChipGroup label={m.theme}>
-            <Chip active={!theme} onClick={() => set({ theme: undefined })}>
-              {t.common.all}
-            </Chip>
-            {PHOTO_FILTER_THEMES.map((value) => (
-              <Chip
-                key={value}
-                active={theme === value}
-                onClick={() => set({ theme: theme === value ? undefined : value })}
-              >
-                {photoThemeLabel(value, locale)}
-              </Chip>
-            ))}
-          </ChipGroup>
-          <ChipGroup label={m.place}>
-            <Chip active={!location} onClick={() => set({ location: undefined })}>
-              {t.common.all}
-            </Chip>
-            {getPhotoLocations().map((album) => (
-              <Chip
-                key={album.id}
-                active={location === album.slug}
-                onClick={() => set({ location: location === album.slug ? undefined : album.slug })}
-              >
-                {albumText(album.title, locale)}
-              </Chip>
-            ))}
-          </ChipGroup>
-        </div>
-        <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
-          {m.count(items.length)}
-        </p>
-        {items.length ? (
-          <div
-            ref={gridRef}
-            className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
+    <>
+      <PhotographyTop view="photos">
+        <div role="group" aria-label={m.theme} className="photo-chips">
+          <button
+            type="button"
+            aria-pressed={!theme}
+            onClick={() => set({ theme: undefined })}
+            className="photo-chip"
           >
-            {items.map((photo, index) => (
-              <div key={photo.slug} data-thumb-index={index} {...reveal(index)}>
-                <PhotoCard
-                  photo={photo}
-                  frame="keyline"
-                  themeLabel={photo.themes
-                    .map((value) => photoThemeLabel(value, locale))
-                    .join(" · ")}
-                  onOpen={() => setLightbox(index)}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            text={m.empty}
-            onClear={() => set({ theme: undefined, location: undefined })}
-          />
-        )}
+            {t.common.all}
+          </button>
+          {PHOTO_FILTER_THEMES.map((value) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={theme === value}
+              onClick={() => set({ theme: theme === value ? undefined : value })}
+              className="photo-chip"
+            >
+              {photoThemeLabel(value, locale)}
+            </button>
+          ))}
+        </div>
+      </PhotographyTop>
+      <Surface tone="light" as="section" aria-label={m.allPhotos} className="photo-all">
+        <div className="photography-wrap">
+          <p role="status" aria-live="polite" className="sr-only">
+            {m.count(gallery.length)}
+          </p>
+          {gallery.length ? (
+            <div ref={gridRef} className="photo-mas">
+              {gallery.map(({ photo, albumSlug }, index) => {
+                const album = albumSlug ? getAlbum(albumSlug) : undefined;
+                return (
+                  <button
+                    key={photo.slug}
+                    type="button"
+                    data-thumb-index={index}
+                    aria-label={t.common.openFullscreen(photo.title)}
+                    onClick={() => setLightbox(index)}
+                    className="photo-tile"
+                  >
+                    <img
+                      src={photo.image}
+                      alt=""
+                      width={photo.width}
+                      height={photo.height}
+                      loading={index < 8 ? "eager" : "lazy"}
+                      decoding="async"
+                    />
+                    {album && (
+                      <span aria-hidden="true" className="photo-tile-label">
+                        {albumText(album.title, locale)}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState text={m.empty} onClear={() => set({ theme: undefined })} />
+          )}
+        </div>
         <Lightbox
           items={gallery.map(({ photo, albumSlug }) => {
             const album = albumSlug ? getAlbum(albumSlug) : undefined;
@@ -196,10 +177,10 @@ export function PhotographyView() {
           })}
           index={lightbox}
           onIndex={setLightbox}
-          getThumb={(index) => thumbAt(gridRef.current, index)?.querySelector("button")}
+          getThumb={(index) => thumbAt(gridRef.current, index)}
         />
-      </section>
-    </Surface>
+      </Surface>
+    </>
   );
 }
 

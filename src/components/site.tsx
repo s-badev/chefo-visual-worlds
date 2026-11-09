@@ -73,16 +73,20 @@ export function BrandLockup({ onClick }: { onClick?: () => void }) {
 }
 
 const isHomePath = (pathname: string) => (pathname.replace(/^\/en(?=\/|$)/, "") || "/") === "/";
+/** An album page: its cover slides under the header, as the Home hero does (stage 9c). */
+const isAlbumPath = (pathname: string) =>
+  /^\/photography\/albums\/[^/]+\/?$/.test(pathname.replace(/^\/en(?=\/|$)/, ""));
 
 /**
- * On Home the header floats transparently over the hero until a sentinel at the top of the
- * hero leaves the viewport. The server and the first client render agree on the top state.
+ * On Home and on album pages the header floats transparently over the hero (the album cover)
+ * until a sentinel at its top leaves the viewport. The server and the first client render agree
+ * on the top state.
  */
 function useTransparentOverHero() {
   const pathname = useRouterState({
     select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
   });
-  const home = isHomePath(pathname);
+  const home = isHomePath(pathname) || isAlbumPath(pathname);
   const [atTop, setAtTop] = useState(true);
 
   useEffect(() => {

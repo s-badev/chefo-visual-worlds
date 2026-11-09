@@ -1,10 +1,11 @@
 import { useRef, useState, type CSSProperties } from "react";
-import { ArrowLeft, ArrowRight, ZoomIn } from "lucide-react";
+import { ZoomIn } from "lucide-react";
 import { albumText, getAlbumCover, getAlbumPhotos, getAlbums, type Album } from "@/content/albums";
 import { getChapterRows, getEditorialAlbum, type EditorialImage } from "@/content/editorial";
 import { Lightbox } from "@/components/site";
 import { Surface } from "@/components/surface";
 import { NextAlbumCard } from "@/components/next-album-card";
+import { AlbumHero } from "@/components/album-hero";
 import { useT } from "@/i18n";
 import { LocaleLink } from "@/i18n/link";
 import { albumThumb } from "@/lib/lightbox";
@@ -102,47 +103,15 @@ export function EditorialAlbumView({ album }: { album: Album }) {
       as="article"
       className={`editorial-album editorial-album--${selection.treatment}`}
     >
-      <div className="editorial-album-cover">
-        {cover && (
-          <img
-            data-opening-photo-slug={cover.slug}
-            src={cover.image}
-            alt={coverPhoto?.alt ?? cover.alt}
-            width={cover.width}
-            height={cover.height}
-            fetchPriority="high"
-            decoding="async"
-            sizes="100vw"
-          />
-        )}
-      </div>
-      <div className="container-page editorial-album-mast">
-        <nav className="editorial-album-breadcrumb" aria-label={t.photos.backToAlbums}>
-          <LocaleLink to="/photography" className="interaction-control back-pill editorial-album-back">
-            <span className="back-pill-badge" aria-hidden="true">
-              <ArrowLeft size={18} />
-            </span>
-            {t.photos.backToAlbums}
-          </LocaleLink>
-        </nav>
-        <div>
-          <p className="eyebrow text-eyebrow">{t.photos.eyebrow}</p>
-          <h1>{albumText(album.title, locale)}</h1>
-        </div>
-        <div className="editorial-album-intro">
-          <p>{albumText(album.description, locale)}</p>
-          <div className="editorial-album-meta">
-            <strong>{t.photos.count(items.length)}</strong>
-            {cover && (
-              <span>{items.find((photo) => photo.slug === cover.slug)?.title ?? cover.title}</span>
-            )}
-          </div>
-          <a href="#editorial-album-all" className="interaction-link interaction-text-button editorial-album-jump">
-            {t.photos.allPhotos} <ArrowRight size={16} aria-hidden="true" />
-          </a>
-        </div>
-      </div>
+      <AlbumHero
+        album={album}
+        cover={cover}
+        coverAlt={coverPhoto?.alt}
+        count={items.length}
+        coverClassName="editorial-album-cover"
+      />
 
+      <h2 className="container-page album-highlights-label">{t.photos.highlights}</h2>
       <div className="editorial-album-stories">
         {selection.chapters.map((chapter, chapterIndex) => (
           <div className="container-page editorial-album-chapter" key={chapterIndex}>

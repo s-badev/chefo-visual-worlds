@@ -11,7 +11,6 @@ import {
 import { ArrowRight } from "lucide-react";
 import { AlbumStamp } from "@/components/album-stamp";
 import { albumText, getAlbum, getAlbumCover, getAlbums, type Album } from "@/content/albums";
-import { photographyCover, photographyCoverAlt } from "@/content/photography-cover";
 import { getPhoto, localizePhoto, type Photo } from "@/content/photos";
 import { Surface } from "@/components/surface";
 import { useT, type Locale } from "@/i18n";
@@ -232,7 +231,7 @@ function PreviewLayerView({ layer, locale }: { layer: PreviewLayer; locale: Loca
 }
 
 /** P1 presentation. Published copy and covers remain in the production registries. */
-export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void }) {
+export function PhotographyEditorial() {
   const { t, locale } = useT();
   const albums = useMemo(() => getAlbums(), []);
   const firstSlug = albums[0]!.slug;
@@ -437,8 +436,6 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
           t.photos.count(mobileSelectedAlbum.photos.length),
         )
       : "";
-  const headingWords = t.home.photoTitle.split(" ");
-  const headingLastWord = headingWords.pop();
 
   useEffect(() => {
     if (!allStamped) return;
@@ -482,50 +479,12 @@ export function PhotographyEditorial({ onAllPhotos }: { onAllPhotos: () => void 
     <div className="photography-editorial">
       <Surface
         tone="light"
-        className="photography-editorial-opening"
-        aria-labelledby="photography-title"
-      >
-        <figure className="photography-editorial-opening-photo" data-photo-opening>
-          <img
-            src={photographyCover.image}
-            srcSet={photographyCover.srcSet}
-            alt={photographyCoverAlt(locale)}
-            width={photographyCover.width}
-            height={photographyCover.height}
-            fetchPriority="high"
-            decoding="async"
-            sizes="100vw"
-            style={{ objectPosition: photographyCover.objectPosition }}
-          />
-        </figure>
-        <div className="container-page photography-editorial-mast">
-          <div className="photography-editorial-heading">
-            <p className="eyebrow">{t.photos.eyebrow}</p>
-            <h1 id="photography-title">
-              {headingWords.join(" ")} <em>{headingLastWord}</em>
-            </h1>
-          </div>
-          <div className="photography-editorial-lead">
-            <p>{t.home.photoText}</p>
-          </div>
-        </div>
-      </Surface>
-
-      <Surface
-        tone="light"
         className="photography-editorial-index"
         aria-labelledby="photography-albums-title"
       >
         <div ref={innerRef} className="container-page photography-editorial-index-inner">
           <div className="photography-editorial-index-heading">
             <h2 id="photography-albums-title">{t.photos.albums}</h2>
-            <button
-              type="button"
-              onClick={onAllPhotos}
-              className="interaction-link interaction-text-button photography-editorial-all-photos"
-            >
-              {t.photos.allPhotos} <ArrowRight aria-hidden="true" size={18} />
-            </button>
           </div>
           <div className="photography-editorial-index-grid">
             <div

@@ -122,8 +122,11 @@ export const toLightboxItem = (
 /** Anchor of a work on its collection page; detail pages link back to it. */
 export const artworkAnchor = (slug: string) => `artwork-${slug}`;
 
-/** Discreet editorial prompt with expandable text. */
-export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
+/**
+ * The artwork's prompt as in the approved mock (.pr): a gold serif label, the copy button, the
+ * reconstruction note for reconstructed prompts, six lines of text and "Show full prompt".
+ */
+export function PromptNote({ work, prompt }: { work: AiWork; prompt: string }) {
   const { t } = useT();
   const m = t.ai;
   const [expanded, setExpanded] = useState(false);
@@ -133,6 +136,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
   const resetTimer = useRef<number | undefined>(undefined);
   const hasPrompt = Boolean(prompt.trim());
   const long = prompt.length > 220;
+  const reconstructed = work.promptKind === "illustrative";
 
   useEffect(() => () => window.clearTimeout(resetTimer.current), []);
 
@@ -150,16 +154,18 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
   };
 
   return (
-    <section aria-labelledby="prompt-h" className="mt-10 border-l border-gold/50 pl-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="prompt-h" className="eyebrow text-eyebrow">{m.prompt}</h2>
+    <section aria-labelledby="prompt-h" className="ai-prompt">
+      <div className="ai-prompt-head">
+        <h2 id="prompt-h" className="ai-prompt-label">
+          {reconstructed ? m.promptRecon : m.prompt}
+        </h2>
         {hasPrompt && (
           <button
             type="button"
             onClick={handleCopy}
             disabled={copying}
             className={cn(
-              "interaction-control interaction-text-button inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border py-2 text-xs font-semibold disabled:cursor-wait",
+              "ai-prompt-copy interaction-control interaction-text-button inline-flex min-h-11 items-center justify-center gap-2 rounded-sm border py-2 text-xs font-semibold disabled:cursor-wait",
               copied
                 ? "border-gold bg-gold text-navy"
                 : "border-gold/60 bg-navy text-gold hover:border-interaction-gold hover:bg-surface-raised",
@@ -184,14 +190,13 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
           {m.copyPromptError}
         </p>
       )}
+      {hasPrompt && reconstructed && <p className="ai-prompt-note">{m.promptReconNote}</p>}
       {hasPrompt ? (
         <p
           id="prompt-text"
           lang="en"
-          className={cn(
-            "mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground",
-            long && !expanded && "line-clamp-4",
-          )}
+          data-clamped={long && !expanded ? "true" : undefined}
+          className="ai-prompt-text whitespace-pre-wrap"
         >
           {prompt}
         </p>
@@ -202,7 +207,7 @@ export function PromptNote({ prompt }: { work: AiWork; prompt: string }) {
           aria-expanded={expanded}
           aria-controls="prompt-text"
           onClick={() => setExpanded((e) => !e)}
-          className="interaction-link interaction-text-button mt-2 text-xs font-semibold underline decoration-border underline-offset-4 transition-colors"
+          className="ai-prompt-more interaction-link interaction-text-button transition-colors"
         >
           {expanded ? m.showLessPrompt : m.showFullPrompt}
         </button>

@@ -531,7 +531,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
           <ArtEdge />
         </figure>
 
-        <div className="min-w-0 lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
+        <div className="ai-work-info min-w-0 lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
           <div className="flex flex-wrap items-center gap-2">
             <span className="ai-chip ai-chip--ai">{t.common.aiBadge}</span>
             {collection && (
@@ -545,8 +545,8 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
             )}
           </div>
           <h1 className="title-detail mt-5 break-words [text-wrap:balance]">{work.title}</h1>
-          <p className="mt-6 font-serif text-2xl leading-snug">{work.description}</p>
-          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
+          <p className="ai-work-desc">{work.description}</p>
+          <dl className="ai-work-facts mt-8 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 text-sm">
             {facts.map(([key, value]) => (
               <div key={key}>
                 <dt className="eyebrow text-muted-foreground">{key}</dt>
@@ -584,14 +584,19 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
               <ArtImage work={next} />
             </span>
             <span className="ai-work-next-copy">
-              <small>
-                {collectionNext.crossesCollection
-                  ? `${m.nextCollection} · ${pad2(getAiCollections().findIndex((item) => item.slug === collectionNext.toCollection.slug) + 1)} / ${pad2(getAiCollections().length)}`
-                  : `${m.nextWork} · ${pad2(collectionNext.position)} / ${pad2(collectionNext.total)}`}
-              </small>
+              {collectionNext.crossesCollection ? (
+                <small>
+                  {m.nextCollection}
+                  <span className="ai-work-next-no">
+                    {` · ${pad2(getAiCollections().findIndex((item) => item.slug === collectionNext.toCollection.slug) + 1)} / ${pad2(getAiCollections().length)}`}
+                  </span>
+                </small>
+              ) : (
+                <small>{`${m.nextWork} · ${pad2(collectionNext.position)} / ${pad2(collectionNext.total)}`}</small>
+              )}
               {collectionNext.crossesCollection && (
                 <span className="ai-work-next-collection">
-                  {collectionText(collectionNext.toCollection.shortTitle, locale)}
+                  {collectionText(collectionNext.toCollection.title, locale)}
                 </span>
               )}
               <strong>{next.title}</strong>

@@ -74,10 +74,10 @@ describe("AI artwork detail wayfinding", () => {
       const menu = screen.getByRole("group", { name: messages[locale].ai.switchCollection });
       const collectionLinks = within(menu).getAllByRole("link");
       expect(collectionLinks).toHaveLength(getAiCollections().length + 1);
-      expect(within(menu).getByRole("link", { name: /You are here|Тук сте/ })).toHaveAttribute(
-        "aria-current",
-        "page",
-      );
+      // Stage 9c (mock v12): "Сега тук" / "You are here" marks the current collection.
+      expect(
+        within(menu).getByRole("link", { name: new RegExp(messages[locale].ai.youAreHere) }),
+      ).toHaveAttribute("aria-current", "page");
     },
   );
 
