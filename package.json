@@ -4,6 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/ensure-latest.mjs",
     "dev": "vite dev",
     "build": "vite build",
     "postbuild": "node scripts/verify-editorial-strings.mjs",

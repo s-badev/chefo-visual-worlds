@@ -68,6 +68,10 @@ The project is a server-rendered application. Its local Worker build has been te
 
 ## 🚀 Run Locally
 
+- On this Windows workstation, **Chefo — отвори сайта** starts the latest `origin/main` on `http://localhost:8080`.
+- Primary-checkout `npm run dev` requires `main` and fast-forwards it when behind; it blocks other branches.
+- Linked agent/live worktrees skip the guard; `CI` or `CHEFO_SKIP_GUARD=1` explicitly bypasses it.
+
 From the project root:
 
 ```bash
