@@ -20,15 +20,15 @@ afterEach(() => {
 
 describe("stage 9h file-aligned About portrait", () => {
   it("uses the new WebP and neutral values without a portrait transform", () => {
-    expect(siteConfig.portrait.ai).toContain("about-ai.webp");
-    expect(siteConfig.portrait.real).toContain("about-real-close.webp");
+    expect(siteConfig.portrait.ai).toContain("about-ai-wide.webp");
+    expect(siteConfig.portrait.real).toContain("about-real-framed.webp");
     const css = readFileSync("src/styles.css", "utf8");
     const neutral = css.split("/* Stage 9h")[1]!;
     expect(neutral).toContain("--about-ai-scale: 1;");
     expect(neutral).toContain("--about-ai-x: 0%;");
     expect(neutral).toContain("--about-ai-y: 0%;");
     expect(css).not.toMatch(/transform:\s*translate\(var\(--about-ai-x\)/);
-    expect(readFileSync("src/assets/about-ai.webp").toString("ascii", 8, 12)).toBe("WEBP");
+    expect(readFileSync("src/assets/about-ai-wide.webp").toString("ascii", 8, 12)).toBe("WEBP");
   });
 
   it.each(["bg", "en"] as const)("keeps both toggle states and neutral alt text in %s", (lang) => {

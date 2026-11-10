@@ -77,10 +77,10 @@ afterEach(() => {
 });
 
 describe("9G.1 · the AI portrait keeps the head where the real photo has it", () => {
-  // Stage 9i: the real crop follows the native AI close-up (50% file overlay).
-  // Both files are 912 by 1140; CSS no longer compensates for either image.
-  const real = { eye: [0.535636, 0.47853], iod: 0.262139 };
-  const ai = { eye: [0.535636, 0.479386], iod: 0.270833 };
+  // Stage 9j: crop the original real photograph and align the wider AI file to it.
+  // Both files are 1080 by 1350; the measured overlay needs no CSS compensation.
+  const real = { eye: [0.52, 0.351463], iod: 0.1961 };
+  const ai = { eye: [0.517414, 0.348132], iod: 0.198039 };
   const read = (name: string) => {
     const m = css.match(new RegExp(`--about-ai-${name}: (-?[\\d.]+)(%?);`));
     if (!m) throw new Error(`--about-ai-${name} missing`);
