@@ -13,7 +13,7 @@ import { pathToFileURL } from "node:url";
 const option = (name) =>
   process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const base = option("base-url") ?? "http://localhost:8080";
-const widths = (option("widths") ?? "360,390,412").split(",").map(Number);
+const widths = (option("widths") ?? "320,360,375,390,412,430").split(",").map(Number);
 const modulePath = option("playwright-module") ?? process.env.PLAYWRIGHT_MODULE_PATH;
 const browserPath = option("browser-path") ?? process.env.CHROME_PATH;
 let playwright;
@@ -48,6 +48,7 @@ const paths = [
 ];
 const routes = paths.flatMap((route) => [route, route === "/" ? "/en" : `/en${route}`]);
 const observations = [];
+const loadingObservations = [];
 const failures = [];
 
 async function measure(page, route, width, state) {
@@ -130,11 +131,45 @@ try {
       reducedMotion: "reduce",
     });
     const page = await context.newPage();
+    await page.addInitScript(() => {
+      window.__mobileLayoutEarly = [];
+      let frames = 0;
+      const sample = () => {
+        const root = document.documentElement;
+        if (root)
+          window.__mobileLayoutEarly.push({
+            time: performance.now(),
+            readyState: document.readyState,
+            clientWidth: root.clientWidth,
+            scrollWidth: root.scrollWidth,
+          });
+        if (++frames < 120) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
     const session = await context.newCDPSession(page);
     for (const route of routes) {
       const response = await page.goto(new URL(route, base).href, { waitUntil: "networkidle" });
       assert.equal(response.status(), 200, `HTTP ${route}`);
       await page.evaluate(() => document.fonts.ready);
+      const early = await page.evaluate(() => window.__mobileLayoutEarly ?? []);
+      loadingObservations.push({
+        route,
+        width,
+        samples: early.length,
+        readyStates: [...new Set(early.map((sample) => sample.readyState))],
+        maxExcess: Math.max(0, ...early.map((sample) => sample.scrollWidth - sample.clientWidth)),
+      });
+      for (const sample of early) {
+        if (sample.clientWidth > 0 && sample.scrollWidth > sample.clientWidth)
+          failures.push({
+            route,
+            width,
+            state: "loading",
+            ...sample,
+            message: "Document scrollWidth exceeds clientWidth during load",
+          });
+      }
       await measure(page, route, width, "initial");
       const result = await pan(page, session, width);
       if (Object.values(result).some((x) => x !== 0))
@@ -159,7 +194,14 @@ try {
 } finally {
   await browser.close();
 }
-const report = { base, widths, browserVersion: browser.version(), observations, failures };
+const report = {
+  base,
+  widths,
+  browserVersion: browser.version(),
+  observations,
+  loadingObservations,
+  failures,
+};
 if (option("report")) writeFileSync(option("report"), JSON.stringify(report, null, 2));
 console.log(
   JSON.stringify(
