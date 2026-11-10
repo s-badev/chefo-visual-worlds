@@ -17,7 +17,6 @@ import {
   collectionText,
   getAiCollection,
   getAiCollections,
-  getAdjacentCollections,
   getCollectionForWork,
   getCollectionWorks,
   type AiCollection,
@@ -37,6 +36,7 @@ import {
 import { AiBackLink } from "@/components/ai-back-link";
 import { AiArtworkWayfinder } from "@/components/ai-artwork-wayfinder";
 import { AiHalls } from "@/components/ai-halls";
+import { AiCollectionNav } from "@/components/ai-collection-nav";
 import { AiCollectionGrid, AiWorksGrid } from "@/components/ai-thumbs";
 import { CollectionTabs } from "@/components/collection-tabs";
 import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
@@ -275,7 +275,6 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
   const { t, locale } = useT();
   const m = t.ai;
   const works = getCollectionWorks(collection, locale);
-  const { prev, next } = getAdjacentCollections(collection);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const meta = `${t.common.aiBadge} · ${collectionText(collection.title, locale)}`;
@@ -318,34 +317,7 @@ export function AiCollectionView({ collection }: { collection: AiCollection }) {
             />
           </>
         )}
-        <nav aria-label={m.collections} className="ai-col-nav">
-          {[
-            { c: prev, label: m.prevCollection, align: "start" as const },
-            { c: next, label: m.nextCollection, align: "end" as const },
-          ].map(({ c, label, align }) => (
-            <LocaleLink
-              key={align}
-              to="/ai-worlds/collections/$slug"
-              slug={c.slug}
-              className={cn("ai-col-nav-card", align === "end" && "ai-col-nav-card--next")}
-            >
-              <small>
-                {align === "start" ? (
-                  <>
-                    <span aria-hidden="true">← </span>
-                    {label}
-                  </>
-                ) : (
-                  <>
-                    {label}
-                    <span aria-hidden="true"> →</span>
-                  </>
-                )}
-              </small>
-              <b>{collectionText(c.title, locale)}</b>
-            </LocaleLink>
-          ))}
-        </nav>
+        <AiCollectionNav collection={collection} />
       </div>
     </Surface>
   );
