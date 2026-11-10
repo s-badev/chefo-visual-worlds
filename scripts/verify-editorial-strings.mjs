@@ -10,10 +10,36 @@ const root = path.resolve(
   process.argv.find((arg) => arg.startsWith("--root="))?.slice(7) ?? process.cwd(),
 );
 const reportPath = process.argv.slice(2).find((arg) => !arg.startsWith("--"));
+// Keep the public directory and its server/artifact roots from the same build target.
+async function resolveBuildOutput(root, vercel = process.env.VERCEL) {
+  const nitro = { client: ".output/public", server: ".output/server", root: ".output" };
+  const vercelOutput = {
+    client: ".vercel/output/static",
+    server: ".vercel/output/functions",
+    root: ".vercel/output",
+  };
+  const candidates = [
+    ...(vercel ? [vercelOutput, nitro] : [nitro, vercelOutput]),
+    { client: "dist/client", server: "dist/server", root: "dist" },
+    { client: "dist", server: "dist/server", root: "dist" },
+  ];
+  for (const candidate of candidates) {
+    try {
+      if ((await fs.stat(path.join(root, candidate.client))).isDirectory()) return candidate;
+    } catch (error) {
+      if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
+    }
+  }
+  throw new Error(
+    `Built static directory not found. Checked: ${candidates.map(({ client }) => client).join(", ")}`,
+  );
+}
+
+const buildOutput = sourceOnly ? undefined : await resolveBuildOutput(root);
 const groups = [
   { name: "source", dir: "src", extensions: [".ts", ".tsx", ".js", ".jsx"] },
-  { name: "client", dir: ".output/public", extensions: [".js", ".mjs", ".json"] },
-  { name: "server", dir: ".output/server", extensions: [".js", ".mjs", ".json"] },
+  { name: "client", dir: buildOutput?.client, extensions: [".js", ".mjs", ".json"] },
+  { name: "server", dir: buildOutput?.server, extensions: [".js", ".mjs", ".json"] },
 ].filter((group) => !sourceOnly || group.name === "source");
 const literal = /"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|`((?:\\.|[^`\\])*)`/gs;
 const jsxText = />\s*([^<>]+?)\s*</g;
@@ -34,6 +60,7 @@ async function walk(directory, extensions) {
 
 const matches = Object.fromEntries([...targets].map((value) => [value, []]));
 const scannedFiles = {};
+const scannedDirectories = Object.fromEntries(groups.map(({ name, dir }) => [name, dir]));
 for (const group of groups) {
   const files = await walk(path.join(root, group.dir), group.extensions);
   if (files.length === 0) throw new Error(`Required ${group.name} files missing in ${group.dir}`);
@@ -78,7 +105,7 @@ const publishedTitlePreserved =
 const coverMaster = /^photography-journey-cover.*\.(png|jpe?g|tiff?|bmp|psd)$/i;
 const coverMastersInOutput = sourceOnly
   ? []
-  : (await walk(path.join(root, ".output"), [""]))
+  : (await walk(path.join(root, buildOutput.root), [""]))
       .filter((file) => coverMaster.test(path.basename(file)))
       .map((file) => path.relative(root, file).replaceAll("\\", "/"));
 const pass =
@@ -91,6 +118,7 @@ const report = {
   ),
   method: `Case-sensitive complete JS string-literal and plain JSX text-node matching; decodes Unicode and hex escapes; scans ${sourceOnly ? "source" : "source, built client and built server"}.`,
   scannedFiles,
+  scannedDirectories,
   matches,
   forbiddenNew,
   publishedTitlePreserved,
@@ -102,6 +130,7 @@ console.log(
     {
       status: report.status,
       scannedFiles,
+      scannedDirectories,
       counts: Object.fromEntries([...targets].map((value) => [value, matches[value].length])),
       publishedTitlePreserved,
       coverMastersInOutput,
