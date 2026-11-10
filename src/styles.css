@@ -8227,7 +8227,14 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
   object-position: 50% 50%;
 }
 
-/* Stage 9k · Keep the existing copy control at the top right without a heading or note. */
+/* Stage 9l · A short section eyebrow shares the existing copy-button row. */
 .ai-prompt-head {
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+.ai-prompt-heading {
+  color: var(--ai-gold, #c9a46b);
+  font-family: var(--font-sans);
+  line-height: 1.4;
+  white-space: nowrap;
 }

@@ -271,13 +271,18 @@ describe("O3 · the header over an album cover", () => {
 
 describe.each(["bg", "en"] as const)("O4 · artwork page labels (%s)", (locale) => {
   const m = messages[locale].ai;
-  it("omits the prompt heading and note, keeps the sans description and the grid link", () => {
+  it("shows a short prompt label without a note, keeps the sans description and grid link", () => {
     activeLocale = locale;
     activePath = `${locale === "en" ? "/en" : ""}/ai-worlds/guardian-of-the-time-portal`;
     const raw = getAiWork("guardian-of-the-time-portal")!;
     expect(raw.promptKind).toBe("illustrative");
     const { container } = render(<AiDetailView work={raw} />);
     const prompt = screen.getByRole("region", { name: m.promptLabel });
+    const label = within(prompt).getByText(m.promptLabel);
+    expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+    expect(label.tagName).toBe("P");
+    expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+    expect(prompt).not.toHaveAttribute("aria-label");
     expect(within(prompt).queryByRole("heading")).toBeNull();
     expect(container.querySelector(".ai-prompt-note")).toBeNull();
     expect(container.querySelector(".ai-work-desc")).not.toHaveClass("font-serif");

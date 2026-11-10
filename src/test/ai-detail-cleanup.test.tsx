@@ -53,6 +53,11 @@ const expectCleanDetail = (slug: string) => {
   expect(screen.getByText(work.description)).toBeInTheDocument();
   expect(screen.getByAltText(work.alt)).toHaveAttribute("src", work.image);
   const prompt = screen.getByRole("region", { name: messages[activeLocale].ai.promptLabel });
+  const label = within(prompt).getByText(messages[activeLocale].ai.promptLabel);
+  expect(label.tagName).toBe("P");
+  expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+  expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+  expect(prompt).not.toHaveAttribute("aria-label");
   expect(within(prompt).queryByRole("heading")).toBeNull();
   expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
   expect(screen.getByText(raw.prompt)).toBeInTheDocument();
@@ -204,7 +209,7 @@ describe.each(["bg", "en"] as const)("prompt presentation and full clipboard (%s
     "captain-against-the-storm",
     "chefo-v-indiya",
   ])(
-    "keeps the full prompt, controls and metadata for %s without a visible heading or note",
+    "keeps the full prompt, controls and metadata for %s with a short visible label and no note",
     async (slug) => {
       activeLocale = locale;
       const work = getAiWork(slug)!;
@@ -224,7 +229,11 @@ describe.each(["bg", "en"] as const)("prompt presentation and full clipboard (%s
           expect(screen.queryByText(removed)).toBeNull();
         }
         expect(within(prompt).queryByRole("heading")).toBeNull();
-        expect(prompt).not.toHaveAttribute("aria-labelledby");
+        const label = within(prompt).getByText(m.promptLabel);
+        expect(label.tagName).toBe("P");
+        expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+        expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+        expect(prompt).not.toHaveAttribute("aria-label");
         const text = within(prompt).getByText(work.prompt);
         expect(text).toHaveAttribute("data-clamped", "true");
         const metadata = document.querySelector("dl")!;
