@@ -8487,3 +8487,12 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
     min-height: 44px;
   }
 }
+
+/* Stage M1 WebView: clip incidental horizontal paint at narrow viewports.
+ * Unlike hidden, clip does not create a scroll container that captures sticky elements. */
+@media (max-width: 430px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
