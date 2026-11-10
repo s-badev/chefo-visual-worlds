@@ -1,6 +1,6 @@
 // Exhibition building blocks for AI Worlds: collection scenes, artwork images, return anchors
 // and the prompt block. Colors follow the dark Surface.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import type { AiCollection } from "@/content/ai-collections";
 import type { AiWork } from "@/content/ai-works";
@@ -128,6 +128,7 @@ export const artworkAnchor = (slug: string) => `artwork-${slug}`;
 export function PromptNote({ prompt }: { prompt: string }) {
   const { t } = useT();
   const m = t.ai;
+  const headingId = useId();
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -152,8 +153,11 @@ export function PromptNote({ prompt }: { prompt: string }) {
   };
 
   return (
-    <section aria-label={m.promptLabel} className="ai-prompt">
+    <section aria-labelledby={headingId} className="ai-prompt">
       <div className="ai-prompt-head">
+        <p id={headingId} className="ai-prompt-heading section-eyebrow eyebrow uppercase">
+          {m.promptLabel}
+        </p>
         {hasPrompt && (
           <button
             type="button"

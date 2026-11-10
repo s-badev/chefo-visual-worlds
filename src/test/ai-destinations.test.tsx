@@ -365,7 +365,7 @@ describe("Around the World pages", () => {
     ).toEqual(["/ai-worlds/chefo-v-sauditska-arabiya", "/ai-worlds/chefo-v-kuba"]);
   });
 
-  it("shows a supplied portrait at natural ratio with fullscreen and an unlabelled visible prompt", () => {
+  it("shows a supplied portrait at natural ratio with fullscreen and a short visible prompt label", () => {
     const work = getAiWork("chefo-v-gartsiya")!;
     const { container } = render(<DestinationView destination={getDestination(work.slug)!} />);
     expect(screen.queryByText(messages.en.ai.portraitPlanned)).toBeNull();
@@ -381,6 +381,10 @@ describe("Around the World pages", () => {
     expect(screen.getByRole("heading", { level: 1, name: work.en!.title! })).toBeInTheDocument();
     expect(screen.getByText(work.en!.description!)).toBeInTheDocument();
     const prompt = screen.getByRole("region", { name: messages.en.ai.promptLabel });
+    const label = within(prompt).getByText(messages.en.ai.promptLabel);
+    expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+    expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+    expect(prompt).not.toHaveAttribute("aria-label");
     expect(within(prompt).queryByRole("heading")).toBeNull();
     expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(work.prompt)).toBeInTheDocument();
@@ -405,6 +409,10 @@ describe("Around the World pages", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Направление 01 / 16")).toBeInTheDocument();
     const prompt = screen.getByRole("region", { name: messages.bg.ai.promptLabel });
+    const label = within(prompt).getByText(messages.bg.ai.promptLabel);
+    expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+    expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+    expect(prompt).not.toHaveAttribute("aria-label");
     expect(within(prompt).queryByRole("heading")).toBeNull();
     expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(getAiWork(destination.slug)!.prompt)).toBeInTheDocument();
@@ -419,7 +427,7 @@ describe("Around the World pages", () => {
     ).toEqual(["/ai-worlds/chefo-rice-terraces-morning", "/ai-worlds/chefo-v-gartsiya"]);
   });
 
-  it("omits the prompt heading and expands a long artwork prompt", () => {
+  it("keeps the short prompt label and expands a long artwork prompt", () => {
     const work = aiWorks.find((w) => w.slug === "renesansov-portret")!;
     const published = {
       ...getDestination("chefo-v-gartsiya")!,
@@ -428,6 +436,10 @@ describe("Around the World pages", () => {
     };
     render(<DestinationView destination={published} />);
     const prompt = screen.getByRole("region", { name: messages.en.ai.promptLabel });
+    const label = within(prompt).getByText(messages.en.ai.promptLabel);
+    expect(label).toHaveClass("section-eyebrow", "eyebrow", "uppercase");
+    expect(prompt).toHaveAttribute("aria-labelledby", label.id);
+    expect(prompt).not.toHaveAttribute("aria-label");
     expect(within(prompt).queryByRole("heading")).toBeNull();
     expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(work.prompt)).toHaveAttribute("lang", "en");
