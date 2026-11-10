@@ -271,30 +271,30 @@ describe("O3 · the header over an album cover", () => {
 
 describe.each(["bg", "en"] as const)("O4 · artwork page labels (%s)", (locale) => {
   const m = messages[locale].ai;
-  it("labels a reconstructed prompt with its note, the description in the sans, the grid link", () => {
+  it("omits the prompt heading and note, keeps the sans description and the grid link", () => {
     activeLocale = locale;
     activePath = `${locale === "en" ? "/en" : ""}/ai-worlds/guardian-of-the-time-portal`;
     const raw = getAiWork("guardian-of-the-time-portal")!;
     expect(raw.promptKind).toBe("illustrative");
     const { container } = render(<AiDetailView work={raw} />);
-    expect(screen.getByRole("heading", { name: m.promptRecon })).toHaveClass("ai-prompt-label");
-    expect(container.querySelector(".ai-prompt-note")).toHaveTextContent(m.promptReconNote);
+    const prompt = screen.getByRole("region", { name: m.promptLabel });
+    expect(within(prompt).queryByRole("heading")).toBeNull();
+    expect(container.querySelector(".ai-prompt-note")).toBeNull();
     expect(container.querySelector(".ai-work-desc")).not.toHaveClass("font-serif");
     expect(m.toCollectionGrid).toBe(
       locale === "bg" ? "Към мрежата на колекцията" : "Open the collection grid",
     );
-    expect(m.promptRecon).toBe(locale === "bg" ? "Реконструиран промпт" : "Reconstructed prompt");
+    expect(m.promptLabel).toBe(locale === "bg" ? "Промпт" : "Prompt");
   });
 });
 
 describe("O4 · artwork page styles as the mock", () => {
-  it("sets the description in Manrope and the prompt label in the gold serif", () => {
+  it("sets the description in Manrope and omits exclusive prompt-label styling", () => {
     expect(css).toContain(
       ".ai-work-desc { color: var(--ai-on-2); font: 500 16px/1.6 var(--font-sans); }",
     );
-    expect(css).toContain(
-      ".ai-prompt-label { color: var(--ai-gold, #c9a46b); font: 600 13px/1 var(--font-serif); letter-spacing: 0.26em; text-transform: uppercase; }",
-    );
+    expect(css).not.toContain(".ai-prompt-label");
+    expect(css).not.toContain(".ai-prompt-note");
     expect(css).toContain(
       ".ai-work-page .ai-work-detail { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: stretch; }",
     );
@@ -329,13 +329,8 @@ describe.each(["bg", "en"] as const)("O4 · switcher and next band wording (%s)"
   });
 });
 
-describe("O4 · no layout shift when the fonts swap in", () => {
-  it("narrows the prompt label's Georgia fallback to Cormorant's width", () => {
-    expect(css).toContain(
-      '@font-face { font-family: "Cormorant Label Fallback"; src: local("Georgia"); size-adjust: 88.8%; }',
-    );
-    expect(css).toContain(
-      '.ai-prompt-label { font-family: "Cormorant Garamond", "Cormorant Label Fallback", Georgia, serif; }',
-    );
+describe("O4 · no unused prompt-label font fallback", () => {
+  it("removes the font face that served only the deleted prompt label", () => {
+    expect(css).not.toContain("Cormorant Label Fallback");
   });
 });

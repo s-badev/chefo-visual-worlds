@@ -554,7 +554,7 @@ export function AiDetailView({ work: raw }: { work: AiWork }) {
               </div>
             ))}
           </dl>
-          <PromptNote work={work} prompt={raw.prompt} />
+          <PromptNote prompt={raw.prompt} />
         </div>
       </div>
 

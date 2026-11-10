@@ -231,7 +231,7 @@ export function DestinationView({ destination: d }: { destination: Destination }
           </dl>
 
           {work ? (
-            <PromptNote work={work} prompt={work.prompt} />
+            <PromptNote prompt={work.prompt} />
           ) : (
             <section
               aria-labelledby="prompt-draft-h"

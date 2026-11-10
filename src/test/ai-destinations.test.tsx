@@ -365,7 +365,7 @@ describe("Around the World pages", () => {
     ).toEqual(["/ai-worlds/chefo-v-sauditska-arabiya", "/ai-worlds/chefo-v-kuba"]);
   });
 
-  it("shows a supplied portrait at natural ratio with fullscreen and honest prompt status", () => {
+  it("shows a supplied portrait at natural ratio with fullscreen and an unlabelled visible prompt", () => {
     const work = getAiWork("chefo-v-gartsiya")!;
     const { container } = render(<DestinationView destination={getDestination(work.slug)!} />);
     expect(screen.queryByText(messages.en.ai.portraitPlanned)).toBeNull();
@@ -380,8 +380,9 @@ describe("Around the World pages", () => {
     expect(container.querySelector("figure")?.parentElement).toHaveClass("max-w-[68rem]");
     expect(screen.getByRole("heading", { level: 1, name: work.en!.title! })).toBeInTheDocument();
     expect(screen.getByText(work.en!.description!)).toBeInTheDocument();
-    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
-    expect(screen.getByRole("heading", { name: messages.en.ai.promptRecon })).toBeInTheDocument();
+    const prompt = screen.getByRole("region", { name: messages.en.ai.promptLabel });
+    expect(within(prompt).queryByRole("heading")).toBeNull();
+    expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(work.prompt)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: messages.en.ai.copyPromptButton }),
@@ -403,8 +404,9 @@ describe("Around the World pages", () => {
       screen.getByRole("heading", { level: 1, name: "Под слънцето на Арабия" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Направление 01 / 16")).toBeInTheDocument();
-    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
-    expect(screen.getByRole("heading", { name: messages.bg.ai.promptRecon })).toBeInTheDocument();
+    const prompt = screen.getByRole("region", { name: messages.bg.ai.promptLabel });
+    expect(within(prompt).queryByRole("heading")).toBeNull();
+    expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(getAiWork(destination.slug)!.prompt)).toBeInTheDocument();
     expect(
       screen.getByText("Глинени крепостни стени, палми и високи кули на заден план."),
@@ -417,7 +419,7 @@ describe("Around the World pages", () => {
     ).toEqual(["/ai-worlds/chefo-rice-terraces-morning", "/ai-worlds/chefo-v-gartsiya"]);
   });
 
-  it("shows a neutral heading and expands a long artwork prompt", () => {
+  it("omits the prompt heading and expands a long artwork prompt", () => {
     const work = aiWorks.find((w) => w.slug === "renesansov-portret")!;
     const published = {
       ...getDestination("chefo-v-gartsiya")!,
@@ -425,8 +427,9 @@ describe("Around the World pages", () => {
       status: "published" as const,
     };
     render(<DestinationView destination={published} />);
-    // Stage 9c (mock v12): these destination prompts are reconstructed and labelled as such.
-    expect(screen.getByRole("heading", { name: messages.en.ai.promptRecon })).toBeInTheDocument();
+    const prompt = screen.getByRole("region", { name: messages.en.ai.promptLabel });
+    expect(within(prompt).queryByRole("heading")).toBeNull();
+    expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
     expect(screen.getByText(work.prompt)).toHaveAttribute("lang", "en");
     const button = screen.getByRole("button", { name: messages.en.ai.showFullPrompt });
     expect(button).toHaveAttribute("aria-expanded", "false");
@@ -498,8 +501,7 @@ describe("Around the World pages", () => {
   });
 
   it("does not show a copy button when the prompt is empty", () => {
-    const work = getAiWork("chefo-v-gartsiya")!;
-    render(<PromptNote work={work} prompt="" />);
+    render(<PromptNote prompt="" />);
     expect(screen.queryByRole("button", { name: messages.en.ai.copyPromptButton })).toBeNull();
   });
 });

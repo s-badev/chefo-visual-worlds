@@ -7249,7 +7249,7 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
   font-size: 14.5px;
   line-height: 1.4;
 }
-/* The prompt (.pr): a gold hairline on the left, a serif label, the note, six lines of text. */
+/* The prompt (.pr): a gold hairline on the left, the copy button and six lines of text. */
 .ai-prompt {
   padding-left: clamp(16px, 2vw, 24px);
   border-left: 1px solid rgb(201 164 107 / 0.5);
@@ -7261,12 +7261,6 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
   justify-content: space-between;
   gap: 14px;
   padding-bottom: 14px;
-}
-.ai-prompt-label {
-  color: var(--ai-gold, #c9a46b);
-  font: 600 13px/1 var(--font-serif);
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
 }
 .ai-prompt .ai-prompt-copy {
   gap: 10px;
@@ -7288,12 +7282,6 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
 .ai-prompt .ai-prompt-copy:focus-visible {
   background-color: rgb(201 164 107 / 0.14);
   box-shadow: inset 0 0 0 1px var(--interaction-gold);
-}
-.ai-prompt-note {
-  padding-bottom: 12px;
-  color: var(--ai-on-3);
-  font-size: 12.5px;
-  line-height: 1.5;
 }
 .ai-prompt-text {
   position: relative;
@@ -7966,19 +7954,6 @@ header[data-theme="light"] .site-nav-roll-in > span:nth-child(2) {
   }
 }
 
-/* O4 · The prompt sits at the foot of the info column, so its height must not change when the
-   web fonts swap in. */
-/* Its serif label sits on the same row as the copy button: until Cormorant arrives the label uses
-   Georgia narrowed to Cormorant's measured width (237 / 267px), so the row never wraps and unwraps. */
-@font-face {
-  font-family: "Cormorant Label Fallback";
-  src: local("Georgia");
-  size-adjust: 88.8%;
-}
-.ai-prompt-label {
-  font-family: "Cormorant Garamond", "Cormorant Label Fallback", Georgia, serif;
-}
-
 /* Stage 9e · owner polish: flush page canvas, shared section labels, transient album highlight
    and a glass collection band. Hero copy, card effects and metadata retain their own sizes. */
 :root {
@@ -8250,4 +8225,9 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
 /* Stage 9i: both portrait files are the exact 4:5 frame; no crop compensation. */
 .portrait-img {
   object-position: 50% 50%;
+}
+
+/* Stage 9k · Keep the existing copy control at the top right without a heading or note. */
+.ai-prompt-head {
+  justify-content: flex-end;
 }

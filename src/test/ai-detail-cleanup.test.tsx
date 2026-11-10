@@ -52,15 +52,9 @@ const expectCleanDetail = (slug: string) => {
   expect(screen.getByRole("heading", { level: 1, name: work.title })).toBeInTheDocument();
   expect(screen.getByText(work.description)).toBeInTheDocument();
   expect(screen.getByAltText(work.alt)).toHaveAttribute("src", work.image);
-  expect(
-    // Stage 9c (mock v12): a reconstructed prompt is labelled as such.
-    screen.getByRole("heading", {
-      name:
-        raw.promptKind === "illustrative"
-          ? messages[activeLocale].ai.promptRecon
-          : messages[activeLocale].ai.prompt,
-    }),
-  ).toBeInTheDocument();
+  const prompt = screen.getByRole("region", { name: messages[activeLocale].ai.promptLabel });
+  expect(within(prompt).queryByRole("heading")).toBeNull();
+  expect(prompt.querySelector(".ai-prompt-note")).toBeNull();
   expect(screen.getByText(raw.prompt)).toBeInTheDocument();
   expect(
     screen.getByRole("button", { name: messages[activeLocale].ai.copyPromptButton }),
@@ -201,4 +195,60 @@ describe("AI artwork detail cleanup", () => {
       );
     }
   });
+});
+
+describe.each(["bg", "en"] as const)("prompt presentation and full clipboard (%s)", (locale) => {
+  it.each([
+    "chefo-srednovekoven-ritsar",
+    "chefo-barber",
+    "captain-against-the-storm",
+    "chefo-v-indiya",
+  ])(
+    "keeps the full prompt, controls and metadata for %s without a visible heading or note",
+    async (slug) => {
+      activeLocale = locale;
+      const work = getAiWork(slug)!;
+      const m = messages[locale].ai;
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      const oldClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+      try {
+        render(<AiDetailView work={work} />);
+        const prompt = screen.getByRole("region", { name: m.promptLabel });
+        for (const removed of [
+          "Реконструиран промпт",
+          "Reconstructed prompt",
+          "Описва готовото изображение. Не е оригиналният текст, с който е генерирано.",
+          "It describes the finished image. It is not the original text it was generated from.",
+        ]) {
+          expect(screen.queryByText(removed)).toBeNull();
+        }
+        expect(within(prompt).queryByRole("heading")).toBeNull();
+        expect(prompt).not.toHaveAttribute("aria-labelledby");
+        const text = within(prompt).getByText(work.prompt);
+        expect(text).toHaveAttribute("data-clamped", "true");
+        const metadata = document.querySelector("dl")!;
+        expect(Boolean(within(metadata).queryByText(m.tool))).toBe(Boolean(work.tool));
+        expect(within(metadata).getByText(m.theme)).toBeInTheDocument();
+        expect(within(metadata).getByText(m.collectionLabel)).toBeInTheDocument();
+        const button = within(prompt).getByRole("button", { name: m.copyPromptButton });
+        button.focus();
+        await act(async () => fireEvent.click(button));
+        expect(writeText).toHaveBeenCalledExactlyOnceWith(work.prompt);
+        expect(within(prompt).getByRole("status")).toHaveTextContent(m.copiedPromptButton);
+        expect(button).toHaveFocus();
+        fireEvent.click(within(prompt).getByRole("button", { name: m.showFullPrompt }));
+        expect(text).not.toHaveAttribute("data-clamped");
+        expect(within(prompt).getByRole("button", { name: m.showLessPrompt })).toHaveAttribute(
+          "aria-expanded",
+          "true",
+        );
+        fireEvent.click(within(prompt).getByRole("button", { name: m.showLessPrompt }));
+        expect(text).toHaveAttribute("data-clamped", "true");
+      } finally {
+        if (oldClipboard) Object.defineProperty(navigator, "clipboard", oldClipboard);
+        else Reflect.deleteProperty(navigator, "clipboard");
+      }
+    },
+  );
 });
