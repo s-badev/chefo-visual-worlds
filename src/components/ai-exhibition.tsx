@@ -1,5 +1,5 @@
 // Exhibition building blocks for AI Worlds: collection scenes, artwork images, return anchors
-// and the discreet prompt note. Colors follow the dark Surface.
+// and the prompt block. Colors follow the dark Surface.
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import type { AiCollection } from "@/content/ai-collections";
@@ -123,10 +123,9 @@ export const toLightboxItem = (
 export const artworkAnchor = (slug: string) => `artwork-${slug}`;
 
 /**
- * The artwork's prompt as in the approved mock (.pr): a gold serif label, the copy button, the
- * reconstruction note for reconstructed prompts, six lines of text and "Show full prompt".
+ * The artwork's full prompt: the copy button, six lines of text and "Show full prompt".
  */
-export function PromptNote({ work, prompt }: { work: AiWork; prompt: string }) {
+export function PromptNote({ prompt }: { prompt: string }) {
   const { t } = useT();
   const m = t.ai;
   const [expanded, setExpanded] = useState(false);
@@ -136,7 +135,6 @@ export function PromptNote({ work, prompt }: { work: AiWork; prompt: string }) {
   const resetTimer = useRef<number | undefined>(undefined);
   const hasPrompt = Boolean(prompt.trim());
   const long = prompt.length > 220;
-  const reconstructed = work.promptKind === "illustrative";
 
   useEffect(() => () => window.clearTimeout(resetTimer.current), []);
 
@@ -154,11 +152,8 @@ export function PromptNote({ work, prompt }: { work: AiWork; prompt: string }) {
   };
 
   return (
-    <section aria-labelledby="prompt-h" className="ai-prompt">
+    <section aria-label={m.promptLabel} className="ai-prompt">
       <div className="ai-prompt-head">
-        <h2 id="prompt-h" className="ai-prompt-label">
-          {reconstructed ? m.promptRecon : m.prompt}
-        </h2>
         {hasPrompt && (
           <button
             type="button"
@@ -190,7 +185,6 @@ export function PromptNote({ work, prompt }: { work: AiWork; prompt: string }) {
           {m.copyPromptError}
         </p>
       )}
-      {hasPrompt && reconstructed && <p className="ai-prompt-note">{m.promptReconNote}</p>}
       {hasPrompt ? (
         <p
           id="prompt-text"
