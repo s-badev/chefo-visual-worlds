@@ -8404,3 +8404,86 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
     transform: none;
   }
 }
+
+/* ==== Stage M1: bounded mobile header, aligned menu controls and readable album labels. ====
+ * Keep intrinsic wordmark widths from competing with the 44px control. Constrain the wordmark,
+ * not the page canvas: no html/body overflow suppression or changes to scroll/gesture owners. */
+@media (max-width: 899px) {
+  header[data-theme] .home-header-row {
+    gap: 12px;
+  }
+  header[data-theme] .brand-lockup,
+  .site-menu-top .brand-lockup {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  header[data-theme] .brand-lockup-text,
+  .site-menu-top .brand-lockup-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .site-menu-button,
+  .site-menu-close {
+    flex: 0 0 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .site-menu {
+    padding-inline: var(--home-gutter);
+    padding-top: 0;
+  }
+  .site-menu-top {
+    height: var(--site-header-h);
+  }
+  .site-menu-link {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .site-menu-link small {
+    flex: none;
+    max-width: 100%;
+    margin-inline-start: auto;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+}
+@media (max-width: 767px) {
+  header[data-theme] .brand-lockup-text,
+  .site-menu-top .brand-lockup-text {
+    font-size: clamp(14px, 4vw, 16px);
+    letter-spacing: 0.14em;
+  }
+}
+@container albums-section (max-width: 767px) {
+  .photography-editorial-mobile-cap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .photography-editorial-mobile-cap-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .photography-editorial-mobile-cap-meta b,
+  .photography-editorial-destination-name {
+    min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    line-height: 1.15;
+  }
+  .photography-editorial-row,
+  .photography-editorial-row[data-mobile-selected="true"] {
+    grid-template-columns: minmax(0, 1fr) 42px auto;
+    row-gap: 4px;
+    padding-block: 8px;
+  }
+  .photography-editorial-row[data-mobile-selected="true"] .photography-editorial-row-go {
+    grid-column: 1 / -1;
+    justify-self: end;
+    min-height: 44px;
+  }
+}
