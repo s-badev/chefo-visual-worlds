@@ -8496,3 +8496,9 @@ header[data-theme="dark"]:not([data-transparent]):not([data-scrolled]) {
     overflow-x: clip;
   }
 }
+
+/* Stage M2: focusable Home section target below the sticky header. */
+.home-section-target {
+  scroll-margin-top: calc(var(--site-header-h, 64px) + 16px);
+  outline: none;
+}
