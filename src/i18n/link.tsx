@@ -40,15 +40,38 @@ type Props = {
 /** Link written with Bulgarian paths; automatically points to the /en version on English pages. */
 export function LocaleLink({ to, slug, hash, activeClassName, exactActive, ...rest }: Props) {
   const locale = useLocale();
-  const bgPath = slug ? to.replace("$slug", slug) : to;
+  const section = to === "/about" ? "about" : hash;
+  const bgPath = to === "/about" ? "/" : slug ? to.replace("$slug", slug) : to;
   const href = localizePath(bgPath, locale);
+  const onClick = rest.onClick;
   // Route files exist for every localized path; the href is resolved against them.
   return (
     <Link
       {...rest}
-      {...(hash ? { hash } : {})}
+      {...(section ? { hash: section } : {})}
+      {...(to === "/about" ? { hashScrollIntoView: false } : {})}
+      onClick={(event) => {
+        onClick?.(event);
+        if (
+          to !== "/about" ||
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
+        if (window.location.pathname === href && window.location.hash === "#about") {
+          event.preventDefault();
+          window.dispatchEvent(new Event("home-section-navigation"));
+        }
+      }}
       to={href as "/"}
-      activeOptions={{ exact: exactActive ?? to === "/" }}
+      activeOptions={{
+        exact: to === "/about" || (exactActive ?? to === "/"),
+        includeHash: to === "/about" || to === "/",
+      }}
       activeProps={{ className: activeClassName ?? "" }}
     />
   );

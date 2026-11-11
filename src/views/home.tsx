@@ -139,7 +139,9 @@ export function HomeView() {
         {/* Stacked below lg; the width cap keeps the frame under 75dvh tall on short screens. */}
         <PortraitSwitch className="w-full max-w-[min(380px,calc(75dvh*var(--about-portrait-ratio)))]" />
         <div className="max-w-2xl">
-          <h2 className="title-section">{m.aboutTitle}</h2>
+          <h2 id="about" tabIndex={-1} className="title-section home-section-target">
+            {m.aboutTitle}
+          </h2>
           <p className="mt-6 font-serif text-2xl leading-snug">{m.aboutLead}</p>
           {m.aboutText.split("\n\n").map((paragraph) => (
             <p key={paragraph} className="mt-5 text-muted-foreground">{paragraph}</p>

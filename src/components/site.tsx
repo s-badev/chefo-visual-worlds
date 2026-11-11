@@ -198,6 +198,7 @@ function useScrolledHeader() {
  */
 function HeaderNav({ pathname }: { pathname: string }) {
   const { t } = useT();
+  const hash = useRouterState({ select: (s) => s.location.hash });
   const wrapRef = useRef<HTMLDivElement>(null);
   const indRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -252,7 +253,7 @@ function HeaderNav({ pathname }: { pathname: string }) {
     listen(window, "resize", () => place(current(), true));
     void document.fonts?.ready.then(() => place(current(), true));
     return () => offs.forEach((off) => off());
-  }, [pathname]);
+  }, [pathname, hash]);
   return (
     <nav aria-label={t.nav.main} className="site-nav hidden lg:flex lg:items-center">
       <div ref={wrapRef} className="site-nav-wrap">
@@ -278,6 +279,7 @@ function HeaderNav({ pathname }: { pathname: string }) {
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const sectionNavigation = useRef(false);
   const ref = useRef<HTMLElement>(null);
   const { theme, animate } = useHeaderTheme(ref);
   const overHero = useTransparentOverHero();
@@ -328,7 +330,16 @@ export function SiteHeader() {
             {/* Radix locks page scroll through the overlay. */}
             <Dialog.Overlay className="site-menu-overlay" />
             {/* The mock's menu: navy, opening as a circle from the menu button, big serif links. */}
-            <Dialog.Content aria-describedby={undefined} className="site-menu">
+            <Dialog.Content
+              aria-describedby={undefined}
+              className="site-menu"
+              onCloseAutoFocus={(event) => {
+                if (sectionNavigation.current) {
+                  event.preventDefault();
+                  sectionNavigation.current = false;
+                }
+              }}
+            >
               <Dialog.Title className="sr-only">{t.nav.mobile}</Dialog.Title>
               <div data-theme="dark" className="home-header-row site-menu-top">
                 <BrandLockup onClick={() => setOpen(false)} />
@@ -341,7 +352,10 @@ export function SiteHeader() {
                   <LocaleLink
                     key={n.to}
                     to={n.to}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      sectionNavigation.current = n.key === "about";
+                      setOpen(false);
+                    }}
                     className="site-menu-link"
                     activeClassName="is-current"
                   >

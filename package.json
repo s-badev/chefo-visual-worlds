@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "check:mobile-layout": "node scripts/check-mobile-layout.mjs",
+    "check:section-navigation": "node scripts/check-section-navigation.mjs",
     "format": "prettier --write .",
     "test": "vitest run",
     "pretest": "node scripts/verify-editorial-strings.mjs --source-only",

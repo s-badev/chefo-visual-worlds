@@ -1,3 +1,4 @@
+import { HomeSectionScroll } from "@/components/home-section-scroll";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -115,6 +116,7 @@ function RootComponent() {
       >
         {t.nav.skip}
       </a>
+      <HomeSectionScroll />
       <SiteHeader />
       <main id="content" tabIndex={-1} className="outline-none">
         <Outlet />
