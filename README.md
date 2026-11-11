@@ -1,108 +1,98 @@
-# 📸 CHEFO — VISUAL WORLDS
+````markdown
+# CHEFO — Visual Worlds
 
-### Real places. Endless worlds.
+*Real places. Endless worlds.*
 
-![Photography](https://img.shields.io/badge/Photography-13%20Albums-1B2832?style=for-the-badge)
-![AI Worlds](https://img.shields.io/badge/AI%20Worlds-4%20Collections%20%7C%2064%20Works-B38A58?style=for-the-badge)
-![Languages](https://img.shields.io/badge/Languages-BG%20%2F%20EN-34514C?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Pre--launch-555555?style=for-the-badge)
+![Photography: 13 albums](https://img.shields.io/badge/Photography-13%20albums-1B2832?style=flat-square)
+![AI Worlds: 4 collections, 64 works](https://img.shields.io/badge/AI%20Worlds-4%20collections%20%2F%2064%20works-B38A58?style=flat-square)
+![Languages: Bulgarian and English](https://img.shields.io/badge/Languages-BG%20%2F%20EN-34514C?style=flat-square)
+![Status: Pre-launch](https://img.shields.io/badge/Status-Pre--launch-555555?style=flat-square)
 
-**CHEFO — VISUAL WORLDS** is Stefan Badev’s visual portfolio: travel photography and AI-created stories, brought together by one recognizable point of view.
+**CHEFO — Visual Worlds** is the personal portfolio of **Stefan Badev (Chefo)**. It brings together original travel photography and AI-generated visual stories in a bilingual, server-rendered web application.
 
----
+The project follows one point of view across two kinds of work. In the photography archive, Stefan is behind the camera, documenting places he has visited. In the AI collections, he steps into the frame as a recurring character, reimagined across historical eras, professions, cinematic scenes, and destinations around the world.
 
-## ✨ Highlights
+## Explore the portfolio
 
-- 🌅 **Sunny Beach 2025 / 2126** — a real coastal view meets an imagined future.
-- 🌍 **Photography** — 13 albums built around places, moments, and visual rhythm.
-- 🎭 **AI Worlds** — 4 collections with 16 works each.
-- 🇧🇬 🇬🇧 **Bulgarian and English** throughout the experience.
-- 🖼️ **Lightbox** for viewing photography and AI artworks at a larger scale.
-- 📱 **Responsive design** with desktop and mobile navigation.
-- 👤 **About** with a real-photo / AI-version switch.
+| Section | Route | What you’ll find |
+| --- | --- | --- |
+| **Home** | `/` | The *Sunny Beach 2025 / 2126* opening, where a real view of Bulgaria’s Black Sea coast meets an imagined future, followed by selected albums and AI artworks. |
+| **Photography** | `/photography` | Thirteen travel albums with individual covers, photo sequences, and a lightbox for closer viewing. |
+| **AI Worlds** | `/ai-worlds` | Four curated collections of AI-generated artwork, with individual pages and editorial text in Bulgarian and English. |
+| **About** | `/about` | The creator’s approach to photography and AI imagery, with a portrait toggle between a real photograph and an AI version. |
 
----
+### Photography
 
-## 🧭 Explore the Portfolio
+The photography archive is organized by destination. Each album has a cover and its own sequence of images, with captions that provide context where it adds to the photograph.
 
-| Section | What you will find |
+| Region | Albums |
 | --- | --- |
-| **Home** | The Sunny Beach 2025 / 2126 hero and selected visual stories. |
-| **Photography** | Travel albums, including Paris and Istanbul. |
-| **AI Worlds** | Four distinct series and 64 artworks. |
-| **About** | The person behind the camera and the imagined worlds. |
+| **Bulgaria** | Sofia, Sunny Beach, Sveti Vlas, Nessebar, Burgas, Plovdiv, Rila |
+| **France** | Paris, Lyon |
+| **Türkiye** | Istanbul, Edirne, Bodrum |
+| **Tunisia** | Tunisia |
 
----
+### AI Worlds
 
-## 📷 Photography
+The four collections contain **16 works each**. The same protagonist appears in different roles and settings, giving the series a visual connection while allowing each collection to develop its own mood and subject.
 
-Thirteen albums present real places as photographic stories. Each album has its own cover, image sequence, and viewing experience.
-
-**Paris** and **Istanbul** are among the featured albums. The photographs remain the focus; text adds context without describing what the viewer can already see.
-
----
-
-## 🎭 AI Worlds
-
-Four collections explore different versions of the same recognizable protagonist.
-
-- **Around the World** — editorial travel portraits shaped by place and culture.
-- **Cinema Archetypes** — characters, tension, and stories in progress.
-- **64 artworks in total** — each with its own image, title, and BG/EN editorial text.
-
----
-
-## 🧰 Built With
-
-| Area | Stack |
+| Collection | Focus |
 | --- | --- |
-| Application | TanStack Start, React, TypeScript |
+| **Historical Eras and Rulers** | Portraits inspired by historical figures, period dress, and the visual language of power. |
+| **Professions and Roles** | Character studies built around the tools, clothing, and settings of different occupations. |
+| **Cinema Archetypes** | Film-inspired scenes that use lighting, action, and composition to suggest a larger story. |
+| **Around the World** | Editorial portraits shaped by the architecture, clothing, and atmosphere of different destinations. |
+
+## Experience and implementation
+
+- **Bilingual interface and editorial content.** The portfolio supports Bulgarian and English, including navigation and artwork descriptions.
+- **Responsive image viewing.** Layouts adapt to desktop and mobile, with a lightbox available for both photographs and AI artworks.
+- **Motion preferences.** Motion effects respect the visitor’s reduced-motion setting.
+- **Server rendering.** TanStack Start renders the application on the server. The current production build targets a Cloudflare Worker module.
+- **Content checks.** Alongside application tests, project-specific checks cover images and editorial content.
+
+## Technology stack
+
+| Area | Technology |
+| --- | --- |
+| Application and routing | TanStack Start, React, TypeScript |
 | Build and styling | Vite, Tailwind CSS |
-| Server rendering | Nitro SSR |
-| Current build target | Cloudflare Worker module |
-| Quality checks | Vitest and editorial image/content guards |
+| Server runtime | Nitro |
+| Production build target | Cloudflare Worker module |
+| Testing | Vitest and project-specific content checks |
 
-The project is a server-rendered application. Its local Worker build has been tested; **a public host has not been connected yet**.
+## Run locally
 
----
-
-## 🚀 Run Locally
-
-- On this Windows workstation, **Chefo — отвори сайта** starts the latest `origin/main` on `http://localhost:8080`.
-- Primary-checkout `npm run dev` requires `main` and fast-forwards it when behind; it blocks other branches.
-- Linked agent/live worktrees skip the guard; `CI` or `CHEFO_SKIP_GUARD=1` explicitly bypasses it.
-
-From the project root:
+You’ll need Git, Node.js, and npm. Clone the repository, install the locked dependencies, and start the development server:
 
 ```bash
+git clone https://github.com/s-badev/chefo-visual-worlds.git
+cd chefo-visual-worlds
 npm ci
 npm run dev
 ```
 
-Open the address shown by the development server. To produce a fresh build:
+Open the address printed by the development server.
+
+### Development checkout guard
+
+In the primary checkout, `npm run dev` requires the `main` branch and may fast-forward it to `origin/main` when it is behind. For development or review on a feature branch, use a linked Git worktree, where the guard is skipped. CI environments and sessions with `CHEFO_SKIP_GUARD=1` also bypass the guard.
+
+### Verify and build
+
+Run the type checker, test suite, and production build from the repository root:
 
 ```bash
+npx tsc --noEmit
+npx vitest run --maxWorkers=1
 npm run build
 ```
 
----
+## Project status
 
-## ✅ Project Status
+**Pre-launch.** The portfolio has been reviewed locally in Bulgarian and English at desktop and mobile widths. The production build and local Cloudflare Worker have been verified with representative pages and images. Public deployment is pending.
 
-| Milestone | Status |
-| --- | --- |
-| Photography and AI Worlds | Implemented and reviewed locally |
-| BG/EN and responsive interactions | Reviewed on desktop and mobile widths |
-| Production build | Passed in an isolated clean install |
-| Local Cloudflare Worker | Verified with representative pages and images |
-| Public deployment | **Pending** |
-
-The production URL will be added after hosting is chosen and the deployed site is checked.
-
----
-
-## 👤 Creator
+## Creator
 
 **Stefan Badev (Chefo)** — photography, AI imagery, and editorial direction.
-
-*Real places. Endless worlds.*
+````
